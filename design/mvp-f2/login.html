@@ -1,19 +1,20 @@
 <!doctype html>
-<html lang="es" data-theme="light"><head>
+<html lang="es" data-theme="light">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Entrar · Ocicat Bella</title>
-<meta name="description" content="Entrá sin contraseña: te mandamos un link a tu email. Mirá todo como visitante o unite a una sala con tu código.">
+<title>Iniciar sesión · Ocicat Bella</title>
+<meta name="description" content="Ingreso al aula digital de Ocicat Bella. Alumnos sin contraseña vía magic link o QR, docentes y directivos con contraseña.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=DM+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script>
 (function () {
   try {
     var t = localStorage.getItem('ocicat-theme');
     if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', t);
-  } catch (e) { /* sin localStorage: queda claro */ }
+  } catch (e) { /* sin localStorage */ }
 })();
 </script>
 <style>
@@ -31,7 +32,10 @@
     --on-accent: #FBF9F4;
     --amber: #8A6D1B;
     --amber-soft: rgba(138, 109, 27, .09);
+    --amber-border: #D9B44A;
     --chip-fg: #1B4332;
+    --info-bg: #EAF2EE;
+    --info-border: #BCD4C6;
   }
   [data-theme="dark"] {
     color-scheme: dark;
@@ -47,12 +51,15 @@
     --on-accent: #101512;
     --amber: #D9B44A;
     --amber-soft: rgba(217, 180, 74, .10);
+    --amber-border: #8A6D1B;
     --chip-fg: #7BC79A;
+    --info-bg: #1A2620;
+    --info-border: #2D4C3A;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    margin: 0; min-height: 100dvh;
+    min-height: 100dvh;
     display: flex; flex-direction: column;
     background: var(--bg);
     color: var(--fg);
@@ -69,11 +76,6 @@
     border-radius: 6px;
   }
 
-  .sr-only {
-    position: absolute; width: 1px; height: 1px;
-    margin: -1px; padding: 0; border: 0;
-    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
-  }
   .skip-link {
     position: absolute; left: 16px; top: -48px; z-index: 100;
     background: var(--accent); color: var(--on-accent);
@@ -82,8 +84,13 @@
   }
   .skip-link:focus-visible { top: 12px; }
 
-  /* ---------- Header mínimo ---------- */
-  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px clamp(16px, 4vw, 28px); }
+  /* ---------- Header ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px clamp(16px, 4vw, 32px);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
   .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
   .brand-mark { display: block; width: 32px; height: 32px; }
   .brand-name {
@@ -92,51 +99,116 @@
   }
   .brand-name em { font-style: italic; color: var(--accent); }
 
+  .topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .topbar-link {
+    font-size: .9rem; font-weight: 500; color: var(--muted);
+    text-decoration: none; padding: 6px 12px; border-radius: 8px;
+    transition: color .15s ease, background .15s ease;
+  }
+  .topbar-link:hover { color: var(--fg); background: var(--accent-soft); }
+
   .theme-toggle {
-    width: 42px; height: 42px; border-radius: 12px;
+    width: 40px; height: 40px; border-radius: 10px;
     display: grid; place-items: center;
     background: transparent; color: var(--fg);
     border: 1px solid var(--border-strong);
     cursor: pointer; transition: background .15s ease, border-color .15s ease;
   }
   .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
-  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   [data-theme="light"] .icon-sun { display: none; }
   [data-theme="dark"] .icon-moon { display: none; }
 
   /* ---------- Centro ---------- */
-  main { flex: 1; display: flex; justify-content: center; padding: clamp(24px, 6vh, 64px) 20px 60px; }
-  .col { width: min(440px, 100%); }
+  main {
+    flex: 1; display: flex; justify-content: center; align-items: flex-start;
+    padding: clamp(24px, 5vh, 48px) 16px 60px;
+  }
+  .col { width: min(460px, 100%); }
 
-  .bienvenida { text-align: center; margin-bottom: 22px; }
+  /* Banner Laboratorio QR */
+  .banner-pc-lab {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    text-decoration: none;
+    color: var(--fg);
+    box-shadow: 0 4px 12px rgba(0,0,0,.03);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .banner-pc-lab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,.07);
+    border-color: var(--accent-hover);
+  }
+  .banner-pc-lab-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--accent-soft); color: var(--accent);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .banner-pc-lab-icon svg { width: 24px; height: 24px; }
+  .banner-pc-lab-text { flex: 1; min-width: 0; }
+  .banner-pc-lab-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .96rem; font-weight: 700; color: var(--accent);
+  }
+  .banner-pc-lab-badge {
+    font-size: .72rem; font-family: "JetBrains Mono", monospace;
+    padding: 2px 7px; border-radius: 6px;
+    background: var(--accent); color: var(--on-accent);
+    font-weight: 600; text-transform: uppercase;
+  }
+  .banner-pc-lab-desc { font-size: .84rem; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+  .banner-pc-lab-arrow { color: var(--accent); font-weight: 700; font-size: 1.2rem; }
+
+  /* Encabezado */
+  .bienvenida { text-align: center; margin-bottom: 20px; }
   .bienvenida h1 {
     margin: 0 0 6px;
     font-family: "Instrument Serif", serif; font-weight: 400;
-    font-size: clamp(2rem, 5vw, 2.5rem); line-height: 1.08;
+    font-size: clamp(2rem, 5vw, 2.4rem); line-height: 1.1;
     letter-spacing: -.01em;
   }
-  .bienvenida p { margin: 0; color: var(--muted); font-size: .97rem; }
+  .bienvenida p { margin: 0; color: var(--muted); font-size: .95rem; }
 
-  /* ---------- Card de acceso ---------- */
+  /* Card de acceso */
   .auth-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 26px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.02);
   }
 
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
-  .field label { font-size: .9rem; font-weight: 600; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .field label { font-size: .88rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
   .field input {
     min-height: 46px; padding: 11px 14px;
     font: inherit; color: var(--fg);
     background: var(--bg);
     border: 1px solid var(--border-strong); border-radius: 11px;
-    transition: border-color .15s ease;
+    transition: border-color .15s ease, box-shadow .15s ease;
   }
-  .field input::placeholder { color: var(--muted); opacity: 1; }
-  .field input:hover { border-color: var(--accent); }
-  .field-hint { margin: -8px 0 15px; font-size: .8rem; color: var(--muted); }
+  .field input::placeholder { color: var(--muted); opacity: .85; }
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    outline: none;
+  }
+  .field-hint { margin: -10px 0 16px; font-size: .8rem; color: var(--muted); line-height: 1.35; }
+
+  .password-wrap { position: relative; display: flex; }
+  .password-wrap input { width: 100%; padding-right: 44px; }
+  .password-toggle {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; padding: 8px; cursor: pointer;
+    color: var(--muted); border-radius: 8px; display: grid; place-items: center;
+  }
+  .password-toggle:hover { color: var(--fg); }
+  .password-toggle svg { width: 18px; height: 18px; }
 
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -144,100 +216,141 @@
     border-radius: 12px; border: 1px solid transparent;
     font: inherit; font-weight: 600; font-size: .98rem;
     cursor: pointer; text-decoration: none;
-    transition: background .15s ease, border-color .15s ease, color .15s ease;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
   }
+  .btn:active { transform: translateY(1px); }
   .btn-primary { background: var(--accent); color: var(--on-accent); }
   .btn-primary:hover { background: var(--accent-hover); }
-  .btn-text-row { display: flex; justify-content: center; gap: 14px; margin-top: 14px; }
+  .btn-secondary {
+    background: transparent; color: var(--accent);
+    border-color: var(--accent);
+  }
+  .btn-secondary:hover { background: var(--accent-soft); }
+
+  .btn-text-row { display: flex; justify-content: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
   .btn-text {
     background: none; border: none; cursor: pointer;
-    font: inherit; font-size: .88rem; font-weight: 500; color: var(--muted);
+    font: inherit; font-size: .86rem; font-weight: 500; color: var(--muted);
     padding: 6px 10px; border-radius: 8px;
     text-decoration: underline; text-underline-offset: 3px;
   }
   .btn-text:hover { color: var(--accent); }
 
+  /* Detección de rol badge */
+  .role-indicator {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 8px;
+    font-size: .78rem; font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .role-indicator.alumno {
+    background: var(--info-bg); color: var(--accent); border: 1px solid var(--info-border);
+  }
+  .role-indicator.docente {
+    background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-border);
+  }
+
+  /* Info box de registro cerrado */
+  .info-registro-cerrado {
+    margin-top: 18px; padding: 12px 14px;
+    background: var(--info-bg); border: 1px solid var(--info-border);
+    border-radius: 12px;
+    font-size: .84rem; color: var(--fg);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .info-registro-cerrado svg {
+    flex-shrink: 0; width: 18px; height: 18px; margin-top: 1px;
+    color: var(--accent);
+  }
+
   /* Estado "link enviado" */
+  .estado-enviado { text-align: center; }
   .estado-enviado[hidden] { display: none; }
   .enviado-icono {
-    width: 52px; height: 52px; margin: 2px auto 12px;
+    width: 54px; height: 54px; margin: 0 auto 14px;
     border-radius: 50%;
     display: grid; place-items: center;
     background: var(--accent); color: var(--on-accent);
   }
-  .enviado-icono svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .enviado-icono svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; }
   .estado-enviado h2 {
     margin: 0 0 6px;
     font-family: "Instrument Serif", serif; font-weight: 400;
-    font-size: 1.55rem; line-height: 1.15; text-align: center;
+    font-size: 1.6rem; line-height: 1.15;
   }
-  .estado-enviado p { margin: 0 0 4px; color: var(--muted); font-size: .95rem; text-align: center; }
+  .estado-enviado p { margin: 0 0 10px; color: var(--muted); font-size: .92rem; }
   .estado-enviado .mail-resaltado {
-    font-family: "JetBrains Mono", monospace; font-size: .88rem;
-    color: var(--fg); overflow-wrap: anywhere;
+    font-family: "JetBrains Mono", monospace; font-size: .9rem;
+    color: var(--fg); background: var(--accent-soft); padding: 2px 6px; border-radius: 6px;
+    display: inline-block; word-break: break-all;
   }
-  .sin-password {
-    display: flex; align-items: flex-start; gap: 10px;
-    margin-top: 18px; padding: 12px 14px;
-    background: var(--accent-soft); border-radius: 12px;
-    font-size: .86rem; color: var(--fg);
-  }
-  .sin-password svg {
-    flex-shrink: 0; width: 17px; height: 17px; margin-top: 2px;
-    fill: none; stroke: var(--chip-fg); stroke-width: 1.9;
-    stroke-linecap: round; stroke-linejoin: round;
-  }
-  .sin-password p { margin: 0; }
 
-  /* ---------- Bloque código de sala ---------- */
+  /* Bloque Código de Escuela / Sala */
   .codigo-bloque {
-    margin-top: 18px;
-    background: transparent;
-    border: 2px dashed var(--border-strong);
-    border-radius: 20px;
-    padding: 24px;
+    margin-top: 20px;
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: 18px;
+    padding: 20px;
     text-align: center;
   }
   .codigo-bloque h2 {
     margin: 0 0 4px;
     font-family: "Instrument Serif", serif; font-weight: 400;
-    font-size: 1.45rem; line-height: 1.15;
+    font-size: 1.35rem; line-height: 1.15;
   }
-  .codigo-bloque p { margin: 0 0 16px; color: var(--muted); font-size: .92rem; }
-  .codigo-fila { display: flex; gap: 10px; align-items: stretch; }
+  .codigo-bloque p { margin: 0 0 14px; color: var(--muted); font-size: .88rem; }
+  .codigo-fila { display: flex; gap: 8px; align-items: stretch; }
   .codigo-input {
-    flex: 1; min-width: 0; min-height: 50px;
+    flex: 1; min-width: 0; min-height: 46px;
     text-align: center;
-    font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 1.25rem;
-    letter-spacing: .22em; text-transform: uppercase;
+    font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 1.15rem;
+    letter-spacing: .2em; text-transform: uppercase;
     color: var(--fg);
-    background: var(--surface);
-    border: 1px solid var(--border-strong); border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border-strong); border-radius: 11px;
     transition: border-color .15s ease;
   }
-  .codigo-input::placeholder { letter-spacing: .22em; color: var(--muted); opacity: 1; }
-  .codigo-input:hover { border-color: var(--accent); }
+  .codigo-input::placeholder { letter-spacing: .15em; color: var(--muted); opacity: .7; }
+  .codigo-input:focus { border-color: var(--accent); outline: none; }
   .btn-unirme {
-    flex-shrink: 0; min-height: 50px; padding-inline: 20px;
-    border-radius: 12px;
+    flex-shrink: 0; min-height: 46px; padding-inline: 18px;
+    border-radius: 11px;
     border: 1px solid var(--accent);
-    background: transparent; color: var(--accent);
+    background: var(--accent-soft); color: var(--accent);
     font: inherit; font-weight: 600; cursor: pointer;
     transition: background .15s ease, color .15s ease;
   }
   .btn-unirme:hover { background: var(--accent); color: var(--on-accent); }
-  .codigo-hint { margin: 10px 0 0; font-size: .78rem; color: var(--muted); }
+  .codigo-hint { margin: 8px 0 0; font-size: .78rem; color: var(--muted); }
 
-  /* ---------- Toast ---------- */
+  /* Switcher de Demo para testing */
+  .demo-bar {
+    margin-top: 24px; padding: 12px 16px;
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+    border: 1px solid var(--border); border-radius: 12px;
+    font-size: .8rem; text-align: center;
+  }
+  .demo-bar-title { font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .05em; font-size: .74rem; }
+  .demo-buttons { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .demo-btn {
+    background: var(--surface); border: 1px solid var(--border-strong);
+    color: var(--fg); padding: 4px 10px; border-radius: 6px; font-size: .76rem;
+    cursor: pointer; font-family: "JetBrains Mono", monospace;
+  }
+  .demo-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Toast */
   .toast {
     position: fixed; left: 50%; bottom: 28px; z-index: 70;
     transform: translate(-50%, 14px);
     background: var(--fg); color: var(--bg);
     padding: 11px 20px; border-radius: 999px;
-    font-size: .93rem; font-weight: 500;
+    font-size: .92rem; font-weight: 500;
     opacity: 0; pointer-events: none;
     transition: opacity .22s ease, transform .22s ease;
     max-width: min(92vw, 480px); text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
@@ -251,7 +364,7 @@
 <a class="skip-link" href="#contenido">Ir al contenido</a>
 
 <header class="topbar" data-od-id="app-header">
-  <a class="brand" href="#" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+  <a class="brand" href="index.html" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
     <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
       <g fill="var(--accent)">
         <path d="M8 17 L9.5 4 L18 11 Z"></path>
@@ -263,71 +376,163 @@
     <span class="brand-name">Ocicat <em>bella</em></span>
   </a>
 
-  <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema" aria-label="Cambiar tema claro u oscuro">
-    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
-    </svg>
-    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="4.2"></circle>
-      <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"></path>
-    </svg>
-  </button>
+  <div class="topbar-actions">
+    <a class="topbar-link" href="index.html">Volver al inicio</a>
+    <a class="topbar-link" href="nav-estados.html" title="Ver matriz de navegación">Guía Nav</a>
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema" aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"></path>
+      </svg>
+    </button>
+  </div>
 </header>
 
 <main id="contenido">
   <div class="col">
 
+    <!-- Acceso Rápido PC Laboratorio (QR inverso) -->
+    <a href="pair.html" class="banner-pc-lab" data-od-id="banner-login-qr">
+      <div class="banner-pc-lab-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+          <line x1="7" y1="7" x2="7.01" y2="7"></line>
+          <line x1="17" y1="7" x2="17.01" y2="7"></line>
+          <line x1="7" y1="17" x2="7.01" y2="17"></line>
+          <line x1="17" y1="17" x2="17.01" y2="17"></line>
+        </svg>
+      </div>
+      <div class="banner-pc-lab-text">
+        <div class="banner-pc-lab-title">
+          ¿Estás en la PC del colegio?
+          <span class="banner-pc-lab-badge">Rápido</span>
+        </div>
+        <div class="banner-pc-lab-desc">Iniciá sesión escaneando un código QR con tu celular. Sin contraseñas.</div>
+      </div>
+      <span class="banner-pc-lab-arrow" aria-hidden="true">→</span>
+    </a>
+
+    <!-- Bienvenida / Título -->
     <div class="bienvenida" data-od-id="bienvenida-login">
-      <h1 id="titulo-login">Buenas, ¿ya sos parte?</h1>
-      <p>Mirá todo como visitante o entrá con tu cuenta: acá no hay contraseñas.</p>
+      <h1 id="titulo-login">Ingresá a tu aula</h1>
+      <p id="subtitulo-login">Escribí tu email institucional para ingresar a tu espacio.</p>
     </div>
 
+    <!-- Auth Card Unificada -->
     <div class="auth-card" data-od-id="card-auth">
-      <form id="form-magic" novalidate data-od-id="form-magic-link">
+
+      <!-- PASO 1: Ingreso de Email Único -->
+      <form id="form-email-step" novalidate data-od-id="form-email-login">
         <div class="field">
-          <label for="m-nombre">Nombre completo</label>
-          <input id="m-nombre" type="text" autocomplete="name" placeholder="Valentina Costa">
+          <label for="input-email">Email educativo</label>
+          <input id="input-email" type="email" autocomplete="email" placeholder="vos@escuela.edu.ar" required autofocus>
         </div>
+        <p class="field-hint" id="email-hint">Alumnos ingresan sin contraseña por magic link. Docentes y directivos con su clave.</p>
+
+        <button class="btn btn-primary" type="submit" id="btn-continuar-email" data-od-id="btn-continuar-email">
+          Continuar
+        </button>
+      </form>
+
+      <!-- PASO 2A: Docente / Directivo (Paso Password) -->
+      <form id="form-password-step" hidden novalidate data-od-id="form-password-login">
+        <div class="role-indicator docente">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Cuenta Docente / Directivo detectada
+        </div>
+
         <div class="field">
-          <label for="m-email">Email</label>
-          <input id="m-email" type="email" autocomplete="email" placeholder="vos@alumnos.epet.edu.ar">
+          <label for="docente-email-display">Email</label>
+          <input id="docente-email-display" type="email" readonly style="opacity:.8; cursor:not-allowed; background:var(--surface);">
         </div>
-        <p class="field-hint">Si ya tenés cuenta, es el mismo email de siempre.</p>
-        <button class="btn btn-primary" type="submit" data-od-id="btn-pedir-link">Mandame el link de acceso</button>
-        <div class="sin-password" data-od-id="nota-sin-password">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2"/>
-          </svg>
-          <p><b>Sin contraseñas para alumnos:</b> te mandamos un link a tu email y entrás desde ahí.</p>
+
+        <div class="field">
+          <label for="input-password">
+            <span>Contraseña</span>
+            <a href="#" id="link-olvido-pass" class="btn-text" style="padding:0; font-size:.8rem;">¿Olvidaste tu clave?</a>
+          </label>
+          <div class="password-wrap">
+            <input id="input-password" type="password" autocomplete="current-password" placeholder="Tu contraseña" required>
+            <button type="button" class="password-toggle" id="btn-toggle-pass" aria-label="Mostrar u ocultar contraseña">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" type="submit" id="btn-ingresar-docente" data-od-id="btn-ingresar-docente">
+          Ingresar al panel docente
+        </button>
+
+        <div class="btn-text-row">
+          <button class="btn-text" type="button" id="btn-volver-email">Usar otro email</button>
         </div>
       </form>
 
-      <div class="estado-enviado" id="estado-enviado" hidden data-od-id="panel-link-enviado" role="status">
+      <!-- PASO 2B: Alumno (Magic link enviado) -->
+      <div class="estado-enviado" id="estado-magic-enviado" hidden data-od-id="panel-magic-enviado" role="status">
+        <div class="role-indicator alumno">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          Cuenta de Alumno · Sin contraseña
+        </div>
+
         <span class="enviado-icono" aria-hidden="true">
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
         </span>
-        <h2>Listo, revisá tu correo</h2>
-        <p>Te mandamos un link a<br><b class="mail-resaltado" id="mail-enviado">vos@alumnos.epet.edu.ar</b></p>
-        <p>Tocá el link del mail y entrás directo a tu cuenta.</p>
-        <div class="btn-text-row">
-          <button class="btn-text" type="button" id="btn-reenviar" data-od-id="btn-reenviar-link">Reenviar link</button>
-          <button class="btn-text" type="button" id="btn-otro-mail" data-od-id="btn-usar-otro-email">Usar otro email</button>
+        <h2>¡Te enviamos tu link de acceso!</h2>
+        <p>Revisá tu correo en <b class="mail-resaltado" id="alumno-mail-enviado">vos@alumnos.edu.ar</b></p>
+        <p style="font-size:.86rem; color:var(--muted);">Tocá el enlace del mensaje para entrar directamente a tu aula o emparejar la app en tu celular.</p>
+
+        <div class="btn-text-row" style="margin-top:16px;">
+          <button class="btn-text" type="button" id="btn-reenviar-magic">Reenviar link</button>
+          <button class="btn-text" type="button" id="btn-cambiar-email-magic">Usar otro email</button>
         </div>
       </div>
+
+      <!-- Registro Cerrado (DESIGN.md §13.9.5) -->
+      <div class="info-registro-cerrado" data-od-id="info-registro-cerrado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <div>
+          <b>Registro cerrado:</b> Las cuentas de alumnos y docentes son creadas por la escuela. Si no tenés usuario, pedíle a tu docente que te sume a su aula.
+        </div>
+      </div>
+
     </div>
 
-    <div class="codigo-bloque" data-od-id="bloque-codigo-sala">
-      <h2 id="titulo-codigo">¿Tenés código de sala?</h2>
-      <p>Como visitante podés ver todo el contenido educativo y los proyectos.
-         Para <b>entrar a una sala</b> necesitás tu cuenta registrada:
-         el código une a la sala, pero no reemplaza el registro.</p>
+    <!-- Bloque de Ingreso por Código (Escuela o Aula) -->
+    <div class="codigo-bloque" data-od-id="bloque-codigo-escuela">
+      <h2 id="titulo-codigo">¿Tenés código de escuela o aula?</h2>
+      <p>Entrá como visitante para explorar materiales públicos o sumarte a tu aula.</p>
       <div class="codigo-fila">
-        <input class="codigo-input" id="f-codigo" type="text" maxlength="7"
-               placeholder="PROG5A" autocomplete="off" spellcheck="false"
-               aria-label="Código de la sala" data-od-id="input-codigo-sala">
-        <button class="btn-unirme" type="button" id="btn-unirme" data-od-id="btn-unirme">Unirme</button>
+        <input class="codigo-input" id="input-codigo" type="text" maxlength="8"
+               placeholder="ET1-BA" autocomplete="off" spellcheck="false"
+               aria-label="Código de la escuela o aula" data-od-id="input-codigo">
+        <button class="btn-unirme" type="button" id="btn-ingresar-codigo" data-od-id="btn-unirme-codigo">Ingresar</button>
       </div>
-      <p class="codigo-hint">Primero creá tu cuenta con el link; después ingresás el código una sola vez.</p>
+      <p class="codigo-hint">Ejemplo: código de escuela para ver proyectos o código de curso para vincular tu cuenta.</p>
+    </div>
+
+    <!-- Barra de pruebas rápidas (para evaluación de UX) -->
+    <div class="demo-bar">
+      <div class="demo-bar-title">🧪 Probar flujos en este mockup:</div>
+      <div class="demo-buttons">
+        <button type="button" class="demo-btn" id="demo-alumno">👤 Simular Alumno</button>
+        <button type="button" class="demo-btn" id="demo-docente">👨‍🏫 Simular Docente</button>
+        <button type="button" class="demo-btn" id="demo-directivo">🏫 Simular Directivo</button>
+        <button type="button" class="demo-btn" id="demo-qr">📱 Ir a Login QR (PC)</button>
+      </div>
     </div>
 
   </div>
@@ -355,55 +560,149 @@
     toast.textContent = msg;
     toast.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2800);
   }
 
-  /* ---------- Magic link ---------- */
-  var form = $('#form-magic');
-  var enviado = $('#estado-enviado');
-  var mailEnviado = $('#mail-enviado');
+  /* ---------- Referencias Formulario ---------- */
+  var formEmail = $('#form-email-step');
+  var formPassword = $('#form-password-step');
+  var estadoMagic = $('#estado-magic-enviado');
+  var inputEmail = $('#input-email');
+  var docenteEmailDisplay = $('#docente-email-display');
+  var alumnoMailEnviado = $('#alumno-mail-enviado');
+  var inputPass = $('#input-password');
 
-  form.addEventListener('submit', function (e) {
+  /* Lista heurística de roles para el demo */
+  function esDocenteODirector(email) {
+    var e = email.toLowerCase();
+    return e.startsWith('docente') || e.startsWith('profe') || e.startsWith('director') || 
+           e.startsWith('admin') || e.includes('.docente.') || e.includes('profesor') ||
+           e.startsWith('roberto') || e.startsWith('laura');
+  }
+
+  /* Procesar Email */
+  formEmail.addEventListener('submit', function (e) {
     e.preventDefault();
-    var nombre = $('#m-nombre').value.trim();
-    var email = $('#m-email').value.trim();
-    if (!nombre) { $('#m-nombre').focus(); aviso('Decinos cómo te llamás.'); return; }
-    if (!email || email.indexOf('@') === -1) { $('#m-email').focus(); aviso('Necesitamos un email válido para mandarte el link.'); return; }
-    mailEnviado.textContent = email;
-    form.hidden = true;
-    enviado.hidden = false;
-    $('#btn-reenviar').focus();
-    aviso('Link enviado a tu email.');
-  });
-
-  $('#btn-reenviar').addEventListener('click', function () {
-    aviso('Te mandamos el link otra vez a ' + mailEnviado.textContent + '.');
-  });
-
-  $('#btn-otro-mail').addEventListener('click', function () {
-    enviado.hidden = true;
-    form.hidden = false;
-    $('#m-email').focus();
-  });
-
-  /* ---------- Código de sala ---------- */
-  var fCodigo = $('#f-codigo');
-  fCodigo.addEventListener('input', function () {
-    this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  });
-  $('#btn-unirme').addEventListener('click', function () {
-    var cod = fCodigo.value.trim();
-    if (!cod) { fCodigo.focus(); aviso('Escribí el código que te pasó tu docente.'); return; }
-    if (!form.hidden) {
-      fCodigo.focus();
-      aviso('Primero creá tu cuenta con el link: el código no reemplaza el registro.');
+    var email = inputEmail.value.trim();
+    if (!email || email.indexOf('@') === -1) {
+      inputEmail.focus();
+      aviso('Por favor ingresá un correo electrónico válido.');
       return;
     }
-    aviso('Buscando la sala «' + cod + '»…');
+
+    if (esDocenteODirector(email)) {
+      /* Flujo Docente/Directivo -> Paso contraseña */
+      formEmail.hidden = true;
+      formPassword.hidden = false;
+      docenteEmailDisplay.value = email;
+      inputPass.value = '';
+      inputPass.focus();
+      aviso('Cuenta docente identificada. Ingresá tu contraseña.');
+    } else {
+      /* Flujo Alumno -> Magic link directo sin password */
+      formEmail.hidden = true;
+      estadoMagic.hidden = false;
+      alumnoMailEnviado.textContent = email;
+      aviso('¡Link de acceso enviado a tu correo!');
+    }
   });
+
+  /* Volver desde Password a Email */
+  $('#btn-volver-email').addEventListener('click', function () {
+    formPassword.hidden = true;
+    formEmail.hidden = false;
+    inputEmail.focus();
+  });
+
+  /* Volver desde Magic Link a Email */
+  $('#btn-cambiar-email-magic').addEventListener('click', function () {
+    estadoMagic.hidden = true;
+    formEmail.hidden = false;
+    inputEmail.focus();
+  });
+
+  /* Reenviar Magic Link */
+  $('#btn-reenviar-magic').addEventListener('click', function () {
+    aviso('Te enviamos un nuevo enlace a ' + alumnoMailEnviado.textContent);
+  });
+
+  /* Submit Docente */
+  formPassword.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pass = inputPass.value;
+    if (!pass) {
+      inputPass.focus();
+      aviso('Ingresá tu contraseña.');
+      return;
+    }
+    aviso('Iniciando sesión docente...');
+    setTimeout(function () {
+      window.location.href = 'dashboard.html';
+    }, 800);
+  });
+
+  /* Toggle Password */
+  $('#btn-toggle-pass').addEventListener('click', function () {
+    var tipo = inputPass.type === 'password' ? 'text' : 'password';
+    inputPass.type = tipo;
+    this.style.color = tipo === 'text' ? 'var(--accent)' : 'var(--muted)';
+  });
+
+  /* Olvido contraseña */
+  $('#link-olvido-pass').addEventListener('click', function (e) {
+    e.preventDefault();
+    aviso('Comunicate con el administrador de la escuela para restablecer tu clave.');
+  });
+
+  /* Código de Escuela o Aula */
+  var inputCodigo = $('#input-codigo');
+  inputCodigo.addEventListener('input', function () {
+    this.value = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+  });
+
+  $('#btn-ingresar-codigo').addEventListener('click', function () {
+    var cod = inputCodigo.value.trim();
+    if (!cod) {
+      inputCodigo.focus();
+      aviso('Ingresá el código de la escuela o de tu aula.');
+      return;
+    }
+    aviso('Ingresando con código «' + cod + '»...');
+    setTimeout(function () {
+      window.location.href = 'materiales.html';
+    }, 700);
+  });
+
+  /* Botones Demo */
+  $('#demo-alumno').addEventListener('click', function () {
+    inputEmail.value = 'tiziano.maidana@alumnos.epet1.edu.ar';
+    estadoMagic.hidden = true;
+    formPassword.hidden = true;
+    formEmail.hidden = false;
+    formEmail.dispatchEvent(new Event('submit'));
+  });
+
+  $('#demo-docente').addEventListener('click', function () {
+    inputEmail.value = 'profe.garcia@epet1.edu.ar';
+    estadoMagic.hidden = true;
+    formPassword.hidden = true;
+    formEmail.hidden = false;
+    formEmail.dispatchEvent(new Event('submit'));
+  });
+
+  $('#demo-directivo').addEventListener('click', function () {
+    inputEmail.value = 'direccion@epet1.edu.ar';
+    estadoMagic.hidden = true;
+    formPassword.hidden = true;
+    formEmail.hidden = false;
+    formEmail.dispatchEvent(new Event('submit'));
+  });
+
+  $('#demo-qr').addEventListener('click', function () {
+    window.location.href = 'pair.html';
+  });
+
 })();
 </script>
-
-
-
-</body></html>
+</body>
+</html>

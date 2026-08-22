@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conectar con QR · Ocicat Bella</title>
+<meta name="description" content="Iniciá sesión en esta computadora compartida escaneando el código QR con tu celular. Rápido, seguro y sin contraseñas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --amber-border: #D9B44A;
+    --chip-fg: #1B4332;
+    --info-bg: #EAF2EE;
+    --info-border: #BCD4C6;
+    --danger: #9E2A2B;
+    --danger-soft: rgba(158, 42, 43, .08);
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --amber-border: #8A6D1B;
+    --chip-fg: #7BC79A;
+    --info-bg: #1A2620;
+    --info-border: #2D4C3A;
+    --danger: #E06D6D;
+    --danger-soft: rgba(224, 109, 109, .12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100dvh;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  /* ---------- Header ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px clamp(16px, 4vw, 32px);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 32px; height: 32px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.35rem; line-height: 1;
+    letter-spacing: .01em;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .pc-terminal-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 12px; border-radius: 999px;
+    background: var(--accent-soft); border: 1px solid var(--accent);
+    color: var(--accent); font-family: "JetBrains Mono", monospace;
+    font-size: .8rem; font-weight: 600;
+  }
+  .pc-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #10B981; box-shadow: 0 0 8px #10B981;
+    display: inline-block;
+  }
+
+  .topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .topbar-link {
+    font-size: .9rem; font-weight: 500; color: var(--muted);
+    text-decoration: none; padding: 6px 12px; border-radius: 8px;
+    transition: color .15s ease, background .15s ease;
+  }
+  .topbar-link:hover { color: var(--fg); background: var(--accent-soft); }
+
+  .theme-toggle {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Centro Principal ---------- */
+  main {
+    flex: 1; display: flex; justify-content: center; align-items: center;
+    padding: clamp(24px, 4vh, 48px) 16px;
+  }
+  .pair-container {
+    width: min(840px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .pair-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  @media (max-width: 768px) {
+    .pair-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Columna Izquierda: QR */
+  .qr-pane {
+    padding: clamp(24px, 4vw, 36px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 95%, var(--bg));
+  }
+  @media (max-width: 768px) {
+    .qr-pane { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
+  .qr-card {
+    position: relative;
+    padding: 16px;
+    background: #FFFFFF;
+    border: 2px solid var(--border-strong);
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.06);
+    display: inline-flex; flex-direction: column; align-items: center;
+    transition: transform .2s ease;
+  }
+  .qr-card:hover { transform: scale(1.02); }
+
+  .qr-svg {
+    width: 210px; height: 210px;
+    display: block;
+  }
+
+  .qr-overlay-status {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,.94);
+    border-radius: 18px;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px;
+    color: #1A1D23;
+  }
+  .qr-overlay-status.active { display: flex; }
+
+  /* Indicador de Pulso y Timer */
+  .qr-timer-bar {
+    width: 100%; max-width: 220px;
+    height: 4px; border-radius: 999px;
+    background: var(--border);
+    margin-top: 14px;
+    overflow: hidden;
+  }
+  .qr-timer-progress {
+    height: 100%;
+    background: var(--accent);
+    width: 100%;
+    transition: width 1s linear;
+  }
+
+  .qr-caption {
+    margin-top: 10px;
+    font-size: .82rem; color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+  }
+  .qr-refresh-btn {
+    margin-top: 8px;
+    background: none; border: none;
+    color: var(--accent); font-size: .84rem; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .qr-refresh-btn:hover { color: var(--accent-hover); }
+
+  /* Columna Derecha: Instrucciones y Estados */
+  .info-pane {
+    padding: clamp(24px, 4vw, 36px);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+
+  .info-header h1 {
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(1.8rem, 3.5vw, 2.3rem); line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .info-header p {
+    color: var(--muted); font-size: .94rem; margin-bottom: 22px;
+  }
+
+  /* Lista de Pasos */
+  .steps-list {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 16px;
+    margin-bottom: 24px;
+  }
+  .step-item {
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    font-weight: 700; font-size: .86rem;
+    display: grid; place-items: center; flex-shrink: 0;
+    border: 1px solid var(--accent);
+  }
+  .step-content { flex: 1; font-size: .92rem; }
+  .step-content strong { color: var(--fg); font-weight: 600; }
+  .step-content span { color: var(--muted); display: block; font-size: .84rem; }
+
+  /* Estado dinámico de conexión */
+  .status-box {
+    padding: 14px 16px; border-radius: 14px;
+    margin-bottom: 18px;
+    font-size: .88rem;
+    display: flex; align-items: center; gap: 12px;
+    transition: all .2s ease;
+  }
+  .status-box.waiting {
+    background: var(--info-bg); border: 1px solid var(--info-border); color: var(--fg);
+  }
+  .status-box.scanned {
+    background: var(--amber-soft); border: 1px solid var(--amber-border); color: var(--fg);
+  }
+  .status-box.connected {
+    background: #E8F5E9; border: 1px solid #A5D6A7; color: #1B5E20;
+  }
+
+  .status-spinner {
+    width: 18px; height: 18px; border: 2px solid currentColor;
+    border-top-color: transparent; border-radius: 50%;
+    animation: spin 1s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Botones y Links */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; width: 100%;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .94rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-secondary {
+    background: var(--surface); color: var(--accent);
+    border-color: var(--border-strong);
+  }
+  .btn-secondary:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+  /* Footer de Seguridad y Fallback */
+  .security-footer {
+    border-top: 1px solid var(--border);
+    padding: 14px 24px;
+    background: color-mix(in srgb, var(--surface) 70%, var(--bg));
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; font-size: .82rem; color: var(--muted);
+  }
+  .security-item { display: flex; align-items: center; gap: 6px; }
+  .security-item svg { width: 15px; height: 15px; color: var(--accent); }
+  .fallback-link {
+    color: var(--fg); font-weight: 600; text-decoration: underline;
+  }
+  .fallback-link:hover { color: var(--accent); }
+
+  /* Testing / Simulador bar */
+  .demo-sim-bar {
+    width: min(840px, 100%);
+    margin: 16px auto 0;
+    padding: 10px 16px;
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px; font-size: .8rem;
+  }
+  .sim-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sim-btn {
+    background: var(--bg); border: 1px solid var(--border-strong);
+    color: var(--fg); padding: 4px 10px; border-radius: 6px; font-size: .76rem;
+    cursor: pointer; font-family: "JetBrains Mono", monospace;
+  }
+  .sim-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .92rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="topbar" data-od-id="app-header">
+  <a class="brand" href="index.html" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+    <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+      <g fill="var(--accent)">
+        <path d="M8 17 L9.5 4 L18 11 Z"></path>
+        <path d="M28 17 L26.5 4 L18 11 Z"></path>
+        <rect x="5" y="10" width="26" height="23" rx="10"></rect>
+      </g>
+      <text x="18" y="27.5" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="16" fill="var(--on-accent)">O</text>
+    </svg>
+    <span class="brand-name">Ocicat <em>bella</em></span>
+  </a>
+
+  <!-- Badge de terminal actual -->
+  <div class="pc-terminal-badge" data-od-id="badge-pc-id" title="Identificador único del equipo en el aula">
+    <span class="pc-dot"></span>
+    <span>LAB-PC07</span>
+    <span style="opacity:.6;">· Lab Informática</span>
+  </div>
+
+  <div class="topbar-actions">
+    <a class="topbar-link" href="login.html">Ingreso clásico</a>
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema" aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div>
+    <div class="pair-container" data-od-id="container-pair">
+      <div class="pair-grid">
+
+        <!-- COLUMNA IZQUIERDA: Código QR de un solo uso -->
+        <div class="qr-pane" data-od-id="pane-qr-code">
+          <div class="qr-card" id="qr-wrapper">
+            <!-- QR Vectorial de Alta Resolución con Branding Ocicat -->
+            <svg class="qr-svg" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Código QR para inicio de sesión en LAB-PC07">
+              <rect width="220" height="220" fill="#FFFFFF"/>
+              <!-- Patrón QR estético y nítido -->
+              <!-- Esquinas / Finder patterns -->
+              <path d="M14 14 H74 V74 H14 Z M26 26 V62 H62 V26 Z M38 38 H50 V50 H38 Z" fill="#1B4332"/>
+              <path d="M146 14 H206 V74 H146 Z M158 26 V62 H194 V26 Z M170 38 H182 V50 H170 Z" fill="#1B4332"/>
+              <path d="M14 146 H74 V206 H14 Z M26 158 V194 H62 V158 Z M38 170 H50 V182 H38 Z" fill="#1B4332"/>
+              
+              <!-- Data modules simulados -->
+              <g fill="#1A1D23">
+                <rect x="86" y="18" width="10" height="10"/>
+                <rect x="102" y="18" width="10" height="10"/>
+                <rect x="122" y="18" width="10" height="10"/>
+                <rect x="86" y="34" width="10" height="10"/>
+                <rect x="114" y="34" width="10" height="10"/>
+                <rect x="94" y="50" width="10" height="10"/>
+                <rect x="122" y="50" width="10" height="10"/>
+                <rect x="86" y="66" width="10" height="10"/>
+                <rect x="102" y="66" width="10" height="10"/>
+
+                <rect x="18" y="86" width="10" height="10"/>
+                <rect x="34" y="86" width="10" height="10"/>
+                <rect x="50" y="86" width="10" height="10"/>
+                <rect x="66" y="86" width="10" height="10"/>
+                <rect x="86" y="86" width="10" height="10"/>
+                <rect x="114" y="86" width="10" height="10"/>
+                <rect x="138" y="86" width="10" height="10"/>
+                <rect x="162" y="86" width="10" height="10"/>
+                <rect x="194" y="86" width="10" height="10"/>
+
+                <rect x="18" y="102" width="10" height="10"/>
+                <rect x="50" y="102" width="10" height="10"/>
+                <rect x="66" y="102" width="10" height="10"/>
+                <rect x="146" y="102" width="10" height="10"/>
+                <rect x="178" y="102" width="10" height="10"/>
+
+                <rect x="18" y="122" width="10" height="10"/>
+                <rect x="34" y="122" width="10" height="10"/>
+                <rect x="50" y="122" width="10" height="10"/>
+                <rect x="138" y="122" width="10" height="10"/>
+                <rect x="162" y="122" width="10" height="10"/>
+                <rect x="194" y="122" width="10" height="10"/>
+
+                <rect x="86" y="146" width="10" height="10"/>
+                <rect x="114" y="146" width="10" height="10"/>
+                <rect x="138" y="146" width="10" height="10"/>
+                <rect x="170" y="146" width="10" height="10"/>
+                <rect x="194" y="146" width="10" height="10"/>
+
+                <rect x="86" y="162" width="10" height="10"/>
+                <rect x="102" y="162" width="10" height="10"/>
+                <rect x="146" y="162" width="10" height="10"/>
+                <rect x="162" y="162" width="10" height="10"/>
+                <rect x="178" y="162" width="10" height="10"/>
+
+                <rect x="94" y="178" width="10" height="10"/>
+                <rect x="122" y="178" width="10" height="10"/>
+                <rect x="138" y="178" width="10" height="10"/>
+                <rect x="186" y="178" width="10" height="10"/>
+
+                <rect x="86" y="194" width="10" height="10"/>
+                <rect x="114" y="194" width="10" height="10"/>
+                <rect x="154" y="194" width="10" height="10"/>
+                <rect x="170" y="194" width="10" height="10"/>
+                <rect x="194" y="194" width="10" height="10"/>
+              </g>
+
+              <!-- Isotipo Ocicat Central -->
+              <rect x="88" y="88" width="44" height="44" rx="10" fill="#FAF7F2" stroke="#1B4332" stroke-width="2"/>
+              <g transform="translate(94, 94)">
+                <path d="M4 14 L5.5 3 L14 9 Z" fill="#1B4332"/>
+                <path d="M28 14 L26.5 3 L18 9 Z" fill="#1B4332"/>
+                <rect x="2" y="8" width="28" height="20" rx="8" fill="#1B4332"/>
+                <text x="16" y="23" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="14" fill="#FAF7F2">O</text>
+              </g>
+            </svg>
+
+            <!-- Overlay de Estado (cuando escanea o conecta) -->
+            <div class="qr-overlay-status" id="qr-overlay">
+              <div class="status-spinner" style="width:36px; height:36px; border-width:3px; margin-bottom:12px; color:var(--accent);"></div>
+              <strong id="qr-overlay-title" style="font-size:1.05rem;">Dispositivo detectado</strong>
+              <p id="qr-overlay-desc" style="font-size:.84rem; color:var(--muted); margin-top:4px;">Confirmá en tu celular para acceder.</p>
+            </div>
+          </div>
+
+          <!-- Barra de expiración de QR (TTL 60s) -->
+          <div class="qr-timer-bar">
+            <div class="qr-timer-progress" id="timer-progress"></div>
+          </div>
+          <div class="qr-caption" id="timer-caption">El código se renueva en <span id="segundos-restantes">58</span>s</div>
+          <button class="qr-refresh-btn" type="button" id="btn-refresh-qr">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Generar nuevo código QR
+          </button>
+        </div>
+
+        <!-- COLUMNA DERECHA: Instrucciones y Acción -->
+        <div class="info-pane">
+          <div>
+            <div class="info-header">
+              <h1>Iniciá sesión en esta PC</h1>
+              <p>Escaneá este código QR con la app de Ocicat en tu celular. No necesitás escribir contraseñas en computadoras compartidas.</p>
+            </div>
+
+            <!-- Pasos 1, 2, 3 -->
+            <ol class="steps-list">
+              <li class="step-item">
+                <span class="step-num">1</span>
+                <div class="step-content">
+                  <strong>Abrí Ocicat en tu celular</strong>
+                  <span>Ingresá a tu app escolar instalada o tu sesión guardada.</span>
+                </div>
+              </li>
+              <li class="step-item">
+                <span class="step-num">2</span>
+                <div class="step-content">
+                  <strong>Escaneá este código QR</strong>
+                  <span>Tocá el botón <em>"Escanear QR de PC"</em> en la barra de tu celular.</span>
+                </div>
+              </li>
+              <li class="step-item">
+                <span class="step-num">3</span>
+                <div class="step-content">
+                  <strong>Confirmá la conexión</strong>
+                  <span>Aceptá la solicitud <em>"¿Conectar con LAB-PC07?"</em> en tu pantalla.</span>
+                </div>
+              </li>
+            </ol>
+
+            <!-- Caja de Estado en Vivo -->
+            <div class="status-box waiting" id="status-live-box">
+              <div class="status-spinner" id="box-spinner"></div>
+              <div id="box-text">
+                <strong>Esperando escaneo…</strong>
+                <div style="font-size:.8rem; color:var(--muted);">Apuntá con la cámara de tu celular al código QR.</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <!-- Botón simulador para abrir PWA de celular en pestaña nueva -->
+            <a href="pwa-pair.html" class="btn btn-secondary" target="_blank" data-od-id="btn-abrir-pwa-sim">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              Simular escaneo desde mi celular (PWA)
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Pie de Seguridad y Fallback (§13.9.5) -->
+      <div class="security-footer">
+        <div class="security-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Sesión temporal (60 min). Se cerrará al cerrar esta pestaña.</span>
+        </div>
+        <div>
+          ¿No tenés tu celular?
+          <a href="login.html" class="fallback-link">Ingresar con email y magic link en esta PC</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de control para evaluación del diseñador/docente -->
+    <div class="demo-sim-bar">
+      <span style="font-weight:600; color:var(--muted);">🧪 Simulador de estados QR:</span>
+      <div class="sim-buttons">
+        <button type="button" class="sim-btn" id="sim-wait">1. Esperando</button>
+        <button type="button" class="sim-btn" id="sim-scan">2. Escaneado (celular detectado)</button>
+        <button type="button" class="sim-btn" id="sim-ok">3. Confirmado (¡Conexión exitosa!)</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2800);
+  }
+
+  /* ---------- Timer del QR (60s countdown) ---------- */
+  var segRestantes = 60;
+  var timerEl = $('#segundos-restantes');
+  var progressEl = $('#timer-progress');
+  var intervalTimer = null;
+
+  function iniciarCuentaRegresiva() {
+    segRestantes = 60;
+    progressEl.style.width = '100%';
+    clearInterval(intervalTimer);
+    intervalTimer = setInterval(function () {
+      segRestantes--;
+      if (segRestantes <= 0) {
+        segRestantes = 60;
+        aviso('Código QR renovado por seguridad.');
+      }
+      timerEl.textContent = segRestantes;
+      var pct = (segRestantes / 60) * 100;
+      progressEl.style.width = pct + '%';
+    }, 1000);
+  }
+  iniciarCuentaRegresiva();
+
+  $('#btn-refresh-qr').addEventListener('click', function () {
+    iniciarCuentaRegresiva();
+    aviso('Nuevo código QR efímero generado para LAB-PC07.');
+  });
+
+  /* ---------- Máquina de Estados para Demostración ---------- */
+  var statusBox = $('#status-live-box');
+  var boxSpinner = $('#box-spinner');
+  var boxText = $('#box-text');
+  var qrOverlay = $('#qr-overlay');
+  var qrOverlayTitle = $('#qr-overlay-title');
+  var qrOverlayDesc = $('#qr-overlay-desc');
+
+  function setEstado(estado) {
+    if (estado === 'esperando') {
+      qrOverlay.classList.remove('active');
+      statusBox.className = 'status-box waiting';
+      boxSpinner.style.display = 'block';
+      boxSpinner.style.borderColor = 'currentColor';
+      boxSpinner.style.borderTopColor = 'transparent';
+      boxText.innerHTML = '<strong>Esperando escaneo…</strong><div style="font-size:.8rem; color:var(--muted);">Apuntá con la cámara de tu celular al código QR.</div>';
+    } else if (estado === 'escaneado') {
+      qrOverlay.classList.add('active');
+      qrOverlayTitle.textContent = 'Celular detectado';
+      qrOverlayDesc.textContent = 'Confirmá la conexión en tu teléfono.';
+      statusBox.className = 'status-box scanned';
+      boxSpinner.style.display = 'block';
+      boxText.innerHTML = '<strong>Dispositivo detectado: Xiaomi Redmi 10</strong><div style="font-size:.8rem; color:var(--muted);">Esperando que Tiziano confirme en la pantalla de su celular…</div>';
+      aviso('¡QR escaneado! Confirmá en tu celular.');
+    } else if (estado === 'conectado') {
+      qrOverlay.classList.add('active');
+      qrOverlayTitle.textContent = '¡Sesión iniciada!';
+      qrOverlayDesc.textContent = 'Ingresando como Tiziano Maidana…';
+      statusBox.className = 'status-box connected';
+      boxSpinner.style.display = 'none';
+      boxText.innerHTML = '<strong>✅ ¡Conectado como Tiziano Maidana (5to 1ra)!</strong><div style="font-size:.8rem; color:var(--muted);">Redirigiendo a tu aula digital en 2 segundos…</div>';
+      aviso('¡Conexión autorizada con éxito!');
+      setTimeout(function () {
+        window.location.href = 'alumnos.html';
+      }, 2000);
+    }
+  }
+
+  $('#sim-wait').addEventListener('click', function () { setEstado('esperando'); });
+  $('#sim-scan').addEventListener('click', function () { setEstado('escaneado'); });
+  $('#sim-ok').addEventListener('click', function () { setEstado('conectado'); });
+
+  /* Escuchar mensajes entre ventanas (si se abre pwa-pair.html) */
+  window.addEventListener('message', function (e) {
+    if (e.data === 'qr-scanned') {
+      setEstado('escaneado');
+    } else if (e.data === 'pair-confirmed') {
+      setEstado('conectado');
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

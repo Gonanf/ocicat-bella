@@ -1047,3 +1047,99 @@ Regla: los agentes proponen artefactos; humanos deciden.
 - Un solo escritor por worktree; paralelismo solo con worktrees separados.
 - Deliverable = artefacto verificable (diff, informe, suite verde). Exit 0 no es éxito.
 - Review chain: implementador → tester → reviewer → (seguridad) → humano.
+
+### 13.9 Navegación por rol (feedback del usuario sobre el frontend, 2026-08-22)
+
+Pendientes detectados:
+- Botón "ver material" y "crear material" no redirigen a nada (mockups sin
+  destino implementado).
+
+Nav por estado:
+- **Sin registro (visitante anónimo)**: Admin (iniciar sesión) · Login/Registrarse ·
+  Ingresar escuela con código.
+- **Invitado (entró con código global)**: Materiales (todo) · Proyectos (todo).
+- **Registrado (estudiante, profesor o admin)**: Perfil + logout · Salas ·
+  Materiales (todo) · Proyectos (todo) · Consignas (pendientes).
+
+### 13.9.1 Respuesta del UI Designer a la nav por rol (agy, 2026-08-22)
+Veredictos sobre §13.9:
+1. Nav unificada registrado: AJUSTAR — misma estructura base pero ítems/labels
+   por rol (alumno "Mis Salas/Tareas", docente "Consignas"+crear en header de
+   sección, director + "Gestión Escolar"). Creación vive en headers de sección,
+   no como items globales.
+2. "Salas" scope: alumno=sus salas; docente=las que dicta (+crear/administrar);
+   admin=todas (vista global). Microcopy: preferir "Cursos"/"Aulas" sobre
+   "Salas" (se confunde con Meet/chat).
+3. Faltan: notificaciones (badge campana), panel Gestión Escolar (solo admin),
+   indicador de escuela/ciclo lectivo. Sobra: "Consignas (pendientes)" como
+   item — el filtro pendientes es vista default dentro de la página.
+4. Admin separado del login: AJUSTAR URGENTE — unifica en 2 acciones anónimas:
+   CTA "Ingresar con código de escuela" + link "Iniciar sesión". El login pide
+   email y detecta rol: alumno→magic link; docente/director→pide password.
+   Link discreto "Acceso institucional" para emergencias, nunca botón protagónico.
+
+Riesgos UX flaggeados:
+- Magic link en PCs compartidas de laboratorio: prever fallback QR/token temporal
+  generable por el docente.
+- Alto contraste en nav (monitores viejos de bajo brillo): nada de grises claros.
+
+### 13.9.2 Decisiones finales de nav (usuario, 2026-08-22)
+1. Crear material/consigna: DENTRO de la sala (el docente entra a la sala y usa
+   el botón ahí). No como item global de nav. Coherente con el diseñador
+   ("acciones de creación viven en headers de sección").
+2. Login unificado: email → si rol no-alumno → transición a segunda página para
+   password. Aprobado.
+3. Microcopy: "Aulas" (no "Salas").
+4. Notificaciones con badge: ENTRA al MVP.
+5. Admin: ve todo y gestiona sin necesitar credenciales de docente (impersonación
+   administrativa o acceso directo por rol, a definir en backend).
+6. Magic link vs PCs compartidas: ABIERTA — evaluar alternativas antes de decidir
+   volver a passwords. Investigación pendiente (QuickCard/QR de ClassLink como
+   referencia del mercado escolar).
+
+### 13.9.3 Login en PCs compartidas — decisión (usuario, 2026-08-22)
+Descartado: QR/código por alumno impreso (escala mal: 850 alumnos / 3 aulas por
+docente; imprimir es fricción).
+
+Decisión: **login inverso por QR** (patrón WhatsApp Web):
+- El alumno tiene una app/mini-app en su CELULAR (su dispositivo personal, no
+  depende del laboratorio).
+- En la PC del colegio, Ocicat muestra un QR efímero ("iniciar sesión").
+- El alumno escanea el QR con su celular → confirma → la PC queda con SU sesión
+  (temporal, se cierra sola al terminar o al cerrar el navegador).
+- El magic link queda como método alternativo para quien tenga email accesible.
+- Pendiente de diseño: forma de la "app" del celular (PWA vs web móvil simple),
+  emparejamiento inicial del dispositivo con la cuenta, y expiración de sesión.
+
+### 13.9.4 Cierre del login (usuario, 2026-08-22)
+- App del alumno: **PWA** (liviana, <300KB como el resto).
+- Emparejamiento: una vez vía magic link en el celular → después escaneo QR.
+- Fallback sin celular: login completo desde la PC con email (propio o creado
+  en el momento) + magic link.
+- Auditoría de seguridad del flujo QR+magic link: EN CURSO (Security Auditor).
+
+### 13.9.5 Auditoría de seguridad del login (Security Auditor, 2026-08-22)
+VEREDICTO: APROBADO CON CONDICIONES — sin bloqueantes. 6 condiciones obligatorias
+antes de producción:
+1. Registro de alumnos CERRADO: alta sólo vía docente/admin (import/invitación),
+   nunca self-service abierto. (Decisión de arquitectura más importante.)
+2. Pairing inicial del celular SOLO vía magic link validado por email.
+3. QR: un solo uso, TTL ≤90s, entropía ≥128 bits, URL del dominio oficial
+   (nunca shortener), confirmación en celular mostrando identidad de la PC
+   ("¿Conectar con LAB-PC07?"), regeneración ~60s.
+4. Sesión de PC: TTL ≤60 min, inactividad ≤10 min con aviso, cookies
+   HttpOnly/Secure/SameSite=Strict, cero persistencia.
+5. Emails duplicados rechazados + límite de dispositivos por cuenta (~3).
+6. Data minimization (nombre/curso/email, nada más) + página de privacidad
+   simple en castellano + borrado real de cuenta.
+
+Mitigaciones por vector: quishing→QR efímero+identidad PC; replay→single-use
+TTL; hijacking→sesión corta no persistente; CSRF→SameSite+POST con body;
+fuerza bruta→entropía+rate limit; doble claim→claim atómico.
+
+Post-MVP (no bloqueante): re-confirmación celular periódica, panel "mis
+dispositivos", rate limit global auth. Recovery de email perdido: reset manual
+del admin, documentado.
+
+Nota: emails escolares compartidos = riesgo real; preferir casillas individuales
+del alumno, documentar como requisito de despliegue.

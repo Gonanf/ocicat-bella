@@ -2,16 +2,33 @@
 
 Referencia de pantallas: mockups en `design/mvp-f2/` y base en `design/c8e8/`.
 Decisiones: `DESIGN.md` Partes 9 (entregas/wizard), 11 (identidad), 12/13 (scope MVP),
-§0.1 (wizard de instalación) + decisiones nuevas 2026-08-22: rol **director**,
-**código global de escuela** y wizard `/setup`.
+§0.1 (wizard de instalación) + decisiones 2026-08-22: rol **director**,
+**código global de escuela**, wizard `/setup` y **§13.9.x** — login unificado
+(email → detección de rol), QR inverso para PCs compartidas, magic link como
+fallback, **alta de alumnos cerrada** y navegación por rol con labels ("Aulas",
+notificaciones con badge).
 
 ### Roles
-- **Invitado:** sin cuenta; ve contenido público.
-- **Alumno:** magic link (nombre + email, §13.1).
-- **Docente:** credencial propia; crea salas, consignas y sandboxes.
-- **Director (admin):** dueño de la instancia. Se crea en el wizard `/setup` (CU-12).
-  Gestiona el código global de escuela (CU-13) y las cuentas docentes (CU-15).
-  Jerarquía: director → docentes → salas → alumnos.
+- **Invitado:** sin cuenta; ve contenido público (con o sin código global).
+- **Alumno:** SIN password y SIN registro self-service. Lo da de alta un
+  docente/admin (CU-18). Empareja su celular una vez vía magic link (CU-17);
+  después entra en PCs compartidas por **QR inverso** (CU-16) o, si no tiene
+  celular, por magic link desde la misma PC (CU-2).
+- **Docente:** credencial propia (password); la crea el director (CU-15).
+  Crea aulas y da de alta alumnos.
+- **Director (admin):** dueño de la instancia. Se crea en el wizard `/setup`
+  (CU-12). Gestiona el código global (CU-13), cuentas docentes (CU-15) y el
+  alta de alumnos (CU-18). **Ve todo y gestiona sin necesitar credenciales de
+  docente** (§13.9.2). Jerarquía: director → docentes → aulas → alumnos.
+
+### Navegación por estado y rol (§13.9.x)
+- **Anónimo:** CTA **"Ingresar con código de escuela"** + link **"Iniciar sesión"**.
+  Sin botón "Admin" visible (el acceso institucional es un link discreto, §13.9.1).
+- **Invitado:** Materiales · Proyectos.
+- **Registrado:** **Aulas** + Materiales + Proyectos + Tareas/Consignas según rol
+  + **notificaciones (campana con badge)** + Perfil/logout. El director agrega
+  **Gestión Escolar**. Microcopy oficial: **"Aulas"**, nunca "Salas".
+  La creación de materiales/consignas vive DENTRO del aula, no en la nav global.
 
 ### Código global de escuela vs código de sala
 - **Código global:** UNO por instancia, gestionado solo por el director. Da a
@@ -27,15 +44,14 @@ Decisiones: `DESIGN.md` Partes 9 (entregas/wizard), 11 (identidad), 12/13 (scope
 **Precondiciones:** ninguna; la instancia es accesible por navegador.
 
 ### Flujo principal
-1. Entra a `index.html` (c8e8). Arriba del fold: **"Soy docente"** / **"Tengo un código de sala"**, más el link **Materiales**. La tercera puerta — **"Tengo un código de escuela"** — vive como link secundario bajo el fold inmediato (ver Fricción).
+1. Entra a `index.html` (c8e8). Nav anónima (§13.9.2): CTA **"Ingresar con código de escuela"** + link **"Iniciar sesión"**. NO hay botón "Admin" ni "Registrarse" — el registro de alumnos está cerrado (CU-18) y el acceso institucional queda como link discreto.
 2. Entra a `materiales.html`: biblioteca estilo Drive, cards con preview inline (PDF/video/img) filtradas por materia. Puede **Ver** (página propia `/materials/:id`) y **Descargar**.
 3. Entra a `sandboxes.html`: ve los proyectos del curso corriendo en el server de la escuela (estado corriendo/detenido, autor).
-4. Intenta actuar como alumno: tocar "Unirse con código", abrir un sandbox o subir material → se le ofrece registrarse (`login.html`).
-5. En `login.html` elige **"Soy invitado"**: vuelve a ver contenido educativo, pero sin poder actuar.
+4. Intenta actuar (entrar a un aula, abrir una consigna, subir material) → límite claro: se le ofrece **"Iniciar sesión"**; si no tiene cuenta, no puede crearla solo (alta cerrada, CU-18).
 
 ### Flujos alternativos
 - Tiene el **código global de escuela** → CU-14: entra como visitante con lectura ampliada (toda la escuela), sin registro.
-- Quiere ser alumno → CU-2 (registro con magic link).
+- Quiere ser alumno → no hay registro self-service; pide al docente que lo dé de alta (CU-18).
 - Llega directo por link de sala compartido → `unirse.html` → se le pide cuenta antes del código.
 - Viene desde el login pensando que "el código alcanza sin registro" → el texto de `login.html` lo corrige para códigos de SALA; los de ESCUELA sí dan lectura sin registro (CU-14).
 
@@ -46,24 +62,35 @@ Decisiones: `DESIGN.md` Partes 9 (entregas/wizard), 11 (identidad), 12/13 (scope
 
 ---
 
-## CU-2 — INVITADO: registro como alumno
+## CU-2 — ALUMNO SIN CELULAR: login por magic link desde la PC
 
-**Actor:** visitante que quiere ser alumno.
-**Precondiciones:** tener email.
+**Actor:** alumno dado de alta (CU-18) que no tiene celular emparejado (o lo
+prefiere así). Es el fallback oficial del QR inverso (§13.9.4).
+**Precondiciones:** cuenta creada por docente/admin; acceso a su email desde la
+PC del colegio o el celular de un compañero.
 
-1. Desde cualquier límite (CU-1 paso 4) llega a `login.html`, pestaña **Crear cuenta**.
-2. Ingresa **nombre + email**. Sin contraseña: recibe un **magic link** al email y entra (decisión final §13.1).
-3. Aterriza en `mis-salas.html` vacío ("Todavía no pertenecés a ninguna sala").
+1. En la PC compartida elige **"Iniciar sesión"** → escribe **su email**.
+2. El sistema detecta rol alumno → envía **magic link** al email (sin password,
+   §13.1). El alumno abre el link (desde webmail en la misma PC o desde el
+   celu prestado) y la PC queda con su sesión.
+3. Si todavía no tenía email/cuenta: el docente puede crearle la cuenta al
+   momento durante el alta (CU-18); el alumno nunca se registra solo.
 
-**Alternativos:** email mal tipeado → reenvío de magic link; recovery manual por el docente desde su panel.
-**Decisión:** sin passwords para alumnos (§13.1); OAuth Google diferido post-MVP (§13.4).
+**Alternativos:** email mal tipeado → reenvío de magic link; recovery manual por
+el docente desde su panel (CU-10). Email no llega (red escolar bloquea SMTP) →
+usar QR inverso con celular propio o pedir ayuda al docente.
+
+**Decisión:** este flujo es el PLAN B; el camino default en PC compartida es el
+QR inverso (CU-16). OAuth Google diferido post-MVP (§13.4).
 
 ---
 
 ## CU-3 — ALUMNO: entrar a una sala con código
 
 **Actor:** alumno con cuenta.
-**Precondiciones:** cuenta creada (CU-2); código de sala provisto por el docente (ej. `PROG5A`).
+**Precondiciones:** cuenta dada de alta por docente/admin (CU-18) y sesión
+iniciada en el dispositivo (QR inverso CU-16, magic link CU-2, o celu
+emparejado CU-17); código de sala provisto por el docente (ej. `PROG5A`).
 
 1. Desde `mis-salas.html` toca "Unirme con código" → `unirse.html`.
 2. Escribe el código (6–8 caracteres). Validación inline si está mal.
@@ -115,7 +142,7 @@ Decisiones: `DESIGN.md` Partes 9 (entregas/wizard), 11 (identidad), 12/13 (scope
 **Actor:** alumno.
 **Precondiciones:** sesión activa.
 
-1. `mis-salas.html`: lista sus salas con pendientes ("3" o "Al día").
+1. `mis-salas.html` (label de nav: **Mis Aulas**): lista sus aulas con pendientes ("3" o "Al día").
 2. Abandonar: menú ⋮ del header del card (fuera del botón Entrar, §11.4) → modal con consecuencia explícita: *"Tus entregas quedan archivadas: el docente todavía puede verlas…"* → confirmar.
 3. `perfil.html`: nombre, email (es su identificador), sesiones activas + "Cerrar otras sesiones".
 
@@ -129,12 +156,21 @@ Decisiones: `DESIGN.md` Partes 9 (entregas/wizard), 11 (identidad), 12/13 (scope
 desde su panel admin (CU-15) — ya no se auto-registra.
 **Precondiciones:** cuenta docente creada por el director.
 
-1. Login → `dashboard.html`: resumen de sus salas (alumnos, consignas, sandboxes prendidos), botón **"+ Nueva sala"**.
-2. Entra a una sala → tabs Consignas / Alumnos / Configuración.
+1. En la nav anónima toca **"Iniciar sesión"** → escribe su email → el sistema
+   detecta rol no-alumno → pasa a una segunda pantalla de **password** (login
+   unificado, §13.9.2). Sin detour hacia pantallas separadas por rol.
+2. Login → `dashboard.html`: resumen de sus aulas (alumnos, consignas,
+   sandboxes prendidos), botón **"+ Nueva aula"**.
+3. Entra a un aula → tabs Consignas / Alumnos / Configuración. Desde acá crea
+   materiales y consignas (botones en la página del aula, §13.9.2) — NO hay
+   ítems globales de creación en la nav.
+4. Nav registrada (rol docente): **Aulas** + Materiales + Proyectos + Consignas
+   + campana de notificaciones con badge + Perfil/logout.
 
-**Nota de jerarquía:** director → crea docentes (CU-15); docente → crea salas (CU-8);
-alumno → entra por código de sala (CU-3). El director NO interviene en el día a día
-de salas/consignas; si quiere una, se da de alta también como docente.
+**Nota de jerarquía:** director → crea docentes (CU-15); docente → crea aulas
+(CU-8) y da de alta alumnos (CU-18); alumno → entra por código de aula (CU-3).
+El director NO necesita credenciales de docente para ver/gestionar (§13.9.2);
+si quiere trabajar el día a día de un aula, actúa con su rol admin que ve todo.
 
 ---
 
@@ -153,7 +189,7 @@ de salas/consignas; si quiere una, se da de alta también como docente.
 **Actor:** docente de la sala.
 **Precondiciones:** sala creada (CU-8).
 
-1. Tab Consignas (`consignas.html`) → **"+ Nueva consigna"** → `consigna-nueva.html`.
+1. Tab Consignas **dentro del aula** (`consignas.html`) → botón **"+ Nueva consigna"** (vive en la página del aula, no en la nav global, §13.9.2) → `consigna-nueva.html`.
 2. Carga: título, instrucciones, adjuntos opcionales (máx. 10 MB/archivo), **runtime esperado** (Python/Web/C++/Arduino), fecha límite opcional.
 3. Config de entrega: **intentos** (ilimitados default / N / uno solo) y **tardías** (permitidas / cerradas). Modificable en cualquier momento, incluso con entregas existentes (§9.1).
 4. Publica: los alumnos la ven al instante; el listado muestra métricas por consigna (OK / con error / tardía / sin entregar, ej. "24/28 entregas") → **Ver entregas**.
@@ -164,8 +200,8 @@ de salas/consignas; si quiere una, se da de alta también como docente.
 
 ## CU-10 — DOCENTE: materiales, alumnos y rotación de código
 
-1. **Subir materiales** a la biblioteca de la sala (PDF/docs/videos/img) → preview inline para los alumnos (CU-4).
-2. **Gestionar alumnos** (`alumnos.html`): ve nombre real + email de cada uno; vetos; recovery de acceso de un alumno (reenvío/reset manual de magic link).
+1. **Subir materiales** a la biblioteca del aula (botón en la página del aula, no item global de nav — §13.9.2) → preview inline para los alumnos (CU-4).
+2. **Gestionar alumnos** (`alumnos.html`): ve nombre real + email de cada uno; vetos; recovery de acceso de un alumno (reenvío manual de magic link); **alta de alumnos nuevos** (CU-18).
 3. **Rotar código**: botón visible con confirmación y aviso *"se genera uno nuevo y el actual deja de funcionar al instante"* (§13.3 — no escondido en menú).
 4. **Configuración de sala** (`sala-config.html`): templates permitidos y herramientas visibles (defaults sensatos hardcoded; restricciones granulares diferidas a v2, §13.4). Toggle "Dockerfile propio" default OFF (§10.5).
 
@@ -224,7 +260,10 @@ de salas/consignas; si quiere una, se da de alta también como docente.
 2. Ve el código global con **Copiar** y, al lado, el texto de qué habilita: lectura de proyectos y documentos **públicos de toda la escuela** para quien lo tenga, sin registro. Explícito: **no** da consignas ni escritura.
 3. Comparte el código (ej. en la web de la escuela, cartel de exposición, jornada de puertas abiertas).
 4. **Regenerar:** botón visible con confirmación y aviso *"el código actual deja de funcionar al instante; quien lo tenga pierde el acceso hasta que le des el nuevo"* (mismo patrón que rotar código de sala, CU-10).
-5. Sale del panel; su rol no interviene en salas ni consignas.
+5. Sale del panel. Con la decisión §13.9.2, el director **ve todo y gestiona
+   sin credenciales de docente** (acceso directo por rol o impersonación
+   administrativa, a definir en backend) — ya no hace falta que se dé de alta
+   también como docente para intervenir en un aula.
 
 ### Flujos alternativos
 - Sospecha de fuga del código (circuló donde no quería) → regenera; los invitados viejos quedan afuera.
@@ -242,10 +281,10 @@ de salas/consignas; si quiere una, se da de alta también como docente.
 **Precondiciones:** tener el código global vigente; instancia accesible.
 
 ### Flujo principal
-1. Desde `index.html`, link secundario **"Tengo un código de escuela"** → `unirse.html` (o pantalla dedicada) con un solo campo: el código.
-2. Código válido → sesión de invitado ampliada (sin cuenta, sin email). Aterriza en una vista "Escuela <nombre>": proyectos (sandboxes) y documentos **públicos de TODAS las salas**, no solo los de una.
+1. Desde `index.html`, CTA principal **"Ingresar con código de escuela"** (§13.9.2) → `unirse.html` (o pantalla dedicada) con un solo campo: el código.
+2. Código válido → sesión de invitado ampliada (sin cuenta, sin email). Nav pasa a estado **invitado**: Materiales · Proyectos. Aterriza en una vista "Escuela <nombre>": proyectos (sandboxes) y documentos **públicos de TODAS las salas**, no solo los de una.
 3. Puede **Ver** y **Descargar** documentos públicos y ver sandboxes con su estado/autor; puede abrir el detalle y ver logs/artifact de registros históricos (lectura).
-4. Intenta actuar (subir, entrar a una sala, abrir una consigna) → límite claro: *las consignas son privadas del curso; para participar, registrate como alumno (CU-2) o pedí un código de sala.*
+4. Intenta actuar (subir, entrar a una sala, abrir una consigna) → límite claro: *las consignas son privadas del curso; para participar necesitás que tu docente te dé de alta (CU-18) o pedí un código de sala.*
 
 ### Flujos alternativos
 - Código inválido o regenerado → error claro: *"este código ya no funciona; pedile el nuevo a la escuela"*.
@@ -282,9 +321,114 @@ de salas/consignas; si quiere una, se da de alta también como docente.
 
 ---
 
+## CU-16 — ALUMNO: login en PC compartida por QR inverso
+
+**Actor:** alumno con celular ya emparejado (CU-17). Flujo default en el
+laboratorio de PCs (§13.9.3/§13.9.4).
+**Precondiciones:** cuenta activa (CU-18); PWA instalada/abierta en su celular
+y emparejada; PC del colegio con la instancia accesible.
+
+### Flujo principal
+1. En la PC compartida toca **"Iniciar sesión"** → pantalla **"Escanear QR"**:
+   muestra un **QR efímero** (single-use, TTL ≤90 s, regeneración automática
+   ~60 s, entropía ≥128 bits, URL del dominio oficial — nunca shortener,
+   §13.9.5).
+2. El alumno abre la PWA en su celular → "Escanear QR" → apunta a la PC.
+3. **Confirmación en el celular:** muestra la identidad de la PC — *"¿Conectar
+   con LAB-PC07?"* → el alumno confirma.
+4. La PC queda con SU sesión: aterriza en Mis Aulas (`mis-salas.html`).
+5. **Sesión temporal:** TTL ≤60 min e inactividad ≤10 min con aviso previo;
+   cookies HttpOnly/Secure/SameSite=Strict; cero persistencia al cerrar el
+   navegador (§13.9.5). Al expirar vuelve al QR.
+
+### Flujos alternativos
+- QR vencido → se regenera solo; si el alumno escanea uno viejo → error claro
+  ("este código ya no sirve, mirá el nuevo").
+- Rechaza la conexión en el celu → la PC nunca inicia sesión (claim atómico,
+  sin doble claim).
+- **Sin celular o sin datos:** fallback magic link desde la misma PC (CU-2),
+  con email propio o creado por el docente al momento del alta (CU-18).
+
+### Puntos de fricción / decisión
+- Descartado el QR/código impreso por alumno (850 alumnos no escalan, §13.9.3).
+- Auditoría de seguridad APROBADA CON CONDICIONES (§13.9.5): las condiciones 3
+  y 4 de arriba son obligatorias antes de producción.
+- Fricción esperada: alumno deja la PC con sesión abierta → mitigado por
+  expiración corta + aviso de inactividad.
+
+---
+
+## CU-17 — ALUMNO: emparejamiento inicial del celular vía magic link
+
+**Actor:** alumno dado de alta (CU-18), primera vez con su celular personal.
+**Precondiciones:** cuenta creada por docente/admin; acceso a su email desde
+el celular; límite de ~3 dispositivos por cuenta (§13.9.5).
+
+### Flujo principal
+1. Instala/abre la **PWA** de Ocicat en su celular (liviana, <300 KB).
+2. Ingresa su **email** → recibe **magic link** validado por email (única vía
+   de pairing inicial, condición 2 de §13.9.5).
+3. Abre el link EN EL CELULAR → el dispositivo queda emparejado con su cuenta.
+4. Desde ese momento, en cualquier PC del colegio entra por QR inverso (CU-16)
+   sin volver a tocar el email.
+
+### Flujos alternativos
+- Email mal tipeado o no llega → reenvío; recovery manual por el docente/admin.
+- Cambia/pierde el celular → empareja el nuevo (cuenta el límite de
+  dispositivos); puede desvincular desde `perfil.html`.
+- Email escolar compartido (hermanos, casilla de curso) → riesgo real
+  documentado como requisito de despliegue: preferir casillas individuales
+  (§13.9.5 nota final).
+
+---
+
+## CU-18 — DOCENTE/DIRECTOR: alta de alumnos (registro cerrado)
+
+**Actor:** docente del aula (o director/admin).
+**Precondiciones:** aula creada (CU-8); tab Alumnos (`alumnos.html`).
+**Decisión clave (§13.9.5, condición 1): NO existe registro self-service de
+alumnos. La puerta es el docente/admin — decisión de arquitectura más
+importante de la auditoría de seguridad.**
+
+### Flujo principal
+1. `alumnos.html` → botón **"+ Dar de alta alumnos"**.
+2. Dos caminos:
+   - **Import de lista CSV:** sube el listado del curso (nombre + email) →
+     preview de filas → confirmar. Emails duplicados o inválidos se rechazan
+     fila por fila con motivo claro.
+   - **Invitación individual:** carga nombre + email de un alumno → alta al
+     momento (útil para quien se suma a mitad de año).
+3. Cada alumno queda con cuenta activa SIN password; el sistema le envía (o el
+   docente le pasa) el magic link de primer acceso → emparejamiento (CU-17) o
+   login directo (CU-2).
+4. El alumno aparece en el listado del aula con estado (invitado pendiente /
+   activo).
+
+### Flujos alternativos
+- Baja de un alumno → mismo menú que vetas/desactivar; sus entregas quedan
+  archivadas (mismo patrón que abandono de sala, CU-6/CU-10).
+- Director da de alta desde Gestión Escolar con acceso directo por rol, sin
+  credenciales de docente (§13.9.2).
+- Data minimization: solo nombre/curso/email, nada más; borrado real de cuenta
+  disponible (condición 6, §13.9.5).
+
+### Puntos de fricción / decisión
+- Fricción aceptada: el alumno NO puede empezar solo — necesita al docente.
+  Es el precio explícito de cerrar el vector de abuso de cuentas anónimas.
+- CSV con casillas compartidas → advertencia en la preview (requisito de
+  despliegue, §13.9.5).
+
+---
+
 ## Resumen de invariantes transversales
 
-- Alumno sin password: magic link nombre+email (§13.1).
+- Alumno SIN password y SIN registro self-service: alta solo por docente/admin (CU-18).
+- Login del alumno en PC compartida = QR inverso (CU-16); magic link es fallback (CU-2); pairing inicial solo vía magic link validado (CU-17).
+- Sesiones de PC de alumno: temporales (≤60 min / inactividad 10 min), sin persistencia.
+- Login unificado: email → detección de rol → alumno magic link, docente/director password. Sin botón "Admin" en nav anónima.
+- Nav por estados con labels por rol; microcopy **"Aulas"** (nunca "Salas"); notificaciones con badge entran al MVP.
+- Creación de materiales/consignas DENTRO del aula, nunca como item global de nav.
+- Director ve todo y gestiona sin credenciales de docente.
 - Código de sala = invitación, no identidad (§11.2).
 - **Código global de escuela = UNO por instancia, solo el director lo gestiona; da lectura pública de toda la escuela, nunca consignas ni escritura.**
 - **Jerarquía: director → docentes → salas → alumnos/invitados.**

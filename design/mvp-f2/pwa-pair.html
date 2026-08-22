@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vincular PC · Ocicat Móvil (PWA)</title>
+<meta name="description" content="Confirmá el inicio de sesión en computadoras compartidas desde la PWA de Ocicat Bella en tu celular.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --amber-border: #D9B44A;
+    --chip-fg: #1B4332;
+    --info-bg: #EAF2EE;
+    --info-border: #BCD4C6;
+    --danger: #9E2A2B;
+    --danger-soft: rgba(158, 42, 43, .08);
+    --danger-border: #D98282;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --amber-border: #8A6D1B;
+    --chip-fg: #7BC79A;
+    --info-bg: #1A2620;
+    --info-border: #2D4C3A;
+    --danger: #E06D6D;
+    --danger-soft: rgba(224, 109, 109, .14);
+    --danger-border: #8B3A3A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100dvh;
+    display: flex; justify-content: center;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Marco móvil para pruebas en escritorio */
+  .mobile-shell {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100dvh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    box-shadow: 0 0 32px rgba(0,0,0,.05);
+  }
+
+  /* PWA Status Bar Mock */
+  .pwa-statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 18px 4px;
+    font-size: .75rem; font-weight: 600; color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  /* PWA Header */
+  .pwa-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pwa-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; }
+  .pwa-brand-mark { width: 28px; height: 28px; }
+  .pwa-brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.25rem; line-height: 1;
+  }
+  .pwa-brand-name em { font-style: italic; color: var(--accent); }
+
+  .theme-toggle-sm {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+  }
+  .theme-toggle-sm svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* User Info Bar */
+  .user-badge-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px;
+    background: color-mix(in srgb, var(--surface) 90%, var(--bg));
+    border-bottom: 1px solid var(--border);
+  }
+  .user-profile { display: flex; align-items: center; gap: 10px; }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent); color: var(--on-accent);
+    display: grid; place-items: center; font-weight: 700; font-size: .88rem;
+  }
+  .user-info-text strong { display: block; font-size: .92rem; line-height: 1.2; }
+  .user-info-text span { font-size: .78rem; color: var(--muted); }
+  .pwa-pill {
+    padding: 3px 8px; border-radius: 6px;
+    font-size: .72rem; font-weight: 600; font-family: "JetBrains Mono", monospace;
+    background: var(--accent-soft); color: var(--accent);
+  }
+
+  /* Contenido PWA */
+  .pwa-body { flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* Card de Confirmación Destacada */
+  .confirm-card {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .confirm-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: var(--accent);
+  }
+
+  .confirm-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 1.05rem; font-weight: 700; color: var(--fg);
+    margin-bottom: 6px;
+  }
+  .confirm-sub { font-size: .86rem; color: var(--muted); margin-bottom: 14px; }
+
+  /* Info del equipo a conectar */
+  .device-meta-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 16px;
+    font-size: .84rem;
+  }
+  .device-meta-row { display: flex; justify-content: space-between; align-items: center; }
+  .device-meta-label { color: var(--muted); }
+  .device-meta-value { font-weight: 600; font-family: "JetBrains Mono", monospace; }
+
+  /* Botones de acción */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; width: 100%;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .94rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, transform .1s ease;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-danger {
+    background: var(--danger-soft); color: var(--danger);
+    border-color: var(--danger-border);
+  }
+  .btn-danger:hover { background: var(--danger); color: #FFF; }
+  .btn-outline {
+    background: transparent; color: var(--fg); border-color: var(--border-strong);
+  }
+  .btn-outline:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+  .actions-stack { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Scanner Visor Simulado */
+  .scanner-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 90;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; color: #FFF;
+  }
+  .scanner-modal.open { display: flex; }
+  .scanner-frame {
+    width: 240px; height: 240px; border: 3px solid #FFF; border-radius: 18px;
+    position: relative; overflow: hidden; margin-bottom: 20px;
+    box-shadow: 0 0 0 100vmax rgba(0,0,0,.55);
+  }
+  .scanner-laser {
+    position: absolute; left: 0; right: 0; height: 3px; background: #10B981;
+    box-shadow: 0 0 12px #10B981;
+    animation: scanAnim 2s infinite alternate ease-in-out;
+  }
+  @keyframes scanAnim {
+    0% { top: 10%; }
+    100% { top: 90%; }
+  }
+
+  /* Sección "Mis Dispositivos" */
+  .devices-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .devices-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .devices-title { font-weight: 700; font-size: .92rem; }
+  .devices-counter {
+    font-size: .74rem; font-family: "JetBrains Mono", monospace;
+    color: var(--muted); background: var(--bg); padding: 2px 8px; border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .device-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .device-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    font-size: .84rem;
+  }
+  .device-item.current {
+    border-color: var(--accent); background: var(--accent-soft);
+  }
+  .device-item-left { display: flex; align-items: center; gap: 10px; }
+  .device-icon { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+  .device-name { font-weight: 600; display: block; }
+  .device-status { font-size: .74rem; color: var(--muted); }
+  .btn-unlink {
+    background: none; border: none; color: var(--danger);
+    font-size: .76rem; font-weight: 600; cursor: pointer;
+    padding: 4px 8px; border-radius: 6px; text-decoration: underline;
+  }
+  .btn-unlink:hover { background: var(--danger-soft); }
+
+  /* Bottom Bar */
+  .pwa-nav {
+    display: flex; justify-content: space-around;
+    padding: 10px 12px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .pwa-nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    color: var(--muted); text-decoration: none; font-size: .74rem; font-weight: 500;
+  }
+  .pwa-nav-item.active { color: var(--accent); font-weight: 700; }
+  .pwa-nav-item svg { width: 20px; height: 20px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 80px; z-index: 100;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 10px 18px; border-radius: 999px;
+    font-size: .86rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: 90%; text-align: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,.2);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="mobile-shell">
+
+  <!-- Status Bar PWA -->
+  <div class="pwa-statusbar">
+    <span>14:35</span>
+    <span>4G 🔋 88%</span>
+  </div>
+
+  <!-- Header PWA -->
+  <header class="pwa-header">
+    <div class="pwa-brand">
+      <svg class="pwa-brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"></path>
+          <path d="M28 17 L26.5 4 L18 11 Z"></path>
+          <rect x="5" y="10" width="26" height="23" rx="10"></rect>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="16" fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="pwa-brand-name">Ocicat <em>móvil</em></span>
+    </div>
+
+    <button class="theme-toggle-sm" type="button" id="btn-tema" aria-label="Cambiar tema">
+      <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"></path></svg>
+    </button>
+  </header>
+
+  <!-- Barra de Usuario Logueado en Celular -->
+  <div class="user-badge-bar">
+    <div class="user-profile">
+      <div class="user-avatar">TM</div>
+      <div class="user-info-text">
+        <strong>Tiziano Maidana</strong>
+        <span>5° 1° · E.E.S.T. N° 1</span>
+      </div>
+    </div>
+    <span class="pwa-pill">PWA Alumno</span>
+  </div>
+
+  <!-- Cuerpo Principal -->
+  <main class="pwa-body">
+
+    <!-- Card de Confirmación QR -->
+    <div class="confirm-card" id="card-confirmacion" data-od-id="card-confirm-pair">
+      <div class="confirm-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        ¿Conectar con LAB-PC07?
+      </div>
+      <p class="confirm-sub">Se detectó una solicitud de inicio de sesión desde un equipo del aula.</p>
+
+      <!-- Metadatos de Seguridad -->
+      <div class="device-meta-box">
+        <div class="device-meta-row">
+          <span class="device-meta-label">Equipo:</span>
+          <span class="device-meta-value">LAB-PC07</span>
+        </div>
+        <div class="device-meta-row">
+          <span class="device-meta-label">Ubicación:</span>
+          <span class="device-meta-value">Laboratorio 1 · Fila 2</span>
+        </div>
+        <div class="device-meta-row">
+          <span class="device-meta-label">Sesión:</span>
+          <span class="device-meta-value" style="color:var(--accent);">Temporal (60 min)</span>
+        </div>
+      </div>
+
+      <!-- Botones de Acción Inmediata -->
+      <div class="actions-stack">
+        <button class="btn btn-primary" type="button" id="btn-confirmar-pair" data-od-id="btn-confirmar-pair">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Sí, conectar ahora en la PC
+        </button>
+
+        <button class="btn btn-danger" type="button" id="btn-rechazar-pair" data-od-id="btn-rechazar-pair">
+          No soy yo / Rechazar
+        </button>
+      </div>
+    </div>
+
+    <!-- Botón para Escanear Otro QR -->
+    <button class="btn btn-outline" type="button" id="btn-abrir-scanner" data-od-id="btn-escanear-qr">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+      Escanear otro código QR
+    </button>
+
+    <!-- Lista de Dispositivos Vinculados (§13.9.5 Límite ~3 dispositivos) -->
+    <section class="devices-section" data-od-id="section-dispositivos">
+      <div class="devices-header">
+        <span class="devices-title">Mis dispositivos activos</span>
+        <span class="devices-counter" id="dev-count">2 de 3 autorizados</span>
+      </div>
+
+      <ul class="device-list" id="lista-dispositivos">
+        <!-- Dispositivo Celular Actual -->
+        <li class="device-item current">
+          <div class="device-item-left">
+            <svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <div>
+              <span class="device-name">Xiaomi Redmi 10 (Este celu)</span>
+              <span class="device-status">Dispositivo principal · Emparejado</span>
+            </div>
+          </div>
+        </li>
+
+        <!-- PC LAB activa -->
+        <li class="device-item" id="item-lab-pc">
+          <div class="device-item-left">
+            <svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+            <div>
+              <span class="device-name">LAB-PC07</span>
+              <span class="device-status" style="color:var(--accent);">Conectada ahora</span>
+            </div>
+          </div>
+          <button class="btn-unlink" type="button" id="btn-cerrar-lab">Cerrar sesión</button>
+        </li>
+
+        <!-- PC Biblioteca previa -->
+        <li class="device-item" id="item-biblio-pc">
+          <div class="device-item-left">
+            <svg class="device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+            <div>
+              <span class="device-name">PC-Biblioteca-02</span>
+              <span class="device-status">Último acceso ayer</span>
+            </div>
+          </div>
+          <button class="btn-unlink" type="button" id="btn-desvincular-biblio">Desvincular</button>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <!-- Modal Visor Scanner Simulado -->
+  <div class="scanner-modal" id="scanner-modal">
+    <div style="font-size:1.1rem; font-weight:700; margin-bottom:12px;">Escanear código en la PC</div>
+    <div class="scanner-frame">
+      <div class="scanner-laser"></div>
+    </div>
+    <p style="font-size:.85rem; text-align:center; opacity:.9; margin-bottom:18px;">
+      Apuntá tu cámara al código QR que muestra la pantalla de la computadora.
+    </p>
+    <div style="display:flex; gap:10px; width:100%; max-width:280px;">
+      <button class="btn btn-primary" type="button" id="btn-simular-captura">Simular captura LAB-PC07</button>
+      <button class="btn btn-outline" type="button" id="btn-cerrar-scanner" style="color:#FFF; border-color:rgba(255,255,255,.4);">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Barra de Navegación Inferior PWA -->
+  <nav class="pwa-nav">
+    <a href="alumnos.html" class="pwa-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Aulas</span>
+    </a>
+    <a href="materiales.html" class="pwa-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Materiales</span>
+    </a>
+    <a href="pwa-pair.html" class="pwa-nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      <span>Escanear PC</span>
+    </a>
+    <a href="perfil.html" class="pwa-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Mi Perfil</span>
+    </a>
+  </nav>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2800);
+  }
+
+  /* Notificar a la ventana principal de pair.html si está abierta */
+  function avisarVentanaPrincipal(mensaje) {
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage(mensaje, '*');
+    }
+  }
+
+  // Notificar al abrir la PWA que se detectó el QR
+  avisarVentanaPrincipal('qr-scanned');
+
+  /* Confirmar Conexión */
+  var cardConfirm = $('#card-confirmacion');
+  $('#btn-confirmar-pair').addEventListener('click', function () {
+    avisarVentanaPrincipal('pair-confirmed');
+    aviso('✅ ¡Conexión con LAB-PC07 confirmada con éxito!');
+    cardConfirm.style.background = 'var(--info-bg)';
+    cardConfirm.style.borderColor = 'var(--accent)';
+    cardConfirm.innerHTML = '<div style="text-align:center; padding:12px;">' +
+      '<div style="font-size:1.8rem; margin-bottom:6px;">✨</div>' +
+      '<strong>¡Sesión iniciada en LAB-PC07!</strong>' +
+      '<p style="font-size:.84rem; color:var(--muted); margin-top:4px;">Ya podés usar la computadora del aula con tu usuario. Esta sesión expira automáticamente en 60 minutos.</p>' +
+      '</div>';
+  });
+
+  /* Rechazar Conexión */
+  $('#btn-rechazar-pair').addEventListener('click', function () {
+    cardConfirm.style.display = 'none';
+    aviso('Conexión rechazada. La PC seguirá esperando.');
+  });
+
+  /* Scanner Visor */
+  var scannerModal = $('#scanner-modal');
+  $('#btn-abrir-scanner').addEventListener('click', function () {
+    scannerModal.classList.add('open');
+  });
+  $('#btn-cerrar-scanner').addEventListener('click', function () {
+    scannerModal.classList.remove('open');
+  });
+  $('#btn-simular-captura').addEventListener('click', function () {
+    scannerModal.classList.remove('open');
+    cardConfirm.style.display = 'block';
+    avisarVentanaPrincipal('qr-scanned');
+    aviso('Código QR de LAB-PC07 capturado.');
+  });
+
+  /* Cerrar sesión remota */
+  $('#btn-cerrar-lab').addEventListener('click', function () {
+    $('#item-lab-pc').remove();
+    $('#dev-count').textContent = '1 de 3 autorizados';
+    aviso('Sesión en LAB-PC07 cerrada de forma remota.');
+  });
+
+  /* Desvincular PC previa */
+  $('#btn-desvincular-biblio').addEventListener('click', function () {
+    $('#item-biblio-pc').remove();
+    $('#dev-count').textContent = '1 de 3 autorizados';
+    aviso('PC-Biblioteca-02 desvinculada.');
+  });
+
+})();
+</script>
+</body>
+</html>

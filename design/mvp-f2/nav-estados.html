@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matriz de Navegación por Estados y Roles · Ocicat Bella</title>
+<meta name="description" content="Especificación y referencia visual interactiva de los estados de navegación en Ocicat Bella según DESIGN.md §13.9.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --amber-border: #D9B44A;
+    --chip-fg: #1B4332;
+    --info-bg: #EAF2EE;
+    --info-border: #BCD4C6;
+    --danger: #9E2A2B;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --amber-border: #8A6D1B;
+    --chip-fg: #7BC79A;
+    --info-bg: #1A2620;
+    --info-border: #2D4C3A;
+    --danger: #E06D6D;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100dvh;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 1160px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 32px); width: 100%; }
+
+  /* ---------- Header Superior de la Guía ---------- */
+  .guide-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 0;
+  }
+  .guide-header-inner {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;
+  }
+  .guide-title-wrap h1 {
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2rem, 4vw, 2.6rem); line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .guide-title-wrap p { color: var(--muted); font-size: .95rem; max-width: 65ch; }
+  .guide-actions { display: flex; gap: 10px; align-items: center; }
+
+  .theme-toggle {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Reglas de Diseño Resumen ---------- */
+  .rules-banner {
+    margin: 24px 0 32px;
+    padding: 18px 22px;
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
+    border-radius: 16px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px; font-size: .86rem;
+  }
+  .rule-card strong { color: var(--accent); display: block; font-size: .9rem; margin-bottom: 2px; }
+  .rule-card span { color: var(--fg); }
+
+  /* ---------- Matriz de Estados ---------- */
+  .states-grid {
+    display: flex; flex-direction: column; gap: 36px; margin-bottom: 60px;
+  }
+
+  .state-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,.03);
+  }
+
+  .state-header {
+    padding: 14px 20px;
+    background: color-mix(in srgb, var(--surface) 85%, var(--bg));
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .state-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    padding: 4px 10px; border-radius: 8px;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .badge-anon { background: #E2E8F0; color: #334155; }
+  .badge-guest { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-border); }
+  .badge-student { background: var(--info-bg); color: var(--accent); border: 1px solid var(--info-border); }
+  .badge-teacher { background: #EDE9FE; color: #5B21B6; border: 1px solid #C4B5FD; }
+  .badge-admin { background: #FCE7F3; color: #9D174D; border: 1px solid #FBCFE8; }
+
+  [data-theme="dark"] .badge-anon { background: #1E293B; color: #94A3B8; }
+  [data-theme="dark"] .badge-teacher { background: #2E1065; color: #DDD6FE; border-color: #4C1D95; }
+  [data-theme="dark"] .badge-admin { background: #500724; color: #FBCFE8; border-color: #831843; }
+
+  .state-desc { font-size: .84rem; color: var(--muted); }
+
+  /* Frame de la Barra de Navegación */
+  .navbar-preview-wrap {
+    padding: 16px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Componente Navbar Específico */
+  .mock-navbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; min-height: 56px; padding: 6px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    flex-wrap: wrap;
+  }
+
+  .brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; }
+  .brand-mark { width: 30px; height: 30px; display: block; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.3rem; line-height: 1;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  /* Enlaces de Navegación */
+  .nav-links-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .mock-nav-link {
+    padding: 6px 12px; border-radius: 8px;
+    color: var(--muted); text-decoration: none; font-size: .9rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .mock-nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .mock-nav-link.active { color: var(--accent); font-weight: 700; background: var(--accent-soft); }
+
+  /* Acciones a la derecha de la navbar */
+  .nav-end-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  /* Botones en navbar */
+  .btn-sm {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 36px; padding: 6px 14px; border-radius: 10px;
+    font: inherit; font-size: .86rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1px solid transparent;
+    transition: all .15s ease;
+  }
+  .btn-sm-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-sm-primary:hover { background: var(--accent-hover); }
+  .btn-sm-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+  .btn-sm-ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .btn-sm-code {
+    background: var(--amber-soft); color: var(--amber); border-color: var(--amber-border);
+  }
+  .btn-sm-code:hover { background: var(--amber); color: #FFF; }
+
+  /* Pill de Modo Invitado */
+  .pill-guest {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    font-size: .78rem; font-weight: 600; font-family: "JetBrains Mono", monospace;
+    background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-border);
+  }
+
+  /* Badge Campana Notificaciones */
+  .notification-bell-btn {
+    position: relative;
+    width: 38px; height: 38px; border-radius: 10px;
+    background: transparent; border: 1px solid var(--border-strong);
+    color: var(--fg); display: grid; place-items: center;
+    cursor: pointer; transition: background .15s ease;
+  }
+  .notification-bell-btn:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .notification-bell-btn svg { width: 18px; height: 18px; }
+  .bell-badge-count {
+    position: absolute; top: -4px; right: -4px;
+    background: #DC2626; color: #FFF;
+    font-size: .7rem; font-weight: 700; font-family: "JetBrains Mono", monospace;
+    min-width: 18px; height: 18px; border-radius: 999px;
+    display: grid; place-items: center; padding: 0 4px;
+    border: 2px solid var(--surface);
+  }
+
+  /* Menú de Perfil en Navbar */
+  .user-profile-menu {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 8px 3px 4px; border-radius: 10px;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    cursor: pointer; text-decoration: none; color: inherit;
+    font-size: .84rem;
+  }
+  .user-profile-menu:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .user-avatar-mini {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: var(--on-accent);
+    display: grid; place-items: center; font-weight: 700; font-size: .75rem;
+  }
+  .user-profile-info { display: flex; flex-direction: column; text-align: left; }
+  .user-profile-name { font-weight: 600; line-height: 1.1; }
+  .user-profile-role { font-size: .7rem; color: var(--muted); font-family: "JetBrains Mono", monospace; }
+
+  /* Desglose de Elementos */
+  .state-details {
+    padding: 18px 20px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    font-size: .86rem;
+  }
+  @media (max-width: 768px) {
+    .state-details { grid-template-columns: 1fr; }
+  }
+  .detail-box h4 {
+    font-size: .8rem; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); margin-bottom: 6px; font-weight: 700;
+  }
+  .detail-box ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .detail-box li { display: flex; align-items: flex-start; gap: 6px; }
+  .detail-box li::before { content: "•"; color: var(--accent); font-weight: bold; }
+
+  /* Toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 100;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 10px 18px; border-radius: 999px;
+    font-size: .9rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="guide-header">
+  <div class="container">
+    <div class="guide-header-inner">
+      <div class="guide-title-wrap">
+        <h1>Navegación por Estados y Roles</h1>
+        <p>Referencia de diseño para las barras de navegación de Ocicat Bella según las decisiones cerradas en DESIGN.md §13.9.x.</p>
+      </div>
+      <div class="guide-actions">
+        <a href="login.html" class="btn-sm btn-sm-ghost">Ir a Login</a>
+        <a href="pair.html" class="btn-sm btn-sm-ghost">Ir a Pair QR</a>
+        <button class="theme-toggle" type="button" id="btn-tema" aria-label="Cambiar tema claro u oscuro">
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"></path></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container" id="contenido">
+
+  <!-- Resumen de Decisiones de Arquitectura de Nav -->
+  <div class="rules-banner" data-od-id="banner-decisiones-nav">
+    <div class="rule-card">
+      <strong>1. Microcopy: «Aulas»</strong>
+      <span>Se utiliza siempre el término <em>Aulas</em> en lugar de <em>Salas</em> para evitar confusión con herramientas de videollamada.</span>
+    </div>
+    <div class="rule-card">
+      <strong>2. Creación en Sección</strong>
+      <span>Los botones «Crear Consigna» o «Nuevo Material» viven en el encabezado del Aula/Sección, no como ítems globales en la barra.</span>
+    </div>
+    <div class="rule-card">
+      <strong>3. Sin Botón Admin Anónimo</strong>
+      <span>La barra anónima no muestra botón de admin. El login único detecta el rol por correo y solicita clave solo a docentes y directivos.</span>
+    </div>
+    <div class="rule-card">
+      <strong>4. Notificaciones con Badge</strong>
+      <span>Campana con contador en vivo presente en todos los estados registrados (alumnos, docentes y directivos).</span>
+    </div>
+  </div>
+
+  <div class="states-grid">
+
+    <!-- ESTADO 1: VISITANTE ANÓNIMO -->
+    <section class="state-section" data-od-id="seccion-nav-anonimo">
+      <div class="state-header">
+        <span class="state-badge badge-anon">Estado 1 · Visitante Anónimo (Sin Registro)</span>
+        <span class="state-desc">Público general / Primer contacto con el servidor escolar</span>
+      </div>
+
+      <div class="navbar-preview-wrap">
+        <div class="mock-navbar">
+          <a class="brand" href="index.html">
+            <svg class="brand-mark" viewBox="0 0 36 36" fill="var(--accent)"><path d="M8 17 L9.5 4 L18 11 Z"/><path d="M28 17 L26.5 4 L18 11 Z"/><rect x="5" y="10" width="26" height="23" rx="10"/><text x="18" y="27.5" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="16" fill="var(--on-accent)">O</text></svg>
+            <span class="brand-name">Ocicat <em>bella</em></span>
+          </a>
+
+          <div class="nav-links-row">
+            <a href="materiales.html" class="mock-nav-link">Materiales públicos</a>
+            <a href="documento.html" class="mock-nav-link">Acerca de la escuela</a>
+          </div>
+
+          <div class="nav-end-actions">
+            <a href="login.html#input-codigo" class="btn-sm btn-sm-code" title="Entrar con código de 6 letras">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Ingresar con código
+            </a>
+            <a href="login.html" class="btn-sm btn-sm-primary">Iniciar sesión</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="state-details">
+        <div class="detail-box">
+          <h4>Elementos visibles</h4>
+          <ul>
+            <li>Isotipo y nombre institucional Ocicat Bella.</li>
+            <li>Links a contenido libre (Materiales abiertos de la institución).</li>
+            <li>CTA secundario <strong>«Ingresar con código»</strong> (escuela o aula).</li>
+            <li>CTA principal <strong>«Iniciar sesión»</strong>.</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <h4>Decisiones y restricciones</h4>
+          <ul>
+            <li><strong>Cero botón «Admin»</strong>: Reduce vectores de ataque y simplifica la vista.</li>
+            <li>El usuario no ve campana de notificaciones ni perfil.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTADO 2: MODO INVITADO -->
+    <section class="state-section" data-od-id="seccion-nav-invitado">
+      <div class="state-header">
+        <span class="state-badge badge-guest">Estado 2 · Modo Invitado (Entró con código global)</span>
+        <span class="state-desc">Exploración de proyectos y contenidos sin cuenta persistente</span>
+      </div>
+
+      <div class="navbar-preview-wrap">
+        <div class="mock-navbar">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <a class="brand" href="index.html">
+              <svg class="brand-mark" viewBox="0 0 36 36" fill="var(--accent)"><path d="M8 17 L9.5 4 L18 11 Z"/><path d="M28 17 L26.5 4 L18 11 Z"/><rect x="5" y="10" width="26" height="23" rx="10"/><text x="18" y="27.5" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="16" fill="var(--on-accent)">O</text></svg>
+              <span class="brand-name">Ocicat <em>bella</em></span>
+            </a>
+            <span class="pill-guest">Invitado · E.E.S.T. N° 1</span>
+          </div>
+
+          <div class="nav-links-row">
+            <a href="materiales.html" class="mock-nav-link active">Materiales</a>
+            <a href="sandboxes.html" class="mock-nav-link">Proyectos</a>
+          </div>
+
+          <div class="nav-end-actions">
+            <a href="login.html" class="btn-sm btn-sm-ghost">Tengo cuenta / Iniciar sesión</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="state-details">
+        <div class="detail-box">
+          <h4>Elementos visibles</h4>
+          <ul>
+            <li>Pill indicator destacado: <strong>«Invitado · Escuela»</strong>.</li>
+            <li>Pestañas educativas: <strong>«Materiales»</strong> y <strong>«Proyectos»</strong>.</li>
+            <li>Acceso rápido para ingresar con cuenta registrada en cualquier momento.</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <h4>Decisiones y restricciones</h4>
+          <ul>
+            <li>No tiene acceso a «Aulas» privadas ni a entregar tareas.</li>
+            <li>Lectura libre sin persistencia de autoría.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTADO 3: REGISTRADO · ALUMNO -->
+    <section class="state-section" data-od-id="seccion-nav-alumno">
+      <div class="state-header">
+        <span class="state-badge badge-student">Estado 3 · Registrado · Alumno (Estudiante)</span>
+        <span class="state-desc">Acceso a sus cursos, tareas, sandboxes y entregas</span>
+      </div>
+
+      <div class="navbar-preview-wrap">
+        <div class="mock-navbar">
+          <a class="brand" href="alumnos.html">
+            <svg class="brand-mark" viewBox="0 0 36 36" fill="var(--accent)"><path d="M8 17 L9.5 4 L18 11 Z"/><path d="M28 17 L26.5 4 L18 11 Z"/><rect x="5" y="10" width="26" height="23" rx="10"/><text x="18" y="27.5" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="16" fill="var(--on-accent)">O</text></svg>
+            <span class="brand-name">Ocicat <em>bella</em></span>
+          </a>
+
+          <div class="nav-links-row">
+            <a href="alumnos.html" class="mock-nav-link active">Mis Aulas</a>
+            <a href="entregar.html" class="mock-nav-link">Mis Entregas</a>
+            <a href="materiales.html" class="mock-nav-link">Materiales</a>
+            <a href="sandboxes.html" class="mock-nav-link">Proyectos</a>
+          </div>
+
+          <div class="nav-end-actions">
+            <!-- Campana de notificaciones con Badge -->
+            <button class="notification-bell-btn" type="button" title="3 notificaciones nuevas" onclick="avisoNav('3 consignas pendientes de entrega')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="bell-badge-count">3</span>
+            </button>
+
+            <!-- Menú Perfil Alumno -->
+            <a href="perfil.html" class="user-profile-menu">
+              <div class="user-avatar-mini">TM</div>
+              <div class="user-profile-info">
+                <span class="user-profile-name">Tiziano M.</span>
+                <span class="user-profile-role">5° 1° Computación</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="state-details">
+        <div class="detail-box">
+          <h4>Elementos y labels</h4>
+          <ul>
+            <li><strong>«Mis Aulas»</strong>: Cursos donde está inscripto.</li>
+            <li><strong>«Mis Entregas»</strong>: Estado de devoluciones y tareas.</li>
+            <li>Campana con badge rojo de contador de pendientes.</li>
+            <li>Avatar con iniciales y curso escolar.</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <h4>Experiencia de sesión</h4>
+          <ul>
+            <li>Acceso a menú desplegable: Mi Perfil, Mis Dispositivos (PWA / Pair), Cerrar sesión.</li>
+            <li>Si está en PC de laboratorio, el logout desvincula la sesión temporal.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTADO 4: REGISTRADO · DOCENTE -->
+    <section class="state-section" data-od-id="seccion-nav-docente">
+      <div class="state-header">
+        <span class="state-badge badge-teacher">Estado 4 · Registrado · Docente (Profesor)</span>
+        <span class="state-desc">Gestión de cursos a cargo, consignas y correcciones</span>
+      </div>
+
+      <div class="navbar-preview-wrap">
+        <div class="mock-navbar">
+          <a class="brand" href="dashboard.html">
+            <svg class="brand-mark" viewBox="0 0 36 36" fill="var(--accent)"><path d="M8 17 L9.5 4 L18 11 Z"/><path d="M28 17 L26.5 4 L18 11 Z"/><rect x="5" y="10" width="26" height="23" rx="10"/><text x="18" y="27.5" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="16" fill="var(--on-accent)">O</text></svg>
+            <span class="brand-name">Ocicat <em>bella</em></span>
+          </a>
+
+          <div class="nav-links-row">
+            <a href="dashboard.html" class="mock-nav-link active">Aulas</a>
+            <a href="consignas.html" class="mock-nav-link">Consignas</a>
+            <a href="materiales.html" class="mock-nav-link">Materiales</a>
+            <a href="sandboxes.html" class="mock-nav-link">Proyectos</a>
+          </div>
+
+          <div class="nav-end-actions">
+            <!-- Campana docente -->
+            <button class="notification-bell-btn" type="button" title="5 entregas para corregir" onclick="avisoNav('5 alumnos entregaron trabajos')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="bell-badge-count" style="background:var(--accent);">5</span>
+            </button>
+
+            <!-- Menú Perfil Docente -->
+            <a href="perfil.html" class="user-profile-menu">
+              <div class="user-avatar-mini" style="background:#5B21B6;">RG</div>
+              <div class="user-profile-info">
+                <span class="user-profile-name">Prof. R. García</span>
+                <span class="user-profile-role">3 Aulas activas</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="state-details">
+        <div class="detail-box">
+          <h4>Elementos y labels</h4>
+          <ul>
+            <li><strong>«Aulas»</strong>: Aulas a su cargo (+ botón para crear aula dentro de la vista).</li>
+            <li><strong>«Consignas»</strong>: Panel central de tareas publicadas.</li>
+            <li>Botón contextual «+ Nueva Consigna» se ubica dentro de la vista del Aula.</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <h4>Regla de consistencia (§13.9.2)</h4>
+          <ul>
+            <li>No se satura el menú superior con botones de creación global.</li>
+            <li>Las notificaciones informan entregas pendientes de corrección.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTADO 5: REGISTRADO · DIRECTIVO / ADMINISTRADOR -->
+    <section class="state-section" data-od-id="seccion-nav-admin">
+      <div class="state-header">
+        <span class="state-badge badge-admin">Estado 5 · Registrado · Directivo / Administrador</span>
+        <span class="state-desc">Administración institucional, alta de docentes/cursos y servidor escolar</span>
+      </div>
+
+      <div class="navbar-preview-wrap">
+        <div class="mock-navbar">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <a class="brand" href="admin.html">
+              <svg class="brand-mark" viewBox="0 0 36 36" fill="var(--accent)"><path d="M8 17 L9.5 4 L18 11 Z"/><path d="M28 17 L26.5 4 L18 11 Z"/><rect x="5" y="10" width="26" height="23" rx="10"/><text x="18" y="27.5" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="16" fill="var(--on-accent)">O</text></svg>
+              <span class="brand-name">Ocicat <em>bella</em></span>
+            </a>
+          </div>
+
+          <div class="nav-links-row">
+            <a href="admin.html" class="mock-nav-link active">Gestión Escolar</a>
+            <a href="dashboard.html" class="mock-nav-link">Todas las Aulas</a>
+            <a href="materiales.html" class="mock-nav-link">Materiales</a>
+            <a href="setup.html" class="mock-nav-link">Configuración</a>
+          </div>
+
+          <div class="nav-end-actions">
+            <!-- Badge estado del servidor self-hosted -->
+            <span class="pill-guest" style="background:var(--info-bg); color:var(--accent); border-color:var(--info-border);">
+              ● Servidor OK
+            </span>
+
+            <button class="notification-bell-btn" type="button" title="Notificaciones de sistema" onclick="avisoNav('Backup semanal completado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </button>
+
+            <!-- Menú Perfil Admin -->
+            <a href="admin.html" class="user-profile-menu">
+              <div class="user-avatar-mini" style="background:#9D174D;">DIR</div>
+              <div class="user-profile-info">
+                <span class="user-profile-name">Dirección E.T. N°1</span>
+                <span class="user-profile-role">Administrador</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="state-details">
+        <div class="detail-box">
+          <h4>Elementos y labels</h4>
+          <ul>
+            <li><strong>«Gestión Escolar»</strong>: Importación y alta de matrículas docentes/alumnos.</li>
+            <li><strong>«Todas las Aulas»</strong>: Vista global de supervisión pedagógica.</li>
+            <li>Indicador de estado del servidor self-hosted escolar.</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <h4>Seguridad y gobernanza</h4>
+          <ul>
+            <li>Gestión de claves de docentes y restablecimiento de accesos.</li>
+            <li>Configuración de backups locales y políticas de red del colegio.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+  var root = document.documentElement;
+  document.getElementById('btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) {}
+  });
+
+  var toast = document.getElementById('toast');
+  var timer = null;
+  window.avisoNav = function (msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  };
+})();
+</script>
+</body>
+</html>
