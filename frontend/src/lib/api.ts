@@ -116,3 +116,70 @@ export function me(): Promise<MeUser> {
 export async function logout(): Promise<void> {
   await request<void>('/api/v1/sessions/current', { method: 'DELETE' });
 }
+
+// --- QR inverso (§2.3) y sesiones/dispositivos (§2.4) — Fase 2 ---
+
+/** POST /auth/qr/start (201): sesión de emparejamiento creada por la PC. */
+export interface PairingStart {
+  pairing_id: string;
+  /** URL del dominio oficial para el QR ([C3]). Single-use, TTL ≤90 s. */
+  qr_url: string;
+  expires_in: number;
+  refresh_after: number;
+}
+
+export type PairingState = 'waiting' | 'scanned' | 'confirmed' | 'expired' | 'denied';
+
+type PairingPoll =
+  | { status: Exclude<PairingState, 'confirmed'> }
+  | { status: 'confirmed'; user: { name: string; role: Role } };
+
+/** POST /auth/qr/scan (200): identidad de la PC para confirmar ([C3]: label decorativo, IP+timestamp como prueba). */
+export interface ScanInfo {
+  pairing_id: string;
+  device_label?: string;
+  origin_ip?: string;
+  requested_at: string;
+}
+
+export function qrStart(device_label?: string): Promise<PairingStart> {
+  return request('/api/v1/auth/qr/start', device_label ? json({ device_label }) : { method: 'POST' });
+}
+
+export function qrStatus(pairing_id: string): Promise<PairingPoll> {
+  return request(`/api/v1/auth/qr/${encodeURIComponent(pairing_id)}/status`);
+}
+
+export function qrScan(qr_token: string): Promise<ScanInfo> {
+  return request('/api/v1/auth/qr/scan', json({ qr_token }));
+}
+
+/** 200 {} en éxito; claim atómico, concurrentes → 409 already_claimed. */
+export async function qrConfirm(pairing_id: string): Promise<void> {
+  await request(`/api/v1/auth/qr/${encodeURIComponent(pairing_id)}/confirm`, { method: 'POST' });
+}
+
+export async function qrDeny(pairing_id: string): Promise<void> {
+  await request(`/api/v1/auth/qr/${encodeURIComponent(pairing_id)}/deny`, { method: 'POST' });
+}
+
+/** GET /sessions (§2.4): sesiones activas de la propia cuenta. */
+export interface SessionInfo {
+  id: string;
+  kind: SessionKind;
+  device_label?: string;
+  created_at: string;
+  last_seen_at: string;
+}
+
+export function listSessions(): Promise<{ sessions: SessionInfo[] }> {
+  return request('/api/v1/sessions');
+}
+
+export async function deleteSession(id: string): Promise<void> {
+  await request(`/api/v1/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export async function closeOthers(): Promise<void> {
+  await request('/api/v1/sessions/close-others', { method: 'POST' });
+}
