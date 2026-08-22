@@ -15,7 +15,7 @@ func TestAllErrorCodesInTable(t *testing.T) {
 		{CodeValidationError, http.StatusBadRequest},
 		{CodeFileTooLarge, http.StatusBadRequest},
 		{CodeInvalidToken, http.StatusBadRequest},
-		{CodeInvalidCredentials, http.StatusBadRequest},
+		{CodeInvalidCredentials, http.StatusUnauthorized},
 		{CodeUnauthenticated, http.StatusUnauthorized},
 		{CodeForbidden, http.StatusForbidden},
 		{CodeGuestReadOnly, http.StatusForbidden},

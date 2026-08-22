@@ -75,7 +75,7 @@ var Table = map[Code]ErrorSpec{
 	},
 	CodeInvalidCredentials: {
 		Code:       CodeInvalidCredentials,
-		HTTPStatus: http.StatusBadRequest,
+		HTTPStatus: http.StatusUnauthorized,
 		Message:    "Email o contraseña incorrectos",
 	},
 	CodeUnauthenticated: {
