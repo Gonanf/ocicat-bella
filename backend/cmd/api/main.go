@@ -37,6 +37,9 @@ func main() {
 	// Create router with stdlib ServeMux (Go 1.22+) and middleware chain
 	router := handlers.NewRouter(cfg, s)
 
+	// GC de adjuntos huérfanos (§4): sweep al iniciar y cada hora.
+	router.StartAttachmentGC(context.Background(), time.Hour)
+
 	server := &http.Server{
 		Addr:         ":" + cfg.Port,
 		Handler:      router,

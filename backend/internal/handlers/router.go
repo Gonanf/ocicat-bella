@@ -101,6 +101,7 @@ func (h *Handler) registerRoutes() {
 	h.mux.Handle("POST /sessions/close-others", middleware.RequireAuth(http.HandlerFunc(h.CloseOthers)))
 
 	h.registerFase4Routes()
+	h.registerFase5Routes()
 }
 
 // atajos de middleware para las rutas de Fase 4.
@@ -146,4 +147,24 @@ func (h *Handler) registerFase4Routes() {
 	h.mux.Handle("DELETE /school/global-code", requireDirector(http.HandlerFunc(h.DisableGlobalCode)))
 	h.mux.HandleFunc("GET /school/public", h.PublicSchoolInfo)
 	h.mux.HandleFunc("POST /guest/sessions", h.GuestSession)
+}
+
+func (h *Handler) registerFase5Routes() {
+	guestRO := middleware.RequireNonGuest
+
+	// Consignas (§4)
+	h.mux.Handle("POST /classrooms/{id}/assignments", guestRO(requireStaff(http.HandlerFunc(h.CreateAssignment))))
+	h.mux.Handle("GET /classrooms/{id}/assignments", middleware.RequireAuth(http.HandlerFunc(h.ListAssignments)))
+	h.mux.Handle("POST /assignments/attachments", guestRO(requireStaff(http.HandlerFunc(h.UploadAttachment))))
+	h.mux.Handle("GET /assignments/{id}", middleware.RequireAuth(http.HandlerFunc(h.GetAssignment)))
+	h.mux.Handle("PATCH /assignments/{id}", guestRO(requireStaff(http.HandlerFunc(h.PatchAssignment))))
+	h.mux.Handle("DELETE /assignments/{id}", guestRO(requireStaff(http.HandlerFunc(h.DeleteAssignment))))
+	h.mux.Handle("GET /assignments/{id}/stats", requireStaff(http.HandlerFunc(h.GetAssignmentStats)))
+
+	// Entregas (§5): submission = UN intento
+	h.mux.Handle("POST /assignments/{id}/submissions/files", guestRO(requireAlumno(http.HandlerFunc(h.UploadSubmissionFiles))))
+	h.mux.Handle("GET /assignments/{id}/submissions/me", requireAlumno(http.HandlerFunc(h.MySubmissions)))
+	h.mux.Handle("GET /assignments/{id}/submissions", requireStaff(http.HandlerFunc(h.ListAssignmentSubmissions)))
+	h.mux.Handle("POST /submissions/{submission_id}/deliver", guestRO(requireAlumno(http.HandlerFunc(h.DeliverSubmission))))
+	h.mux.Handle("GET /submissions/{submission_id}", middleware.RequireAuth(http.HandlerFunc(h.GetSubmission)))
 }
