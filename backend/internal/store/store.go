@@ -77,6 +77,25 @@ type Store interface {
 	DeleteMaterial(ctx context.Context, id string) error
 	ListMaterials(ctx context.Context) ([]model.Material, error)
 
+	// Consignas (§4): Deleted=true tras soft-delete; Get devuelve aunque esté borrada.
+	CreateAssignment(ctx context.Context, a *model.Assignment) error
+	GetAssignment(ctx context.Context, id string) (*model.Assignment, error)
+	UpdateAssignment(ctx context.Context, a *model.Assignment) error
+	ListAssignments(ctx context.Context) ([]model.Assignment, error)
+
+	// Adjuntos de consigna (§4): sin AssignmentID son huérfanos purgables por el GC.
+	CreateAttachment(ctx context.Context, at *model.Attachment) error
+	GetAttachment(ctx context.Context, id string) (*model.Attachment, error)
+	DeleteAttachment(ctx context.Context, id string) error
+	ListAttachments(ctx context.Context) ([]model.Attachment, error)
+
+	// Entregas (§5): submission = UN intento; UpdateSubmission persiste también
+	// la transición draft→delivered con su snapshot ya copiado.
+	CreateSubmission(ctx context.Context, s *model.Submission) error
+	GetSubmission(ctx context.Context, id string) (*model.Submission, error)
+	UpdateSubmission(ctx context.Context, s *model.Submission) error
+	ListSubmissionsByAssignment(ctx context.Context, assignmentID string) ([]model.Submission, error)
+
 	// Escuela (§9.1/§10)
 	SchoolStats(ctx context.Context) (*model.SchoolStats, error)
 	RevokeGuestAccess(ctx context.Context) error
@@ -93,6 +112,9 @@ type MemStore struct {
 	classrooms  map[string]*model.Classroom
 	memberships map[string]*model.Membership // clave: memberKey(classroomID, userID)
 	materials   map[string]*model.Material
+	assignments map[string]*model.Assignment
+	attachments map[string]*model.Attachment
+	submissions map[string]*model.Submission
 }
 
 // NewMemStore creates an initialized MemStore.
@@ -105,6 +127,9 @@ func NewMemStore() *MemStore {
 		classrooms:  make(map[string]*model.Classroom),
 		memberships: make(map[string]*model.Membership),
 		materials:   make(map[string]*model.Material),
+		assignments: make(map[string]*model.Assignment),
+		attachments: make(map[string]*model.Attachment),
+		submissions: make(map[string]*model.Submission),
 	}
 }
 

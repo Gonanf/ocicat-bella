@@ -106,6 +106,53 @@ CREATE TABLE IF NOT EXISTS materials(
 );
 CREATE INDEX IF NOT EXISTS idx_memberships_user_id ON memberships(user_id);
 CREATE INDEX IF NOT EXISTS idx_materials_classroom_id ON materials(classroom_id);
+
+CREATE TABLE IF NOT EXISTS assignments(
+	id TEXT PRIMARY KEY,
+	classroom_id TEXT NOT NULL REFERENCES classrooms(id),
+	created_by TEXT NOT NULL REFERENCES users(id),
+	title TEXT NOT NULL,
+	instructions TEXT NOT NULL DEFAULT '',
+	attachment_ids TEXT NOT NULL DEFAULT '[]',
+	runtime TEXT NOT NULL,
+	due_at TEXT,
+	attempts_mode TEXT NOT NULL DEFAULT 'unlimited',
+	attempts_max INTEGER NOT NULL DEFAULT 0,
+	late_policy TEXT NOT NULL DEFAULT 'allowed',
+	deleted INTEGER NOT NULL DEFAULT 0,
+	created_at TEXT NOT NULL,
+	updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_assignments_classroom ON assignments(classroom_id);
+
+CREATE TABLE IF NOT EXISTS attachments(
+	id TEXT PRIMARY KEY,
+	filename TEXT NOT NULL,
+	content_type TEXT NOT NULL DEFAULT '',
+	size INTEGER NOT NULL,
+	data_b64 TEXT NOT NULL DEFAULT '',
+	uploaded_by TEXT NOT NULL REFERENCES users(id),
+	assignment_id TEXT NOT NULL DEFAULT '',
+	created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS submissions(
+	id TEXT PRIMARY KEY,
+	assignment_id TEXT NOT NULL REFERENCES assignments(id),
+	student_id TEXT NOT NULL REFERENCES users(id),
+	attempt_number INTEGER NOT NULL,
+	state TEXT NOT NULL DEFAULT 'draft',
+	files_json TEXT NOT NULL DEFAULT '[]',
+	snapshot_files_json TEXT NOT NULL DEFAULT '[]',
+	last_test_result_json TEXT,
+	late INTEGER NOT NULL DEFAULT 0,
+	tested_ok INTEGER NOT NULL DEFAULT 0,
+	test_error INTEGER NOT NULL DEFAULT 0,
+	delivered_at TEXT,
+	created_at TEXT NOT NULL,
+	UNIQUE (assignment_id, student_id, attempt_number)
+);
+CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
 `
 
 // alterSQL corre migraciones no-idempotentes (ALTER TABLE) tolerando el error
