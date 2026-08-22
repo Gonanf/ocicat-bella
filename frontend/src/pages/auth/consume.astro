@@ -1,0 +1,113 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout titulo="Validando acceso" active="login" navRole="anonimo">
+  <div class="py-12 md:py-20 flex justify-center">
+    <div class="w-full max-w-[460px]">
+
+      <!-- Estado: validando -->
+      <div id="consume-cargando" class="card bg-base-100 border border-base-300 shadow-sm p-8 sm:p-10 text-center flex flex-col items-center gap-4">
+        <span class="loading loading-spinner text-primary size-10" aria-hidden="true"></span>
+        <h1 class="font-display font-normal text-2xl tracking-tight text-base-content">
+          Validando tu enlace…
+        </h1>
+        <p class="text-sm text-base-content/70">
+          Un momento, estamos abriendo tu sesión.
+        </p>
+      </div>
+
+      <!-- Estado: error -->
+      <div id="consume-error" class="card bg-base-100 border border-error/30 shadow-sm p-8 sm:p-10 text-center items-center gap-4" hidden role="alert">
+        <span class="size-14 rounded-full bg-error/10 text-error grid place-items-center shrink-0">
+          <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </span>
+        <h1 class="font-display font-normal text-2xl tracking-tight text-base-content" id="consume-error-titulo">
+          Este enlace no funciona
+        </h1>
+        <p class="text-sm text-base-content/70 leading-relaxed" id="consume-error-detalle">
+          Pedile un enlace nuevo a tu docente o volvé a iniciar sesión.
+        </p>
+        <a href="/login/" class="btn btn-primary rounded-xl font-semibold mt-2">
+          Volver a iniciar sesión
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script>
+    import { ApiError, consumeToken } from '../../lib/api';
+
+    (() => {
+      const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T | null;
+      const cargando = $('#consume-cargando')!;
+      const errorBox = $('#consume-error')!;
+
+      function mostrarError(titulo: string, detalle: string) {
+        cargando.hidden = true;
+        $('#consume-error-titulo')!.textContent = titulo;
+        $('#consume-error-detalle')!.textContent = detalle;
+        errorBox.hidden = false;
+      }
+
+      // Copys del contrato §2.2 (410 token_expired/token_used, 400 invalid_token, 409 device_limit)
+      function mensajeDeError(err: unknown): { titulo: string; detalle: string } {
+        if (!(err instanceof ApiError)) {
+          return { titulo: 'No pudimos conectar', detalle: 'Ocurrió un error de red. Intentá abrir el enlace de nuevo.' };
+        }
+        switch (err.code) {
+          case 'token_expired':
+            return { titulo: 'El enlace venció', detalle: 'Los enlaces de acceso duran 10 minutos. Volvé a iniciar sesión para recibir uno nuevo.' };
+          case 'token_used':
+            return { titulo: 'El enlace ya fue usado', detalle: 'Cada enlace funciona una sola vez. Si no entraste vos, iniciá sesión de nuevo.' };
+          case 'invalid_token':
+            return { titulo: 'Enlace inválido', detalle: 'El enlace llegó cortado o incompleto. Pedile uno nuevo a tu docente.' };
+          case 'device_limit_reached':
+            return { titulo: 'Límite de dispositivos', detalle: 'Ya alcanzaste el máximo de dispositivos emparejados. Desvinculá uno desde tu perfil e intentá otra vez.' };
+          case 'rate_limited':
+            return { titulo: 'Demasiados intentos', detalle: err.retryAfter ? `Probá de nuevo en ${Math.ceil(err.retryAfter / 60)} min.` : 'Probá de nuevo más tarde.' };
+          default:
+            return { titulo: 'No pudimos validar el enlace', detalle: err.message || 'Intentá de nuevo más tarde.' };
+        }
+      }
+
+      async function consumir() {
+        const token = new URLSearchParams(window.location.search).get('token');
+        if (!token) {
+          mostrarError('Falta el token', 'Abrí el enlace completo que recibiste por correo.');
+          return;
+        }
+        try {
+          const res = await consumeToken(resanitize(token));
+          // pc_temporal → PC del lab (CU-2); pwa → celular emparejado (CU-17)
+          const destino = res.user.role === 'docente' || res.user.role === 'director'
+            ? '/dashboard/'
+            : '/mis-salas/';
+          window.location.href = destino;
+        } catch (err) {
+          const m = mensajeDeError(err);
+          mostrarError(m.titulo, m.detalle);
+        }
+      }
+
+      // El backend emite tokens base64url; defensivo ante URLs manipuladas
+      function resanitize(t: string): string {
+        return t.replace(/[^A-Za-z0-9_-]/g, '');
+      }
+
+      void consumir();
+    })();
+  </script>
+</Layout>
