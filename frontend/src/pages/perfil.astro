@@ -140,13 +140,22 @@ import { perfilMock } from '../data/mock';
             <p class="text-xs text-base-content/55 text-center sm:text-left">
               Entrás siempre sin contraseñas mediante tu magic link.
             </p>
-            <button
-              type="submit"
-              id="btn-guardar"
-              class="btn btn-primary rounded-xl font-semibold px-7 w-full sm:w-auto"
-            >
-              Guardar cambios
-            </button>
+            <div class="flex gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                id="btn-cerrar-sesion"
+                class="btn btn-outline btn-error rounded-xl font-semibold w-full sm:w-auto"
+              >
+                Cerrar mi sesión
+              </button>
+              <button
+                type="submit"
+                id="btn-guardar"
+                class="btn btn-primary rounded-xl font-semibold px-7 flex-1 sm:flex-none"
+              >
+                Guardar cambios
+              </button>
+            </div>
           </div>
 
         </form>
@@ -162,20 +171,22 @@ import { perfilMock } from '../data/mock';
     </div>
   </div>
 
-  <script is:inline>
+  <script>
+    import { ApiError, me, logout } from '../lib/api';
+
     (() => {
-      const $ = (sel) => document.querySelector(sel);
+      const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T | null;
 
       // Toast feedback
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
@@ -222,11 +233,33 @@ import { perfilMock } from '../data/mock';
       }
 
       // Guardar formulario
-      const form = $('#form-perfil');
-      const inputNombre = $('#f-nombre');
-      const inputEmail = $('#f-email');
+      const form = $('#form-perfil')!;
+      const inputNombre = $('#f-nombre') as HTMLInputElement;
+      const inputEmail = $('#f-email') as HTMLInputElement;
       const heroEmail = $('#hero-email');
       const avatarIniciales = $('#avatar-iniciales');
+
+      // GET /me — identidad real reemplaza los valores iniciales
+      async function cargarPerfil() {
+        try {
+          const user = await me();
+          if (inputNombre) inputNombre.value = user.name;
+          if (inputEmail) inputEmail.value = user.email;
+          if (heroEmail) heroEmail.textContent = user.email;
+          if (avatarIniciales) {
+            const partes = user.name.split(' ').filter(Boolean);
+            avatarIniciales.textContent = partes.length >= 2
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : user.name.slice(0, 2).toUpperCase();
+          }
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          // Sin backend u otro error: quedan los valores iniciales
+        }
+      }
 
       if (form) {
         form.addEventListener('submit', (e) => {
@@ -258,6 +291,24 @@ import { perfilMock } from '../data/mock';
         });
       }
 
+      // Logout — DELETE /sessions/current (§2.4)
+      const btnLogout = $('#btn-cerrar-sesion');
+      btnLogout?.addEventListener('click', async () => {
+        btnLogout.setAttribute('disabled', '');
+        try {
+          await logout();
+          window.location.href = '/login/';
+        } catch (err) {
+          btnLogout.removeAttribute('disabled');
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          aviso(err instanceof ApiError ? err.message : 'No pudimos cerrar la sesión. Intentá de nuevo.');
+        }
+      });
+
+      void cargarPerfil();
       chequearVacio();
     })();
   </script>
