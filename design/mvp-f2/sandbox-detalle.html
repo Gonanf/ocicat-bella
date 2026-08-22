@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adivinanza numérica — Sandbox · Ocicat Bella</title>
+<meta name="description" content="Detalle del sandbox: estados de arranque en vivo, logs e historial de ejecuciones.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --error: #B0413E;
+    --error-soft: rgba(176, 65, 62, .10);
+    --chip-fg: #1B4332;
+    --ok: #12855A;
+    --term-bg: #101216;
+    --term-bar: #1B1F26;
+    --term-fg: #D7DEE8;
+    --term-dim: #7B8594;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --error: #E07A72;
+    --error-soft: rgba(224, 122, 114, .12);
+    --chip-fg: #7BC79A;
+    --ok: #7BC79A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 1140px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; align-items: center; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: clamp(28px, 5vw, 44px) 0 22px; }
+  .volver {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin: 0 0 14px -10px; padding: 6px 10px; border-radius: 8px;
+    color: var(--muted); text-decoration: none;
+    font-size: .92rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .volver:hover { color: var(--fg); background: var(--accent-soft); }
+  .eyebrow {
+    margin: 0 0 12px;
+    font-size: .76rem; font-weight: 600; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .hero h1 {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2rem, 4.4vw, 2.8rem); line-height: 1.08;
+    letter-spacing: -.01em;
+  }
+  .hero-tags { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
+  .tag-mono {
+    font-family: "JetBrains Mono", monospace; font-size: .76rem; font-weight: 600;
+    color: var(--chip-fg); background: var(--accent-soft);
+    border: 1px solid var(--border-strong);
+    padding: 3px 10px; border-radius: 8px;
+  }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: .68rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+    padding: 4px 11px; border-radius: 999px;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pill-corriendo { color: var(--ok); background: var(--accent-soft); border: 1px solid var(--border-strong); }
+  .pill-detenido { color: var(--muted); background: var(--bg); border: 1px solid var(--border-strong); }
+  .pill-corriendo .dot { animation: pulso 1.6s ease-in-out infinite; }
+  @keyframes pulso { 50% { opacity: .3; } }
+
+  /* ---------- Botones ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 46px; padding: 10px 20px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .95rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-outline { background: transparent; color: var(--accent); border-color: var(--accent); }
+  .btn-outline:hover:not(:disabled) { background: var(--accent); color: var(--on-accent); }
+  .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+  .btn-ghost:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); }
+  .btn-danger { background: transparent; color: var(--error); border-color: currentColor; }
+  .btn-danger:hover:not(:disabled) { background: var(--error-soft); }
+  .btn:disabled { cursor: not-allowed; background: var(--bg); color: var(--muted); border-color: var(--border); }
+  .detalle-acciones { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 34px; }
+
+  /* ---------- Timeline de arranque ---------- */
+  .detalle-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; padding-bottom: 90px; }
+  .panel-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 22px;
+  }
+  .sec-title {
+    margin: 0 0 14px;
+    font-size: .74rem; font-weight: 600; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent);
+  }
+
+  .timeline-card { margin-bottom: 20px; }
+  .arranque-timeline {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; align-items: flex-start;
+  }
+  .tl-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; min-width: 0; }
+  .tl-step::before {
+    content: ''; position: absolute; top: 11px; left: -50%; width: 100%; height: 2px;
+    background: var(--border-strong);
+  }
+  .tl-step:first-child::before { display: none; }
+  .tl-dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    background: var(--surface);
+    display: grid; place-items: center;
+    z-index: 1;
+    transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .tl-dot svg { width: 10px; height: 10px; fill: none; stroke: var(--on-accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+  .tl-lbl {
+    font-size: .78rem; font-weight: 600; color: var(--muted);
+    text-align: center; line-height: 1.25;
+  }
+  .tl-step.is-active::before { background: var(--accent); }
+  .tl-step.is-active .tl-dot {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 22px var(--accent);
+    animation: latido 1s ease-in-out infinite;
+  }
+  @keyframes latido { 50% { transform: scale(1.15); } }
+  .tl-step.is-done::before { background: var(--accent); }
+  .tl-step.is-done .tl-dot { background: var(--accent); border-color: var(--accent); }
+  .tl-step.is-done .tl-dot svg { opacity: 1; }
+  .tl-step.is-done .tl-lbl, .tl-step.is-active .tl-lbl { color: var(--fg); }
+  [data-theme="dark"] .tl-dot svg { stroke: #101512; }
+
+  /* ---------- Terminal ---------- */
+  .terminal { border-radius: 14px; overflow: hidden; border: 1px solid var(--border-strong); margin-bottom: 20px; }
+  .term-bar {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--term-bar); padding: 9px 13px;
+  }
+  .term-titulo {
+    color: #A9B1BC; font-family: "JetBrains Mono", monospace; font-size: .72rem;
+  }
+  .term-live {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 7px;
+    color: #A9B1BC; font-family: "JetBrains Mono", monospace; font-size: .72rem;
+  }
+  .term-live .dot { width: 7px; height: 7px; border-radius: 50%; background: #27C93F; animation: pulso 1.6s infinite; }
+  .term-body {
+    margin: 0; padding: 14px 16px 16px;
+    background: var(--term-bg); color: var(--term-fg);
+    font-family: "JetBrains Mono", monospace; font-size: .78rem; line-height: 1.75;
+    height: 300px; overflow-y: auto;
+  }
+  .log-line { display: flex; gap: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .log-time { color: var(--term-dim); flex-shrink: 0; }
+  .log-cmd { color: var(--term-fg); font-weight: 600; }
+  .log-sys { color: #8FA89B; }
+  .log-out { color: var(--term-fg); }
+  .log-ok { color: #7BC79A; font-weight: 600; }
+
+  /* ---------- Historial ---------- */
+  .tabla-hist { width: 100%; border-collapse: collapse; }
+  .tabla-hist th {
+    text-align: left;
+    font-size: .68rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--muted);
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .tabla-hist td {
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: .9rem; vertical-align: middle;
+  }
+  .tabla-hist tr:last-child td { border-bottom: none; }
+  .exit-chip {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace; font-size: .74rem; font-weight: 600;
+    padding: 2px 9px; border-radius: 999px;
+  }
+  .exit-ok { color: var(--ok); background: var(--accent-soft); }
+  .exit-err { color: var(--error); background: var(--error-soft); }
+  .exit-warn { color: var(--amber); background: var(--amber-soft); }
+
+  /* ---------- Panel lateral ---------- */
+  .meta-title {
+    margin: 0 0 10px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.3rem;
+  }
+  .meta-list { margin: 0; }
+  .meta-row {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .9rem;
+  }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-row dt { color: var(--muted); flex-shrink: 0; }
+  .meta-row dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  .mono { font-family: "JetBrains Mono", monospace; font-size: .84rem; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px) {
+    .detalle-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .header-inner { row-gap: 4px; }
+    .main-nav { order: 3; width: 100%; margin-inline: 0; overflow-x: auto; padding-bottom: 2px; }
+    .nav-link { white-space: nowrap; }
+    .arranque-timeline { flex-direction: column; gap: 14px; }
+    .tl-step { flex-direction: row; align-items: center; }
+    .tl-step::before { left: 11px; top: 26px; width: 2px; height: 26px; }
+    .tl-lbl { text-align: left; }
+    .detalle-acciones .btn { flex: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="index.html" data-od-id="nav-inicio">Inicio</a>
+      <a class="nav-link" href="materiales.html" data-od-id="nav-materiales">Materiales</a>
+      <a class="nav-link" href="sandboxes.html" data-od-id="nav-sandboxes">Sandboxes</a>
+      <a class="nav-link" href="login.html" data-od-id="nav-entrar">Entrar</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="container">
+
+    <section class="hero" data-od-id="hero-detalle">
+      <a class="volver" href="sandboxes.html" data-od-id="volver-sandboxes">← Sandboxes</a>
+      <div class="hero-row">
+        <div>
+          <p class="eyebrow">Programación · 5.º A · sb-42</p>
+          <h1 id="titulo-detalle" data-od-id="titulo-detalle">Adivinanza numérica</h1>
+          <div class="hero-tags" data-od-id="tags-detalle">
+            <span class="tag-mono">Python</span>
+            <span class="tag-mono">job · corre y se apaga</span>
+            <span class="pill pill-corriendo" id="pill-estado"><span class="dot" aria-hidden="true"></span>Corriendo</span>
+          </div>
+        </div>
+        <div class="detalle-acciones" data-od-id="acciones-detalle">
+          <button class="btn btn-outline" type="button" id="btn-iniciar" disabled title="Ya está corriendo" data-od-id="btn-iniciar">▶ Iniciar</button>
+          <button class="btn btn-danger" type="button" id="btn-detener" data-od-id="btn-detener">■ Detener</button>
+          <button class="btn btn-ghost" type="button" id="btn-reiniciar" data-od-id="btn-rerun">Correr de nuevo</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="detalle-grid">
+
+      <section aria-label="Consola y estado" data-od-id="columna-terminal">
+
+        <div class="panel-card timeline-card" data-od-id="card-timeline">
+          <p class="sec-title">Estado del arranque</p>
+          <ol class="arranque-timeline" id="timeline" data-od-id="timeline-arranque"
+              aria-label="Progreso: Encolando, Descargando imagen, Arrancando, Listo">
+            <li class="tl-step is-done" data-step="encolando">
+              <span class="tl-dot" aria-hidden="true"><svg viewBox="0 0 14 14"><path d="M2.5 7.5 5.5 10.5 11.5 3.5"/></svg></span>
+              <span class="tl-lbl">Encolando</span>
+            </li>
+            <li class="tl-step is-done" data-step="descargando">
+              <span class="tl-dot" aria-hidden="true"><svg viewBox="0 0 14 14"><path d="M2.5 7.5 5.5 10.5 11.5 3.5"/></svg></span>
+              <span class="tl-lbl">Descargando imagen</span>
+            </li>
+            <li class="tl-step is-done" data-step="arrancando">
+              <span class="tl-dot" aria-hidden="true"><svg viewBox="0 0 14 14"><path d="M2.5 7.5 5.5 10.5 11.5 3.5"/></svg></span>
+              <span class="tl-lbl">Arrancando</span>
+            </li>
+            <li class="tl-step is-done" data-step="listo">
+              <span class="tl-dot" aria-hidden="true"><svg viewBox="0 0 14 14"><path d="M2.5 7.5 5.5 10.5 11.5 3.5"/></svg></span>
+              <span class="tl-lbl">Listo</span>
+            </li>
+          </ol>
+          <p class="sr-only" role="status" id="timeline-status"></p>
+        </div>
+
+        <div class="terminal" data-od-id="terminal-sandbox">
+          <div class="term-bar" aria-hidden="true">
+            <span class="term-titulo">logs en vivo · sb-42</span>
+            <span class="term-live" id="term-live"><span class="dot"></span>en vivo</span>
+          </div>
+          <pre class="term-body" id="term-body" tabindex="0" aria-label="Salida de la ejecución" data-od-id="salida-terminal"></pre>
+        </div>
+
+        <div class="panel-card" data-od-id="card-historial">
+          <p class="sec-title">Historial de ejecuciones</p>
+          <table class="tabla-hist" data-od-id="tabla-historial">
+            <thead>
+              <tr><th scope="col">N.º</th><th scope="col">Resultado</th><th scope="col">Código</th><th scope="col">Cuándo</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>#7</td>
+                <td>Exitosa</td>
+                <td><span class="exit-chip exit-ok">exit=0</span></td>
+                <td>hoy 14:32</td>
+              </tr>
+              <tr>
+                <td>#6</td>
+                <td>Falló: SyntaxError en línea 12</td>
+                <td><span class="exit-chip exit-err">exit=1</span></td>
+                <td>ayer 15:10</td>
+              </tr>
+              <tr>
+                <td>#5</td>
+                <td>Se pasó de los 120 s y se limpió</td>
+                <td><span class="exit-chip exit-warn">exit=124</span></td>
+                <td>12/08 10:05</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <aside class="panel-card" aria-label="Datos del sandbox" data-od-id="panel-datos">
+        <p class="meta-title">Datos del sandbox</p>
+        <dl class="meta-list">
+          <div class="meta-row"><dt>Modo</dt><dd>Job · se apaga al terminar</dd></div>
+          <div class="meta-row"><dt>Retención</dt><dd>queda como registro reabrible</dd></div>
+          <div class="meta-row"><dt>Lenguaje</dt><dd>Python 3.12</dd></div>
+          <div class="meta-row"><dt>Autor</dt><dd>Valentina Costa</dd></div>
+          <div class="meta-row"><dt>Sala</dt><dd>Programación · 5.º A · <span class="mono">PROG5A</span></dd></div>
+          <div class="meta-row"><dt>Última ejecución</dt><dd>hoy 14:32</dd></div>
+          <div class="meta-row"><dt>Código de salida</dt><dd><span class="exit-chip exit-ok">0</span></dd></div>
+          <div class="meta-row"><dt>Límites</dt><dd class="mono">128 MB · 120 s · sin red</dd></div>
+        </dl>
+      </aside>
+
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Timeline de arranque ----------
+     Cada paso da feedback en el acto y dura menos de 2 s:
+     Encolando → Descargando imagen → Arrancando → Listo. */
+  var pasos = document.querySelectorAll('#timeline .tl-step');
+
+  function resetTimeline() {
+    pasos.forEach(function (p) { p.classList.remove('is-active', 'is-done'); });
+  }
+  function activarPaso(i) {
+    pasos[i].classList.remove('is-done');
+    pasos[i].classList.add('is-active');
+    $('#timeline-status').textContent =
+      pasos[i].querySelector('.tl-lbl').textContent + '…';
+  }
+  function completarPaso(i) {
+    pasos[i].classList.remove('is-active');
+    pasos[i].classList.add('is-done');
+  }
+
+  function correrTimeline(alTerminar) {
+    resetTimeline();
+    var i = 0;
+    activarPaso(0);
+    aviso(pasos[0].querySelector('.tl-lbl').textContent + '…');
+    (function proximo() {
+      if (i >= pasos.length) { alTerminar(); return; }
+      activarPaso(i);
+      aviso(pasos[i].querySelector('.tl-lbl').textContent + '…');
+      setTimeout(function () {
+        completarPaso(i);
+        i++;
+        proximo();
+      }, 700);   // cada estado responde en <2 s
+    })();
+  }
+
+  /* ---------- Terminal ---------- */
+  var termBody = $('#term-body');
+  var LINES = [
+    ['cmd', '$ ocicat run sb-42'],
+    ['sys', '[ocicat] imagen en caché — arranca sin descargar nada nuevo'],
+    ['sys', '[ocicat] sandbox iniciado · 128 MB · sin red'],
+    ['out', 'Python 3.12.4'],
+    ['out', '=== Juego: Adivinanza numérica v1.2 ==='],
+    ['out', 'Pensé un número entre 1 y 100. ¿Cuál es?'],
+    ['out', 'Intento 1 → 50   muy alto'],
+    ['out', 'Intento 2 → 25   muy alto'],
+    ['out', 'Intento 3 → 12   muy bajo'],
+    ['out', 'Intento 4 → 18   muy bajo'],
+    ['out', 'Intento 5 → 21   ¡Correcto! Ganaste en 5 intentos.'],
+    ['sys', '[ocicat] terminó · exit=0 · 3,4 s'],
+    ['ok',  '[ocicat] guardado como registro histórico ✓']
+  ];
+  var GAPS = [80, 420, 380, 520, 340, 400, 520, 520, 480, 480, 640, 380, 360];
+  var corriendo = false;
+
+  function logLinea(i) {
+    var d = new Date();
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mm = String(d.getMinutes()).padStart(2, '0');
+    var ss = String(d.getSeconds()).padStart(2, '0');
+    var fila = document.createElement('div');
+    fila.className = 'log-line';
+    var t = document.createElement('span');
+    t.className = 'log-time';
+    t.textContent = hh + ':' + mm + ':' + ss;
+    var txt = document.createElement('span');
+    txt.className = 'log-' + LINES[i][0];
+    txt.textContent = LINES[i][1];
+    fila.appendChild(t);
+    fila.appendChild(txt);
+    termBody.appendChild(fila);
+    termBody.scrollTop = termBody.scrollHeight;
+  }
+
+  function correrLogs() {
+    var i = 0;
+    $('#term-live').innerHTML = '<span class="dot"></span>en vivo';
+    (function tick() {
+      if (i >= LINES.length) {
+        $('#term-live').innerHTML = '<span class="dot" style="background:#7B8594;animation:none"></span>terminado · exit=0';
+        corriendo = true; // quedó prendido como registro vivo
+        actualizarBotones();
+        return;
+      }
+      logLinea(i);
+      i++;
+      setTimeout(tick, GAPS[i - 1]);
+    })();
+  }
+
+  /* ---------- Botones de ciclo ---------- */
+  var btnIniciar = $('#btn-iniciar');
+  var btnDetener = $('#btn-detener');
+  var btnReiniciar = $('#btn-reiniciar');
+  var pillEstado = $('#pill-estado');
+
+  function actualizarBotones() {
+    btnIniciar.disabled = corriendo;
+    btnIniciar.title = corriendo ? 'Ya está corriendo' : '';
+    btnDetener.disabled = !corriendo;
+  }
+
+  function prender() {
+    corriendo = false;
+    termBody.textContent = '';
+    pillEstado.className = 'pill pill-detenido';
+    pillEstado.innerHTML = '<span class="dot" aria-hidden="true"></span>Prendiendo…';
+    btnReiniciar.disabled = true;
+    btnDetener.disabled = true;
+    actualizarBotones();
+
+    correrTimeline(function () {
+      pillEstado.className = 'pill pill-corriendo';
+      pillEstado.innerHTML = '<span class="dot" aria-hidden="true"></span>Corriendo';
+      btnReiniciar.disabled = false;
+      aviso('Sandbox listo.');
+      correrLogs();
+    });
+  }
+
+  btnReiniciar.addEventListener('click', prender);
+  btnIniciar.addEventListener('click', function () {
+    if (!corriendo) prender();
+  });
+
+  btnDetener.addEventListener('click', function () {
+    corriendo = false;
+    pillEstado.className = 'pill pill-detenido';
+    pillEstado.innerHTML = '<span class="dot" aria-hidden="true"></span>Detenido';
+    actualizarBotones();
+    btnIniciar.disabled = false;
+    aviso('Sandbox detenido. Podés prenderlo cuando quieras.');
+  });
+
+  /* Estado inicial: ya está corriendo con su historial */
+  correrLogs();
+})();
+</script>
+
+</body>
+</html>

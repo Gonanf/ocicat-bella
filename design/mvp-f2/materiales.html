@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materiales · Ocicat Bella</title>
+<meta name="description" content="La biblioteca de la escuela: guías, apuntes y videos de cada materia, con vista previa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --chip-fg: #1B4332;
+    --ok: #12855A;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --chip-fg: #7BC79A;
+    --ok: #7BC79A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 1080px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; align-items: center; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .nav-link[aria-current="page"] { color: var(--accent); font-weight: 600; }
+
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: clamp(30px, 5vw, 48px) 0 26px; }
+  .eyebrow {
+    margin: 0 0 12px;
+    font-size: .76rem; font-weight: 600; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .hero h1 {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2.3rem, 5vw, 3.2rem); line-height: 1.05;
+    letter-spacing: -.01em;
+  }
+  .hero-sub { margin: 12px 0 0; max-width: 60ch; color: var(--muted); font-size: 1rem; }
+  .hero-sub b { color: var(--fg); font-weight: 600; }
+
+  /* ---------- Filtros ---------- */
+  .toolbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 26px; }
+  .search-input {
+    width: 100%; max-width: 420px; min-height: 46px;
+    padding: 11px 16px;
+    font: inherit; color: var(--fg);
+    background: var(--surface);
+    border: 1px solid var(--border-strong); border-radius: 12px;
+    transition: border-color .15s ease;
+  }
+  .search-input:hover { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); opacity: 1; }
+  .chips-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .chips-label { font-size: .82rem; font-weight: 600; color: var(--muted); }
+  .chip-filtro {
+    min-height: 38px; padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: transparent; color: var(--fg);
+    font: inherit; font-weight: 500; font-size: .88rem;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .chip-filtro:hover { border-color: var(--accent); }
+  .chip-filtro[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+  /* ---------- Grid de materiales ---------- */
+  .mat-section { padding-bottom: 90px; }
+  .mat-grid {
+    display: grid; gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  .mat-card {
+    display: flex; flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .mat-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-strong);
+    box-shadow: 0 12px 32px -20px rgba(15, 17, 21, .35);
+  }
+  .mat-card[hidden] { display: none; }
+
+  /* Previsualización inline */
+  .prev {
+    position: relative;
+    height: 130px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: grid; place-items: center;
+    overflow: hidden;
+  }
+  .prev-doc-page {
+    width: 92px; height: 118px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px 12px 12px 6px;
+    box-shadow: 4px 5px 14px -8px rgba(15, 17, 21, .35);
+    padding: 12px 10px;
+    transform: rotate(-2deg);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .prev-doc-page::before {
+    content: ''; height: 7px; width: 70%;
+    background: var(--accent); border-radius: 2px; opacity: .85;
+  }
+  .prev-barra { height: 4px; border-radius: 2px; background: var(--border-strong); opacity: .7; }
+  .prev-barra.w80 { width: 80%; } .prev-barra.w95 { width: 95%; }
+  .prev-barra.w60 { width: 60%; } .prev-barra.w88 { width: 88%; }
+
+  .prev-video {
+    width: 100%; height: 100%;
+    background: linear-gradient(160deg, #23262D, #101216);
+    display: grid; place-items: center;
+    position: relative;
+  }
+  .prev-play {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255, 253, 248, .14);
+    border: 1.5px solid rgba(255, 253, 248, .55);
+    display: grid; place-items: center;
+    backdrop-filter: blur(2px);
+  }
+  .prev-play svg { width: 16px; height: 16px; fill: #FBF9F4; margin-left: 2px; }
+  .prev-dur {
+    position: absolute; right: 10px; bottom: 10px;
+    font-family: "JetBrains Mono", monospace; font-size: .68rem; font-weight: 600;
+    color: #FBF9F4; background: rgba(16, 18, 22, .72);
+    padding: 2px 8px; border-radius: 6px;
+  }
+  .prev-img svg { width: 120px; height: 110px; display: block; }
+
+  .type-badge {
+    position: absolute; left: 10px; top: 10px;
+    font-family: "JetBrains Mono", monospace; font-size: .64rem; font-weight: 700;
+    letter-spacing: .08em;
+    color: var(--chip-fg); background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 3px 9px; border-radius: 7px;
+  }
+  .prev-video .type-badge, .prev.video .type-badge { z-index: 1; }
+
+  .mat-body { display: flex; flex-direction: column; gap: 6px; padding: 15px 17px 17px; flex-grow: 1; }
+  .mat-title {
+    margin: 0;
+    font-weight: 600; font-size: 1rem; line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+  .mat-meta { display: flex; gap: 6px; flex-wrap: wrap; color: var(--muted); font-size: .82rem; }
+  .mat-meta .sep { opacity: .5; }
+  .mat-actions { margin-top: auto; padding-top: 10px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 40px; padding: 8px 16px;
+    border-radius: 10px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .88rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-mini { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+  .btn-mini:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  .mat-vacio[hidden] { display: none; }
+  .mat-vacio { grid-column: 1 / -1; padding: 36px 20px; text-align: center; color: var(--muted); }
+  .mat-vacio b { display: block; font-family: "Instrument Serif", serif; font-weight: 400; font-size: 1.4rem; color: var(--fg); margin-bottom: 4px; }
+
+  /* ---------- Instaladores ---------- */
+  .inst-section { padding-bottom: 90px; }
+  .rule { border: none; border-top: 1px solid var(--border); margin: 0 0 26px; }
+  .inst-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .inst-title {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.7rem;
+  }
+  .inst-note { margin: 0; color: var(--muted); font-size: .9rem; }
+  .inst-grid {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  }
+  .inst-card {
+    display: flex; align-items: center; gap: 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 13px 15px;
+  }
+  .inst-logo {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 11px;
+    display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--chip-fg);
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: .62rem;
+  }
+  .inst-info { flex: 1; min-width: 0; }
+  .inst-name { margin: 0; font-weight: 600; font-size: .95rem; line-height: 1.25; }
+  .inst-meta { margin: 0; color: var(--muted); font-size: .78rem; font-family: "JetBrains Mono", monospace; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px) {
+    .header-inner { row-gap: 4px; }
+    .main-nav { order: 3; width: 100%; margin-inline: 0; overflow-x: auto; padding-bottom: 2px; }
+    .nav-link { white-space: nowrap; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="index.html" data-od-id="nav-inicio">Inicio</a>
+      <a class="nav-link" href="materiales.html" aria-current="page" data-od-id="nav-materiales">Materiales</a>
+      <a class="nav-link" href="sandboxes.html" data-od-id="nav-sandboxes">Sandboxes</a>
+      <a class="nav-link" href="login.html" data-od-id="nav-entrar">Entrar</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="container">
+
+    <section class="hero" data-od-id="hero-materiales">
+      <p class="eyebrow">Ocicat Bella · Biblioteca</p>
+      <h1 id="titulo-materiales" data-od-id="titulo-materiales">Materiales</h1>
+      <p class="hero-sub">Las guías, apuntes y videos del curso. Tocá uno para leerlo acá mismo:
+         como visitante podés ver todo, para descargar necesitás tu cuenta.</p>
+    </section>
+
+    <section class="mat-section" aria-labelledby="titulo-lista">
+
+      <div class="toolbar" data-od-id="barra-filtros">
+        <input class="search-input" id="busqueda" type="search"
+               placeholder="Buscar en la biblioteca…" aria-label="Buscar materiales" data-od-id="input-buscar">
+        <div class="chips-row">
+          <span class="chips-label">Materia:</span>
+          <button class="chip-filtro" type="button" data-mat="todas" aria-pressed="true">Todas</button>
+          <button class="chip-filtro" type="button" data-mat="progra" aria-pressed="false">Programación · 5.º A</button>
+          <button class="chip-filtro" type="button" data-mat="robotica" aria-pressed="false">Robótica · 6.º B</button>
+        </div>
+        <div class="chips-row">
+          <span class="chips-label">Tipo:</span>
+          <button class="chip-filtro" type="button" data-tipo="todos" aria-pressed="true">Todos</button>
+          <button class="chip-filtro" type="button" data-tipo="pdf" aria-pressed="false">PDF</button>
+          <button class="chip-filtro" type="button" data-tipo="doc" aria-pressed="false">Doc</button>
+          <button class="chip-filtro" type="button" data-tipo="video" aria-pressed="false">Vídeo</button>
+        </div>
+      </div>
+
+      <h2 class="sr-only" id="titulo-lista">Listado de materiales</h2>
+      <div class="mat-grid" id="grid" data-od-id="grid-materiales">
+
+        <article class="mat-card" tabindex="0" role="link"
+                 data-mat="progra" data-tipo="pdf" data-nombre="guía n°3 listas y bucles"
+                 data-href="documento.html" data-od-id="material-guia-listas">
+          <div class="prev" aria-hidden="true">
+            <span class="type-badge">PDF</span>
+            <div class="prev-doc-page"><span class="prev-barra w95"></span><span class="prev-barra w80"></span><span class="prev-barra w88"></span><span class="prev-barra w60"></span></div>
+          </div>
+          <div class="mat-body">
+            <h3 class="mat-title">Guía N.º 3: listas y bucles</h3>
+            <p class="mat-meta"><span>1,2 MB</span><span class="sep">·</span><span>12/08</span><span class="sep">·</span><span>Carina M.</span></p>
+            <div class="mat-actions">
+              <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-guia-listas">Descargar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="mat-card" tabindex="0" role="link"
+                 data-mat="progra" data-tipo="video" data-nombre="video qué es un sandbox"
+                 data-href="documento.html" data-od-id="material-video-sandbox">
+          <div class="prev prev-video" aria-hidden="true">
+            <span class="type-badge">VID</span>
+            <span class="prev-play"><svg viewBox="0 0 16 16"><path d="M3 1.5l11 6.5-11 6.5z"/></svg></span>
+            <span class="prev-dur">6:24</span>
+          </div>
+          <div class="mat-body">
+            <h3 class="mat-title">Video: ¿qué es un sandbox?</h3>
+            <p class="mat-meta"><span>48 MB</span><span class="sep">·</span><span>10/08</span><span class="sep">·</span><span>Carina M.</span></p>
+            <div class="mat-actions">
+              <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-video-sandbox">Descargar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="mat-card" tabindex="0" role="link"
+                 data-mat="progra" data-tipo="doc" data-nombre="apuntes diccionarios python"
+                 data-href="documento.html" data-od-id="material-apuntes-diccionarios">
+          <div class="prev" aria-hidden="true">
+            <span class="type-badge">DOC</span>
+            <div class="prev-doc-page"><span class="prev-barra w88"></span><span class="prev-barra w95"></span><span class="prev-barra w80"></span><span class="prev-barra w60"></span></div>
+          </div>
+          <div class="mat-body">
+            <h3 class="mat-title">Apuntes: diccionarios en Python</h3>
+            <p class="mat-meta"><span>240 kB</span><span class="sep">·</span><span>8/08</span><span class="sep">·</span><span>Valentina Costa</span></p>
+            <div class="mat-actions">
+              <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-apuntes-dicc">Descargar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="mat-card" tabindex="0" role="link"
+                 data-mat="progra" data-tipo="doc" data-nombre="trabajo práctico adivinanza"
+                 data-href="documento.html" data-od-id="material-tp-adivinanza">
+          <div class="prev" aria-hidden="true">
+            <span class="type-badge">DOC</span>
+            <div class="prev-doc-page"><span class="prev-barra w80"></span><span class="prev-barra w95"></span><span class="prev-barra w88"></span></div>
+          </div>
+          <div class="mat-body">
+            <h3 class="mat-title">Trabajo práctico: la adivinanza</h3>
+            <p class="mat-meta"><span>96 kB</span><span class="sep">·</span><span>5/08</span><span class="sep">·</span><span>Carina M.</span></p>
+            <div class="mat-actions">
+              <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-tp-adivinanza">Descargar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="mat-card" tabindex="0" role="link"
+                 data-mat="progra" data-tipo="pdf" data-nombre="guía n°2 condicionales"
+                 data-href="documento.html" data-od-id="material-guia-condicionales">
+          <div class="prev" aria-hidden="true">
+            <span class="type-badge">PDF</span>
+            <div class="prev-doc-page"><span class="prev-barra w95"></span><span class="prev-barra w60"></span><span class="prev-barra w88"></span><span class="prev-barra w80"></span></div>
+          </div>
+          <div class="mat-body">
+            <h3 class="mat-title">Guía N.º 2: condicionales</h3>
+            <p class="mat-meta"><span>1,0 MB</span><span class="sep">·</span><span>29/07</span><span class="sep">·</span><span>Carina M.</span></p>
+            <div class="mat-actions">
+              <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-guia-cond">Descargar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="mat-card" tabindex="0" role="link"
+                 data-mat="robotica" data-tipo="doc" data-nombre="robótica esquema semáforo"
+                 data-href="documento.html" data-od-id="material-esquema-semaforo">
+          <div class="prev" aria-hidden="true">
+            <span class="type-badge">PNG</span>
+            <svg viewBox="0 0 120 110" role="img" aria-label="Esquema de semáforo con LEDs">
+              <rect x="48" y="8" width="24" height="62" rx="6" fill="#23262D"/>
+              <circle cx="60" cy="22" r="6.5" fill="#FF5F56"/>
+              <circle cx="60" cy="39" r="6.5" fill="#FFBD2E"/>
+              <circle cx="60" cy="56" r="6.5" fill="#27C93F"/>
+              <rect x="52" y="70" width="16" height="32" rx="3" fill="#23262D"/>
+              <path d="M20 102h80" stroke="var(--border-strong)" stroke-width="3" stroke-linecap="round"/>
+              <path d="M84 30h22v46" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+            </svg>
+          </div>
+          <div class="mat-body">
+            <h3 class="mat-title">Robótica: esquema del semáforo</h3>
+            <p class="mat-meta"><span>310 kB</span><span class="sep">·</span><span>25/07</span><span class="sep">·</span><span>Luis F.</span></p>
+            <div class="mat-actions">
+              <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-esquema-semaforo">Descargar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="mat-card" tabindex="0" role="link"
+                 data-mat="robotica" data-tipo="pdf" data-nombre="manual básico arduino"
+                 data-href="documento.html" data-od-id="material-manual-arduino">
+          <div class="prev" aria-hidden="true">
+            <span class="type-badge">PDF</span>
+            <div class="prev-doc-page"><span class="prev-barra w88"></span><span class="prev-barra w80"></span><span class="prev-barra w95"></span><span class="prev-barra w60"></span><span class="prev-barra w80"></span></div>
+          </div>
+          <div class="mat-body">
+            <h3 class="mat-title">Manual básico de Arduino</h3>
+            <p class="mat-meta"><span>3,4 MB</span><span class="sep">·</span><span>22/07</span><span class="sep">·</span><span>Luis F.</span></p>
+            <div class="mat-actions">
+              <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-manual-arduino">Descargar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="mat-card" tabindex="0" role="link"
+                 data-mat="robotica" data-tipo="video" data-nombre="video armado del semáforo"
+                 data-href="documento.html" data-od-id="material-video-armado">
+          <div class="prev prev-video" aria-hidden="true">
+            <span class="type-badge">VID</span>
+            <span class="prev-play"><svg viewBox="0 0 16 16"><path d="M3 1.5l11 6.5-11 6.5z"/></svg></span>
+            <span class="prev-dur">9:12</span>
+          </div>
+          <div class="mat-body">
+            <h3 class="mat-title">Video: armado del semáforo</h3>
+            <p class="mat-meta"><span>62 MB</span><span class="sep">·</span><span>20/07</span><span class="sep">·</span><span>Luis F.</span></p>
+            <div class="mat-actions">
+              <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-video-armado">Descargar</button>
+            </div>
+          </div>
+        </article>
+
+        <div class="mat-vacio" id="vacio" hidden data-od-id="estado-vacio">
+          <b>Acá no hay nada… por ahora</b>
+          Probá con otra búsqueda o cambiá el filtro. Si falta algo, avisale al profe.
+        </div>
+
+      </div>
+    </section>
+
+    <section class="inst-section" aria-labelledby="titulo-instaladores" data-od-id="seccion-instaladores">
+      <hr class="rule">
+      <div class="inst-head">
+        <h2 class="inst-title" id="titulo-instaladores">Instaladores</h2>
+        <p class="inst-note">Para las PCs del aula: bajalos de acá, ya están probados.</p>
+      </div>
+      <div class="inst-grid">
+
+        <article class="inst-card" data-od-id="instalador-python">
+          <span class="inst-logo" aria-hidden="true">PY</span>
+          <div class="inst-info">
+            <p class="inst-name">Python</p>
+            <p class="inst-meta">3.12.4 · Win 64-bit · 26 MB</p>
+          </div>
+          <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-python">Descargar</button>
+        </article>
+
+        <article class="inst-card" data-od-id="instalador-vscode">
+          <span class="inst-logo" aria-hidden="true">&lt;/&gt;</span>
+          <div class="inst-info">
+            <p class="inst-name">Visual Studio Code</p>
+            <p class="inst-meta">1.92 · Win 64-bit · 94 MB</p>
+          </div>
+          <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-vscode">Descargar</button>
+        </article>
+
+        <article class="inst-card" data-od-id="instalador-arduino">
+          <span class="inst-logo" aria-hidden="true">ARD</span>
+          <div class="inst-info">
+            <p class="inst-name">Arduino IDE</p>
+            <p class="inst-meta">2.3.2 · Win 64-bit · 190 MB</p>
+          </div>
+          <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-arduino">Descargar</button>
+        </article>
+
+        <article class="inst-card" data-od-id="instalador-git">
+          <span class="inst-logo" aria-hidden="true">G</span>
+          <div class="inst-info">
+            <p class="inst-name">Git</p>
+            <p class="inst-meta">2.46 · Win 64-bit · 58 MB</p>
+          </div>
+          <button class="btn btn-mini btn-descargar" type="button" data-od-id="descargar-git">Descargar</button>
+        </article>
+
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Filtros combinados ---------- */
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.mat-card'));
+  var estado = { mat: 'todas', tipo: 'todos', q: '' };
+
+  function aplicarFiltros() {
+    var visibles = 0;
+    cards.forEach(function (card) {
+      var ok = (estado.mat === 'todas' || card.dataset.mat === estado.mat) &&
+               (estado.tipo === 'todos' || card.dataset.tipo === estado.tipo) &&
+               (!estado.q || card.dataset.nombre.indexOf(estado.q) !== -1);
+      card.hidden = !ok;
+      if (ok) visibles++;
+    });
+    $('#vacio').hidden = visibles !== 0;
+  }
+
+  function bindChips(sel, attr, key) {
+    document.querySelectorAll(sel).forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        document.querySelectorAll(sel).forEach(function (c) {
+          c.setAttribute('aria-pressed', 'false');
+        });
+        this.setAttribute('aria-pressed', 'true');
+        estado[key] = chip.dataset[attr];
+        aplicarFiltros();
+      });
+    });
+  }
+  bindChips('[data-mat]', 'mat', 'mat');
+  bindChips('[data-tipo]', 'tipo', 'tipo');
+
+  $('#busqueda').addEventListener('input', function () {
+    estado.q = this.value.trim().toLowerCase();
+    aplicarFiltros();
+  });
+
+  /* ---------- Abrir documento + descargar ---------- */
+  cards.forEach(function (card) {
+    function abrir() { window.location.href = card.dataset.href; }
+    card.addEventListener('click', abrir);
+    card.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); }
+    });
+  });
+
+  document.querySelectorAll('.btn-descargar').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      aviso('Para descargar necesitás tu cuenta: tocá «Entrar» arriba.');
+    });
+  });
+
+  aplicarFiltros();
+})();
+</script>
+
+</body>
+</html>

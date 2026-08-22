@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel del director · Ocicat Bella</title>
+<meta name="description" content="Panel del director de la escuela: código global, docentes y actividad de la instancia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --error: #B0413E;
+    --error-soft: rgba(176, 65, 62, .10);
+    --ok: #12855A;
+    --chip-fg: #1B4332;
+    --shadow-pop: 0 32px 80px -24px rgba(15, 17, 21, .38);
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --error: #E07A72;
+    --error-soft: rgba(224, 122, 114, .12);
+    --ok: #7BC79A;
+    --chip-fg: #7BC79A;
+    --shadow-pop: 0 32px 80px -20px rgba(0, 0, 0, .75);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+  body.modal-open { overflow: hidden; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 1080px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .nav-link[aria-current="page"] { color: var(--accent); font-weight: 600; }
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Botones ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 10px 20px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .97rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+  .btn-ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .btn-text {
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-weight: 600; color: var(--accent);
+    padding: 8px 10px; border-radius: 8px;
+  }
+  .btn-text:hover { background: var(--accent-soft); text-decoration: underline; }
+  .btn-mini {
+    display: inline-flex; align-items: center;
+    min-height: 40px; padding-inline: 13px;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong); border-radius: 10px;
+    font: inherit; font-size: .88rem; font-weight: 500; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-mini:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: clamp(32px, 5vw, 52px) 0 26px; }
+  .eyebrow {
+    margin: 0 0 12px;
+    font-size: .76rem; font-weight: 600; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .hero h1 {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2.3rem, 5vw, 3.2rem); line-height: 1.05;
+    letter-spacing: -.01em;
+  }
+  .hero h1 em { font-style: italic; }
+  .resumen { margin: 12px 0 0; max-width: 60ch; color: var(--muted); font-size: 1rem; }
+
+  /* ---------- Secciones ---------- */
+  .admin-section { padding-bottom: 40px; }
+  .rule { border: none; border-top: 1px solid var(--border); margin: 6px 0 30px; }
+  .sec-title {
+    margin: 0 0 6px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.7rem; line-height: 1.15;
+  }
+  .sec-sub { margin: 0 0 18px; max-width: 62ch; color: var(--muted); font-size: .95rem; }
+  .sec-sub b { color: var(--fg); font-weight: 600; }
+
+  /* ---------- A · Código global ---------- */
+  .codigo-card {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    padding: clamp(22px, 4vw, 30px);
+  }
+  .codigo-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 22px; flex-wrap: wrap;
+  }
+  .codigo-info { max-width: 52ch; }
+  .codigo-info p { margin: 0 0 10px; color: var(--muted); font-size: .95rem; }
+  .codigo-info p b { color: var(--fg); font-weight: 600; }
+  .codigo-global {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace; font-weight: 600;
+    font-size: clamp(1.2rem, 3.6vw, 1.55rem); letter-spacing: .13em; line-height: 1;
+    color: var(--chip-fg);
+    background: var(--accent-soft);
+    border: 1px solid var(--border-strong);
+    padding: 16px 20px; border-radius: 14px;
+    overflow-wrap: anywhere;
+  }
+  .codigo-pie {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    margin-top: 18px; padding-top: 16px;
+    border-top: 1px dashed var(--border-strong);
+  }
+  .codigo-nota { margin: 0; font-size: .85rem; color: var(--muted); }
+
+  /* Doble confirmación para regenerar */
+  .regen-confirm {
+    flex-basis: 100%;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    background: var(--amber-soft);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+  .regen-confirm[hidden] { display: none; }
+  .regen-confirm svg {
+    flex-shrink: 0; width: 20px; height: 20px;
+    fill: none; stroke: var(--amber); stroke-width: 1.9;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .regen-confirm.grave { background: var(--error-soft); }
+  .regen-confirm.grave svg { stroke: var(--error); }
+  .regen-confirm p { flex: 1; min-width: 240px; margin: 0; font-size: .92rem; }
+  .regen-confirm p b { font-weight: 700; }
+  .regen-confirm .confirm-botones { display: flex; gap: 8px; margin-left: auto; }
+  .btn-chico { min-height: 42px; padding-inline: 16px; font-size: .92rem; border-radius: 10px; }
+
+  /* ---------- B · Docentes ---------- */
+  .head-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .head-row .sec-title { margin: 0; }
+  .tabla-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow-x: auto;
+  }
+  table.tabla { width: 100%; border-collapse: collapse; min-width: 680px; }
+  .tabla th {
+    text-align: left;
+    font-size: .68rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--muted);
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    white-space: nowrap;
+  }
+  .tabla td { padding: 13px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: .94rem; }
+  .tabla tbody tr:last-child td { border-bottom: none; }
+  .fila-docente { transition: background .12s ease; }
+  .fila-docente:hover { background: var(--accent-soft); }
+  .fila-inactiva { opacity: .55; }
+  .celda-nombre b { display: block; font-weight: 600; line-height: 1.3; }
+  .mail { color: var(--muted); font-size: .82rem; font-family: "JetBrains Mono", monospace; overflow-wrap: anywhere; }
+  .salas-num { font-family: "JetBrains Mono", monospace; font-weight: 600; }
+
+  .estado-badge {
+    display: inline-block;
+    font-size: .64rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    padding: 4px 11px; border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  .estado-activo { color: var(--ok); background: var(--accent-soft); }
+  .estado-inactivo { color: var(--muted); background: var(--bg); }
+
+  .td-acciones { text-align: right; white-space: nowrap; }
+  .acciones-int { display: inline-flex; align-items: center; gap: 6px; }
+  .btn-desactivar { color: var(--error); }
+  .btn-desactivar:hover { background: var(--error-soft); border-color: var(--error); color: var(--error); }
+  .confirm-inline { display: inline-flex; align-items: center; gap: 8px; }
+  .confirm-inline b { font-size: .86rem; color: var(--error); }
+
+  /* ---------- C · Actividad ---------- */
+  .stats-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+  }
+  .stat-num {
+    display: flex; align-items: center; gap: 10px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 2.5rem; line-height: 1;
+  }
+  .stat-lbl {
+    display: block; margin-top: 8px;
+    font-size: .68rem; font-weight: 600; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .dot-vivo {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--ok);
+    animation: pulso 1.6s ease-in-out infinite;
+  }
+  @keyframes pulso { 50% { opacity: .3; } }
+
+  /* ---------- Modal crear docente ---------- */
+  .backdrop {
+    position: fixed; inset: 0; z-index: 60;
+    display: grid; place-items: center; padding: 20px;
+    background: rgba(16, 18, 22, .55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none;
+    transition: opacity .18s ease;
+  }
+  .backdrop.open { opacity: 1; pointer-events: auto; }
+  .dialog {
+    width: min(480px, 100%);
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px;
+    box-shadow: var(--shadow-pop);
+    transform: translateY(12px) scale(.985);
+    transition: transform .18s ease;
+  }
+  .backdrop.open .dialog { transform: none; }
+  .dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .dialog-head h2 {
+    margin: 0; font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.8rem; line-height: 1.1;
+  }
+  .dialog-sub { margin: 8px 0 4px; color: var(--muted); font-size: .95rem; }
+  .close-x {
+    width: 38px; height: 38px; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: none; border: 1px solid var(--border-strong); border-radius: 10px;
+    color: var(--fg); cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .close-x:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .close-x svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; fill: none; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; }
+  .field label { font-size: .9rem; font-weight: 600; }
+  .field input {
+    min-height: 46px; padding: 10px 14px;
+    font: inherit; color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border-strong); border-radius: 11px;
+    transition: border-color .15s ease;
+  }
+  .field input::placeholder { color: var(--muted); opacity: 1; }
+  .field input:hover { border-color: var(--accent); }
+  .field-hint { margin: 6px 0 0; font-size: .82rem; color: var(--muted); }
+  .dialog-actions {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 26px; padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px) {
+    .header-inner { row-gap: 4px; }
+    .main-nav { order: 3; width: 100%; margin-inline: 0; overflow-x: auto; padding-bottom: 2px; }
+    .nav-link { white-space: nowrap; }
+    .regen-confirm .confirm-botones { margin-left: 0; flex-basis: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="admin.html" aria-current="page" data-od-id="nav-panel">Panel</a>
+      <a class="nav-link" href="dashboard.html" data-od-id="nav-salas">Salas</a>
+      <a class="nav-link" href="#" data-od-id="nav-perfil">Perfil</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="container">
+
+    <section class="hero" data-od-id="hero-admin">
+      <p class="eyebrow">Panel del director · EEST N.º 5 Lanús</p>
+      <h1 id="titulo-admin" data-od-id="titulo-admin">Buenas, <em>Marcela</em>.</h1>
+      <p class="resumen">La instancia completa de la escuela en una sola vista.</p>
+    </section>
+
+    <!-- A · Código global -->
+    <section class="admin-section" aria-labelledby="titulo-codigo" data-od-id="seccion-codigo-global">
+      <h2 class="sr-only" id="titulo-codigo">Código global de la escuela</h2>
+      <div class="codigo-card">
+        <div class="codigo-top">
+          <div class="codigo-info">
+            <p><b>Quien lo ingresa entra como visitante:</b> puede ver proyectos y
+               documentos públicos de toda la escuela.</p>
+            <p>Nunca ve consignas ni entregas: eso queda dentro de cada sala.
+               El acceso es de solo lectura.</p>
+          </div>
+          <span class="codigo-global" id="codigo-global" data-od-id="chip-codigo-global">ESCUELA-2026-XK42</span>
+        </div>
+
+        <div class="regen-confirm" id="regen-1" hidden data-od-id="confirmacion-regenerar-1">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17h.01"/>
+          </svg>
+          <p><b>¿Regeneramos el código?</b> Se genera uno nuevo y el actual deja de
+             funcionar al instante: los carteles con el viejo quedan invalidados.</p>
+          <div class="confirm-botones">
+            <button class="btn btn-ghost btn-chico" type="button" data-cancelar-regen>Cancelar</button>
+            <button class="btn btn-primary btn-chico" type="button" data-continuar-regen>Sí, continuar</button>
+          </div>
+        </div>
+
+        <div class="regen-confirm grave" id="regen-2" hidden data-od-id="confirmacion-regenerar-2">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17h.01"/>
+          </svg>
+          <p><b>Última confirmación:</b> el código viejo deja de funcionar para toda la escuela.</p>
+          <div class="confirm-botones">
+            <button class="btn btn-ghost btn-chico" type="button" data-cancelar-regen>No, volver</button>
+            <button class="btn btn-primary btn-chico" type="button" data-confirmar-regen>Regenerar ahora</button>
+          </div>
+        </div>
+
+        <div class="codigo-pie">
+          <p class="codigo-nota">Lo pegaste en el cartel del aula de informática; si lo regenerás, actualizalo ahí.</p>
+          <button class="btn btn-ghost" type="button" id="btn-regenerar-admin" data-od-id="btn-regenerar-codigo">Regenerar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- B · Docentes -->
+    <section class="admin-section" aria-labelledby="titulo-docentes" data-od-id="seccion-docentes">
+      <hr class="rule">
+      <div class="head-row">
+        <h2 class="sec-title" id="titulo-docentes">Docentes</h2>
+        <button class="btn btn-primary" type="button" id="btn-abrir-docente" data-od-id="btn-crear-docente">+ Crear docente</button>
+      </div>
+
+      <h3 class="sr-only">Listado de docentes</h3>
+      <div class="tabla-wrap" data-od-id="tabla-docentes">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Docente</th>
+              <th scope="col">Email</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Salas</th>
+              <th scope="col"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+
+            <tr class="fila-docente" data-activo="true" data-od-id="docente-carina-mendoza">
+              <td class="celda-nombre"><b>Carina Mendoza</b></td>
+              <td><span class="mail">cmendoza@eest5.edu.ar</span></td>
+              <td><span class="estado-badge estado-activo">Activo</span></td>
+              <td><span class="salas-num">3</span></td>
+              <td class="td-acciones"></td>
+            </tr>
+
+            <tr class="fila-docente" data-activo="true" data-od-id="docente-luis-ferrari">
+              <td class="celda-nombre"><b>Luis Ferrari</b></td>
+              <td><span class="mail">lferrari@eest5.edu.ar</span></td>
+              <td><span class="estado-badge estado-activo">Activo</span></td>
+              <td><span class="salas-num">2</span></td>
+              <td class="td-acciones"></td>
+            </tr>
+
+            <tr class="fila-docente" data-activo="true" data-od-id="docente-gabriel-mansilla">
+              <td class="celda-nombre"><b>Gabriel Mansilla</b></td>
+              <td><span class="mail">gmansilla@eest5.edu.ar</span></td>
+              <td><span class="estado-badge estado-activo">Activo</span></td>
+              <td><span class="salas-num">4</span></td>
+              <td class="td-acciones"></td>
+            </tr>
+
+            <tr class="fila-docente" data-activo="true" data-od-id="docente-iara-sosa">
+              <td class="celda-nombre"><b>Iara Sosa</b></td>
+              <td><span class="mail">isosa@eest5.edu.ar</span></td>
+              <td><span class="estado-badge estado-activo">Activo</span></td>
+              <td><span class="salas-num">2</span></td>
+              <td class="td-acciones"></td>
+            </tr>
+
+            <tr class="fila-docente fila-inactiva" data-activo="false" data-od-id="docente-diego-prat">
+              <td class="celda-nombre"><b>Diego Prat</b></td>
+              <td><span class="mail">dprat@eest5.edu.ar</span></td>
+              <td><span class="estado-badge estado-inactivo">Inactivo</span></td>
+              <td><span class="salas-num">0</span></td>
+              <td class="td-acciones"></td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- C · Actividad -->
+    <section class="admin-section" style="padding-bottom:90px" aria-labelledby="titulo-actividad" data-od-id="seccion-actividad">
+      <hr class="rule">
+      <h2 class="sec-title" id="titulo-actividad">Actividad de la instancia</h2>
+      <p class="sec-sub">Un vistazo rápido a cómo está la escuela hoy.</p>
+
+      <div class="stats-grid" data-od-id="grid-actividad">
+        <article class="stat-card" data-od-id="stat-salas">
+          <span class="stat-num">12</span>
+          <span class="stat-lbl">Total salas</span>
+        </article>
+        <article class="stat-card" data-od-id="stat-alumnos">
+          <span class="stat-num">214</span>
+          <span class="stat-lbl">Alumnos registrados</span>
+        </article>
+        <article class="stat-card" data-od-id="stat-sandboxes">
+          <span class="stat-num"><i class="dot-vivo" aria-hidden="true"></i>7</span>
+          <span class="stat-lbl">Sandboxes corriendo ahora</span>
+        </article>
+        <article class="stat-card" data-od-id="stat-entregas">
+          <span class="stat-num">38</span>
+          <span class="stat-lbl">Entregas esta semana</span>
+        </article>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- Modal crear docente -->
+<div class="backdrop" id="backdrop" data-od-id="modal-crear-docente">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="dialog-head">
+      <div>
+        <h2 id="modal-titulo">Crear un docente</h2>
+        <p class="dialog-sub">Le generamos una contraseña temporal; él la cambia al primer ingreso.</p>
+      </div>
+      <button class="close-x" type="button" data-cerrar-modal aria-label="Cerrar">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2l12 12M14 2 2 14"/></svg>
+      </button>
+    </div>
+
+    <form id="form-docente" novalidate>
+      <div class="field">
+        <label for="d-nombre">Nombre completo</label>
+        <input id="d-nombre" type="text" autocomplete="off" placeholder="Carina Mendoza">
+      </div>
+      <div class="field">
+        <label for="d-email">Email institucional</label>
+        <input id="d-email" type="email" autocomplete="off" placeholder="cmendoza@eest5.edu.ar">
+      </div>
+      <div class="field">
+        <label for="d-pass">Contraseña temporal (editable)</label>
+        <input id="d-pass" type="text" autocomplete="off" spellcheck="false" value="Escuela2026-xk" data-od-id="input-password-temporal">
+        <p class="field-hint">Pasásela en persona o por mail privado; conviene cambiarla en el primer ingreso.</p>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn btn-ghost" type="button" data-cerrar-modal>Cancelar</button>
+        <button class="btn btn-primary" type="submit" data-od-id="btn-guardar-docente">Crear docente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Regenerar código con doble confirmación ---------- */
+  var regen1 = $('#regen-1');
+  var regen2 = $('#regen-2');
+
+  function cerrarRegen() {
+    regen1.hidden = true;
+    regen2.hidden = true;
+    $('#btn-regenerar-admin').focus();
+  }
+
+  $('#btn-regenerar-admin').addEventListener('click', function () {
+    regen1.hidden = false;
+    regen2.hidden = true;
+    regen1.querySelector('[data-continuar-regen]').focus();
+  });
+
+  regen1.querySelector('[data-continuar-regen]').addEventListener('click', function () {
+    regen1.hidden = true;
+    regen2.hidden = false;
+    regen2.querySelector('[data-confirmar-regen]').focus();
+  });
+
+  document.querySelectorAll('[data-cancelar-regen]').forEach(function (b) {
+    b.addEventListener('click', cerrarRegen);
+  });
+
+  regen2.querySelector('[data-confirmar-regen]').addEventListener('click', function () {
+    var letras = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    var sufijo = '';
+    for (var i = 0; i < 4; i++) {
+      sufijo += letras[Math.floor(Math.random() * letras.length)];
+    }
+    var nuevo = 'ESCUELA-' + new Date().getFullYear() + '-' + sufijo;
+    $('#codigo-global').textContent = nuevo;
+    cerrarRegen();
+    aviso('Código regenerado: ' + nuevo + '. El anterior quedó invalidado.');
+  });
+
+  /* ---------- Acciones por fila (delegadas) ---------- */
+  var tbody = $('#tbody');
+
+  function accionesDocente(activo) {
+    return '<div class="acciones-int">' +
+      '<button class="btn-text btn-perfil-doc" type="button">Perfil</button>' +
+      (activo
+        ? '<button class="btn-mini btn-desactivar" type="button">Desactivar</button>'
+        : '<button class="btn-mini btn-reactivar" type="button">Reactivar</button>') +
+      '</div>';
+  }
+  function confirmCell(tipo) {
+    return '<div class="confirm-inline">' +
+      '<b>' + (tipo === 'desactivar' ? '¿Desactivar acceso?' : '¿Reactivar acceso?') + '</b>' +
+      '<button class="btn-mini btn-si" type="button">Sí</button>' +
+      '<button class="btn-mini btn-no" type="button">No</button>' +
+      '</div>';
+  }
+
+  // Pintar acciones iniciales
+  tbody.querySelectorAll('.fila-docente').forEach(function (fila) {
+    fila.querySelector('.td-acciones').innerHTML =
+      accionesDocente(fila.dataset.activo === 'true');
+  });
+
+  tbody.addEventListener('click', function (e) {
+    var fila = e.target.closest('.fila-docente');
+    if (!fila) return;
+    var celda = fila.querySelector('.td-acciones');
+    var activo = fila.dataset.activo === 'true';
+
+    if (e.target.closest('.btn-perfil-doc')) {
+      aviso('El perfil del docente va en otra pantalla.');
+      return;
+    }
+
+    if (e.target.closest('.btn-desactivar')) {
+      fila.dataset.accionesOrig = celda.innerHTML;
+      celda.innerHTML = confirmCell('desactivar');
+      celda.querySelector('.btn-si').focus();
+      return;
+    }
+    if (e.target.closest('.btn-reactivar')) {
+      fila.dataset.accionesOrig = celda.innerHTML;
+      celda.innerHTML = confirmCell('reactivar');
+      celda.querySelector('.btn-si').focus();
+      return;
+    }
+    if (e.target.closest('.btn-no')) {
+      celda.innerHTML = fila.dataset.accionesOrig || accionesDocente(activo);
+      return;
+    }
+    if (e.target.closest('.btn-si')) {
+      if (activo) {
+        fila.dataset.activo = 'false';
+        fila.classList.add('fila-inactiva');
+        fila.querySelector('.estado-badge').className = 'estado-badge estado-inactivo';
+        fila.querySelector('.estado-badge').textContent = 'Inactivo';
+        celda.innerHTML = accionesDocente(false);
+        aviso('Acceso desactivado para ' + fila.querySelector('.celda-nombre b').textContent + '.');
+      } else {
+        fila.dataset.activo = 'true';
+        fila.classList.remove('fila-inactiva');
+        fila.querySelector('.estado-badge').className = 'estado-badge estado-activo';
+        fila.querySelector('.estado-badge').textContent = 'Activo';
+        celda.innerHTML = accionesDocente(true);
+        aviso(fila.querySelector('.celda-nombre b').textContent + ' volvió a tener acceso.');
+      }
+    }
+  });
+
+  /* ---------- Modal crear docente ---------- */
+  var backdrop = $('#backdrop');
+  var formDocente = $('#form-docente');
+  var focoPrevio = null;
+
+  function passTemporal() {
+    var letras = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+    var sufijo = '';
+    for (var i = 0; i < 3; i++) {
+      sufijo += letras[Math.floor(Math.random() * letras.length)];
+    }
+    return 'Escuela2026-' + sufijo.toLowerCase();
+  }
+
+  function abrirModal() {
+    focoPrevio = document.activeElement;
+    formDocente.reset();
+    $('#d-pass').value = passTemporal();
+    backdrop.classList.add('open');
+    document.body.classList.add('modal-open');
+    setTimeout(function () { $('#d-nombre').focus(); }, 60);
+  }
+  function cerrarModal() {
+    backdrop.classList.remove('open');
+    document.body.classList.remove('modal-open');
+    if (focoPrevio && typeof focoPrevio.focus === 'function') focoPrevio.focus();
+  }
+
+  $('#btn-abrir-docente').addEventListener('click', abrirModal);
+  document.querySelectorAll('[data-cerrar-modal]').forEach(function (b) {
+    b.addEventListener('click', cerrarModal);
+  });
+  backdrop.addEventListener('click', function (e) { if (e.target === backdrop) cerrarModal(); });
+  document.addEventListener('keydown', function (e) {
+    if (!backdrop.classList.contains('open')) return;
+    if (e.key === 'Escape') { cerrarModal(); return; }
+    if (e.key === 'Tab') {
+      var focos = backdrop.querySelectorAll('button, input, a[href]');
+      var visibles = Array.prototype.filter.call(focos, function (el) { return el.offsetParent !== null; });
+      if (!visibles.length) return;
+      var primero = visibles[0], ultimo = visibles[visibles.length - 1];
+      if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+    }
+  });
+
+  formDocente.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var nombre = $('#d-nombre').value.trim();
+    var email = $('#d-email').value.trim();
+    var pass = $('#d-pass').value.trim();
+
+    if (!nombre) { $('#d-nombre').focus(); aviso('Escribí el nombre del docente.'); return; }
+    if (!email || email.indexOf('@') === -1) { $('#d-email').focus(); aviso('Necesitamos un email institucional válido.'); return; }
+    if (!pass || pass.length < 8) { $('#d-pass').focus(); aviso('La contraseña temporal necesita al menos 8 caracteres.'); return; }
+
+    var tr = document.createElement('tr');
+    tr.className = 'fila-docente';
+    tr.dataset.activo = 'true';
+    tr.innerHTML =
+      '<td class="celda-nombre"><b>' + nombre.replace(/</g, '&lt;') + '</b></td>' +
+      '<td><span class="mail">' + email.replace(/</g, '&lt;') + '</span></td>' +
+      '<td><span class="estado-badge estado-activo">Activo</span></td>' +
+      '<td><span class="salas-num">0</span></td>' +
+      '<td class="td-acciones">' + accionesDocente(true) + '</td>';
+    tbody.insertBefore(tr, tbody.firstChild);
+
+    cerrarModal();
+    aviso('Docente creado. Contraseña temporal: ' + pass);
+  });
+})();
+</script>
+
+</body>
+</html>

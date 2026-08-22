@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alumnos · Programación 5.º A · Ocicat Bella</title>
+<meta name="description" content="Alumnos de la sala: actividad, entregas, alias y acciones de administración.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --error: #B0413E;
+    --error-soft: rgba(176, 65, 62, .10);
+    --chip-fg: #1B4332;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --error: #E07A72;
+    --error-soft: rgba(224, 122, 114, .12);
+    --chip-fg: #7BC79A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 1140px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .nav-link[aria-current="page"] { color: var(--accent); font-weight: 600; }
+
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Botones ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 10px 20px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .97rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+  .btn-ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .btn-mini {
+    display: inline-flex; align-items: center;
+    min-height: 40px; padding-inline: 13px;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong); border-radius: 10px;
+    font: inherit; font-size: .88rem; font-weight: 500; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-mini:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .btn-text {
+    display: inline-flex; align-items: center;
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-weight: 600; color: var(--accent);
+    padding: 8px 10px; border-radius: 8px;
+  }
+  .btn-text:hover { background: var(--accent-soft); text-decoration: underline; }
+  .btn-vetar {
+    display: inline-flex; align-items: center;
+    min-height: 40px; padding-inline: 13px;
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-size: .88rem; font-weight: 600;
+    color: var(--error); border-radius: 10px;
+    transition: background .15s ease;
+  }
+  .btn-vetar:hover { background: var(--error-soft); }
+  .btn-rehab {
+    display: inline-flex; align-items: center;
+    min-height: 40px; padding-inline: 13px;
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-size: .88rem; font-weight: 600;
+    color: var(--accent); border-radius: 10px;
+    transition: background .15s ease;
+  }
+  .btn-rehab:hover { background: var(--accent-soft); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: clamp(30px, 5vw, 48px) 0 26px;
+  }
+  .volver {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin: 0 0 14px -10px; padding: 6px 10px; border-radius: 8px;
+    color: var(--muted); text-decoration: none;
+    font-size: .92rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .volver:hover { color: var(--fg); background: var(--accent-soft); }
+  .eyebrow {
+    margin: 0 0 12px;
+    font-size: .76rem; font-weight: 600; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .hero h1 {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2.3rem, 5vw, 3.2rem); line-height: 1.05;
+    letter-spacing: -.01em;
+  }
+  .resumen { margin: 14px 0 0; max-width: 56ch; color: var(--muted); font-size: 1rem; }
+
+  /* ---------- Sub-tabs de la sala ---------- */
+  .subtabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; margin-bottom: 24px; }
+  .subtab {
+    padding: 9px 15px; border-radius: 10px;
+    text-decoration: none; white-space: nowrap;
+    color: var(--muted); font-weight: 500; font-size: .95rem;
+    transition: color .15s ease, background .15s ease;
+  }
+  .subtab:hover { color: var(--fg); background: var(--accent-soft); }
+  .subtab[aria-current="page"] { color: var(--accent); font-weight: 600; background: var(--accent-soft); }
+
+  /* ---------- Sub-tabs de la sala ---------- */
+  .subtabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; margin-bottom: 24px; }
+  .subtab {
+    padding: 9px 15px; border-radius: 10px;
+    text-decoration: none; white-space: nowrap;
+    color: var(--muted); font-weight: 500; font-size: .95rem;
+    transition: color .15s ease, background .15s ease;
+  }
+  .subtab:hover { color: var(--fg); background: var(--accent-soft); }
+  .subtab[aria-current="page"] { color: var(--accent); font-weight: 600; background: var(--accent-soft); }
+
+  /* ---------- Banner de código ---------- */
+  .banner-codigo {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 22px;
+    margin-bottom: 28px;
+  }
+  .codigo-chip.lg {
+    font-family: "JetBrains Mono", monospace; font-weight: 600;
+    font-size: clamp(1.5rem, 3vw, 1.9rem); letter-spacing: .14em; line-height: 1;
+    color: var(--chip-fg);
+    background: var(--accent-soft);
+    border: 1px solid var(--border-strong);
+    padding: 13px 18px; border-radius: 14px;
+  }
+  .banner-txt { flex: 1; min-width: 220px; margin: 0; color: var(--muted); font-size: .95rem; }
+  .banner-txt b { color: var(--fg); font-weight: 600; }
+  .banner-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .rotar-confirm {
+    flex-basis: 100%;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    background: var(--amber-soft);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 4px;
+  }
+  .rotar-confirm[hidden] { display: none; }
+  .rotar-confirm svg {
+    flex-shrink: 0; width: 20px; height: 20px;
+    fill: none; stroke: var(--amber); stroke-width: 1.9;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .rotar-confirm p { flex: 1; min-width: 240px; margin: 0; font-size: .92rem; }
+  .rotar-confirm p b { font-weight: 700; }
+  .rotar-confirm .confirm-botones { display: flex; gap: 8px; margin-left: auto; }
+  .btn-chico { min-height: 42px; padding-inline: 16px; font-size: .92rem; border-radius: 10px; }
+  .rotar-confirm.grave { background: var(--error-soft); }
+  .rotar-confirm.grave svg { stroke: var(--error); }
+
+  /* ---------- Tabla de alumnos ---------- */
+  .alumnos-section { padding-bottom: 84px; }
+  .tabla-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow-x: auto;
+  }
+  table.tabla { width: 100%; border-collapse: collapse; min-width: 720px; }
+  .tabla th {
+    text-align: left;
+    font-size: .68rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--muted);
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    white-space: nowrap;
+  }
+  .tabla td { padding: 13px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .tabla tbody tr:last-child td { border-bottom: none; }
+  .fila-alumno { transition: background .12s ease; }
+  .fila-alumno:hover { background: var(--accent-soft); }
+  .fila-mas td { padding: 14px 18px; text-align: center; }
+
+  .celda-nombre b { display: block; font-weight: 600; line-height: 1.3; }
+  .celda-nombre span {
+    display: block;
+    color: var(--muted); font-size: .82rem;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .alias { font-family: "JetBrains Mono", monospace; font-size: .88rem; }
+  .sin-dato { color: var(--muted); }
+  .actividad-reciente { font-weight: 500; }
+  .actividad-vieja { color: var(--muted); }
+  .entregas-num { font-family: "JetBrains Mono", monospace; font-weight: 600; }
+
+  .td-acciones { text-align: right; white-space: nowrap; }
+  .acciones-int { display: inline-flex; align-items: center; gap: 4px; }
+
+  .badge-vetado {
+    display: inline-block; margin-left: 10px;
+    font-size: .64rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--error); background: var(--error-soft);
+    padding: 3px 9px; border-radius: 999px;
+    vertical-align: middle;
+  }
+  .fila-vetada { opacity: .55; }
+  .fila-vetada .celda-nombre b { text-decoration: line-through; text-decoration-thickness: 1px; }
+
+  .confirm-inline { display: inline-flex; align-items: center; gap: 8px; }
+  .confirm-inline b { font-size: .86rem; color: var(--error); }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 760px) {
+    .header-inner { row-gap: 4px; }
+    .main-nav { order: 3; width: 100%; margin-inline: 0; overflow-x: auto; padding-bottom: 2px; }
+    .nav-link { white-space: nowrap; }
+    .tabla-wrap { overflow-x: visible; }
+    table.tabla { min-width: 0; display: block; }
+    .tabla thead { display: none; }
+    .tabla tbody, .tabla tr, .tabla td { display: block; }
+    .tabla tr { padding-block: 8px; }
+    .tabla td {
+      display: flex; justify-content: space-between; align-items: center; gap: 14px;
+      border-bottom: none; padding: 6px 18px;
+    }
+    .tabla td::before {
+      content: attr(data-label);
+      font-size: .68rem; font-weight: 600; letter-spacing: .11em;
+      text-transform: uppercase; color: var(--muted);
+      flex-shrink: 0;
+    }
+    .tabla td.celda-nombre::before { content: none; }
+    .tabla td.celda-nombre { padding-top: 14px; }
+    .tabla td.td-acciones { justify-content: flex-end; padding-bottom: 14px; }
+    .tabla td.td-acciones::before { content: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="#" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="dashboard.html" aria-current="page" data-od-id="nav-salas">Salas</a>
+      <a class="nav-link" href="#" data-od-id="nav-materiales">Materiales globales</a>
+      <a class="nav-link" href="#" data-od-id="nav-perfil">Perfil</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="container">
+
+    <section class="hero" data-od-id="hero-alumnos">
+      <a class="volver" href="consignas.html" data-od-id="volver-consignas">← Programación · 5.º A</a>
+      <p class="eyebrow">Programación · 5.º A · Turno tarde</p>
+      <h1 id="titulo-alumnos" data-od-id="titulo-alumnos">Alumnos</h1>
+      <p class="resumen">28 inscriptos · 93 entregas recibidas en total · 1 vetado.</p>
+    </section>
+
+    <nav class="subtabs" aria-label="Secciones de la sala" data-od-id="subnav-sala">
+      <a class="subtab" href="consignas.html">Consignas</a>
+      <a class="subtab" href="alumnos.html" aria-current="page">Alumnos</a>
+      <a class="subtab" href="sala-config.html">Configuración</a>
+    </nav>
+
+    <div class="banner-codigo" id="banner-codigo" data-od-id="banner-codigo-sala">
+      <span class="codigo-chip lg" id="codigo-sala" data-od-id="chip-codigo-grande">PROG5A</span>
+      <p class="banner-txt">Compartilo en <b>unirse</b>: los alumnos lo ingresan una sola vez para entrar a la sala.</p>
+      <div class="banner-acciones">
+        <button class="btn btn-ghost btn-chico" type="button" id="btn-copiar" data-od-id="btn-copiar-codigo">Copiar</button>
+        <button class="btn btn-primary btn-chico" type="button" id="btn-rotar" data-od-id="btn-rotar-codigo">Rotar código</button>
+      </div>
+
+      <div class="rotar-confirm" id="rotar-confirm" hidden data-od-id="confirmacion-rotar">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17h.01"/>
+        </svg>
+        <p><b>¿Rotamos el código?</b> Se genera uno nuevo y el actual deja de funcionar al instante:
+           <b>esto saca el acceso de toda la clase</b> que intente entrar con el código viejo.</p>
+        <div class="confirm-botones">
+          <button class="btn btn-ghost btn-chico" type="button" data-cancelar-rotar>Cancelar</button>
+          <button class="btn btn-primary btn-chico" type="button" data-continuar-rotar>Sí, continuar</button>
+        </div>
+      </div>
+
+      <div class="rotar-confirm grave" id="rotar-confirm-2" hidden data-od-id="confirmacion-rotar-final">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17h.01"/>
+        </svg>
+        <p><b>Última confirmación:</b> rotarlo saca el acceso de toda la clase con el código actual.
+           Los inscriptos conservan su cuenta; solo cambia el código para volver a entrar.</p>
+        <div class="confirm-botones">
+          <button class="btn btn-ghost btn-chico" type="button" data-cancelar-rotar>No, volver</button>
+          <button class="btn btn-primary btn-chico" type="button" data-confirmar-rotar>Rotar ahora</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="alumnos-section" aria-labelledby="titulo-tabla">
+      <nav class="subtabs" aria-label="Secciones de la sala" data-od-id="subnav-sala">
+        <a class="subtab" href="consignas.html">Consignas</a>
+        <a class="subtab" href="alumnos.html" aria-current="page">Alumnos</a>
+        <a class="subtab" href="sala-config.html">Configuración</a>
+      </nav>
+
+      <h2 class="sr-only" id="titulo-tabla">Listado de alumnos</h2>
+      <div class="tabla-wrap" data-od-id="tabla-alumnos">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Alumno</th>
+              <th scope="col">Alias en sala</th>
+              <th scope="col">Última actividad</th>
+              <th scope="col">Entregas</th>
+              <th scope="col"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+
+            <tr class="fila-alumno" data-od-id="fila-valentina-costa">
+              <td class="celda-nombre" data-label="Alumno"><b>Valentina Costa</b><span>vcosta@alumnos.epet.edu.ar</span></td>
+              <td data-label="Alias en sala"><span class="alias">vale.c</span></td>
+              <td data-label="Última actividad"><span class="actividad-reciente">Hoy 10:42</span></td>
+              <td data-label="Entregas"><span class="entregas-num">5</span></td>
+              <td class="td-acciones" data-label="Acciones">
+                <div class="acciones-int">
+                  <button class="btn-text btn-perfil" type="button">Perfil</button>
+                  <button class="btn-vetar" type="button">Vetar</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="fila-alumno" data-od-id="fila-mateo-gonzalez">
+              <td class="celda-nombre" data-label="Alumno"><b>Mateo González</b><span>mgonzalez@alumnos.epet.edu.ar</span></td>
+              <td data-label="Alias en sala"><span class="alias">maty_gza</span></td>
+              <td data-label="Última actividad"><span class="actividad-reciente">Hoy 08:15</span></td>
+              <td data-label="Entregas"><span class="entregas-num">4</span></td>
+              <td class="td-acciones" data-label="Acciones">
+                <div class="acciones-int">
+                  <button class="btn-text btn-perfil" type="button">Perfil</button>
+                  <button class="btn-vetar" type="button">Vetar</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="fila-alumno" data-od-id="fila-camila-ojeda">
+              <td class="celda-nombre" data-label="Alumno"><b>Camila Ojeda</b><span>cojeda@alumnos.epet.edu.ar</span></td>
+              <td data-label="Alias en sala"><span class="sin-dato">—</span></td>
+              <td data-label="Última actividad"><span class="actividad-reciente">Ayer 17:30</span></td>
+              <td data-label="Entregas"><span class="entregas-num">5</span></td>
+              <td class="td-acciones" data-label="Acciones">
+                <div class="acciones-int">
+                  <button class="btn-text btn-perfil" type="button">Perfil</button>
+                  <button class="btn-vetar" type="button">Vetar</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="fila-alumno" data-od-id="fila-santiago-rios">
+              <td class="celda-nombre" data-label="Alumno"><b>Santiago Ríos</b><span>srios@alumnos.epet.edu.ar</span></td>
+              <td data-label="Alias en sala"><span class="alias">santii</span></td>
+              <td data-label="Última actividad"><span class="actividad-reciente">Mié 19 · 21:04</span></td>
+              <td data-label="Entregas"><span class="entregas-num">3</span></td>
+              <td class="td-acciones" data-label="Acciones">
+                <div class="acciones-int">
+                  <button class="btn-text btn-perfil" type="button">Perfil</button>
+                  <button class="btn-vetar" type="button">Vetar</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="fila-alumno" data-od-id="fila-lucia-benitez">
+              <td class="celda-nombre" data-label="Alumno"><b>Lucía Benítez</b><span>lbenitez@alumnos.epet.edu.ar</span></td>
+              <td data-label="Alias en sala"><span class="sin-dato">—</span></td>
+              <td data-label="Última actividad"><span class="actividad-reciente">Lun 17 · 19:22</span></td>
+              <td data-label="Entregas"><span class="entregas-num">4</span></td>
+              <td class="td-acciones" data-label="Acciones">
+                <div class="acciones-int">
+                  <button class="btn-text btn-perfil" type="button">Perfil</button>
+                  <button class="btn-vetar" type="button">Vetar</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="fila-alumno" data-od-id="fila-tomas-aguirre">
+              <td class="celda-nombre" data-label="Alumno"><b>Tomás Aguirre</b><span>taguirre@alumnos.epet.edu.ar</span></td>
+              <td data-label="Alias en sala"><span class="alias">tomi_dev</span></td>
+              <td data-label="Última actividad"><span class="actividad-vieja">Hace 6 días</span></td>
+              <td data-label="Entregas"><span class="entregas-num">2</span></td>
+              <td class="td-acciones" data-label="Acciones">
+                <div class="acciones-int">
+                  <button class="btn-text btn-perfil" type="button">Perfil</button>
+                  <button class="btn-vetar" type="button">Vetar</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="fila-alumno" data-od-id="fila-micaela-sosa">
+              <td class="celda-nombre" data-label="Alumno"><b>Micaela Sosa</b><span>msosa@alumnos.epet.edu.ar</span></td>
+              <td data-label="Alias en sala"><span class="alias">mica.sosa</span></td>
+              <td data-label="Última actividad"><span class="actividad-vieja">Hace 2 semanas</span></td>
+              <td data-label="Entregas"><span class="entregas-num">1</span></td>
+              <td class="td-acciones" data-label="Acciones">
+                <div class="acciones-int">
+                  <button class="btn-text btn-perfil" type="button">Perfil</button>
+                  <button class="btn-vetar" type="button">Vetar</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="fila-alumno fila-vetada" data-od-id="fila-bruno-cabral" data-vetado="true">
+              <td class="celda-nombre" data-label="Alumno"><b>Bruno Cabral<span class="badge-vetado">Vetado</span></b><span>bcabral@alumnos.epet.edu.ar</span></td>
+              <td data-label="Alias en sala"><span class="alias">brunoc</span></td>
+              <td data-label="Última actividad"><span class="actividad-vieja">Hace 3 semanas</span></td>
+              <td data-label="Entregas"><span class="entregas-num">1</span></td>
+              <td class="td-acciones" data-label="Acciones">
+                <div class="acciones-int">
+                  <button class="btn-rehab" type="button">Rehabilitar</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="fila-mas">
+              <td colspan="5">
+                <button class="btn-text ver-mas" type="button" data-od-id="btn-ver-mas">Ver los 20 alumnos restantes</button>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Copiar código ---------- */
+  $('#btn-copiar').addEventListener('click', function () {
+    var codigo = $('#codigo-sala').textContent.trim();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(codigo).then(
+        function () { aviso('Código ' + codigo + ' copiado al portapapeles'); },
+        function () { aviso('No se pudo copiar: el código es ' + codigo); }
+      );
+    } else {
+      aviso('El código es ' + codigo);
+    }
+  });
+
+  /* ---------- Rotar código con doble confirmación ---------- */
+  var confirmBox = $('#rotar-confirm');
+  var confirmBoxFinal = $('#rotar-confirm-2');
+
+  function cerrarRotar() {
+    confirmBox.hidden = true;
+    confirmBoxFinal.hidden = true;
+    $('#btn-rotar').focus();
+  }
+
+  $('#btn-rotar').addEventListener('click', function () {
+    confirmBox.hidden = false;
+    confirmBoxFinal.hidden = true;
+    confirmBox.querySelector('[data-continuar-rotar]').focus();
+  });
+
+  document.querySelectorAll('[data-cancelar-rotar]').forEach(function (b) {
+    b.addEventListener('click', cerrarRotar);
+  });
+
+  confirmBox.querySelector('[data-continuar-rotar]').addEventListener('click', function () {
+    confirmBox.hidden = true;
+    confirmBoxFinal.hidden = false;
+    confirmBoxFinal.querySelector('[data-confirmar-rotar]').focus();
+  });
+
+  confirmBoxFinal.querySelector('[data-confirmar-rotar]').addEventListener('click', function () {
+    var letras = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+    var actual = $('#codigo-sala').textContent.trim();
+    var nuevo = actual;
+    while (nuevo === actual) {
+      nuevo = 'PROG' + (Math.floor(Math.random() * 8) + 2) + letras[Math.floor(Math.random() * letras.length)];
+    }
+    $('#codigo-sala').textContent = nuevo;
+    cerrarRotar();
+    aviso('Código rotado: ' + nuevo + '. El anterior quedó invalidado.');
+  });
+
+  /* ---------- Acciones de la tabla (delegadas) ---------- */
+  var tbody = $('#tbody');
+
+  function markupNormal() {
+    return '<div class="acciones-int">' +
+      '<button class="btn-text btn-perfil" type="button">Perfil</button>' +
+      '<button class="btn-vetar" type="button">Vetar</button>' +
+      '</div>';
+  }
+  function markupConfirm() {
+    return '<div class="acciones-int confirm-inline">' +
+      '<b>¿Vetar?</b>' +
+      '<button class="btn-mini btn-veto-si" type="button">Sí, vetar</button>' +
+      '<button class="btn-mini btn-veto-no" type="button">No</button>' +
+      '</div>';
+  }
+
+  tbody.addEventListener('click', function (e) {
+    var fila = e.target.closest('.fila-alumno');
+    if (!fila) return;
+    var celda = fila.querySelector('.td-acciones');
+
+    if (e.target.closest('.btn-perfil')) {
+      var nombre = fila.querySelector('.celda-nombre b').textContent.replace(/Vetado$/, '').trim();
+      aviso('El perfil de ' + nombre + ' va en otra pantalla.');
+      return;
+    }
+
+    if (e.target.closest('.btn-vetar')) {
+      fila.dataset.accionesOrig = celda.innerHTML;
+      celda.innerHTML = markupConfirm();
+      celda.querySelector('.btn-veto-si').focus();
+      return;
+    }
+
+    if (e.target.closest('.btn-veto-no')) {
+      celda.innerHTML = fila.dataset.accionesOrig || markupNormal();
+      return;
+    }
+
+    if (e.target.closest('.btn-veto-si')) {
+      fila.classList.add('fila-vetada');
+      fila.dataset.vetado = 'true';
+      var nb = fila.querySelector('.celda-nombre b');
+      if (!nb.querySelector('.badge-vetado')) {
+        var badge = document.createElement('span');
+        badge.className = 'badge-vetado';
+        badge.textContent = 'Vetado';
+        nb.appendChild(document.createTextNode(' '));
+        nb.appendChild(badge);
+      }
+      celda.innerHTML =
+        '<div class="acciones-int"><button class="btn-rehab" type="button">Rehabilitar</button></div>';
+      aviso(fila.querySelector('.celda-nombre b').textContent.replace('Vetado', '').trim() +
+        ' fue vetado de la sala. Podés rehabilitarlo cuando quieras.');
+      return;
+    }
+
+    if (e.target.closest('.btn-rehab')) {
+      fila.classList.remove('fila-vetada');
+      delete fila.dataset.vetado;
+      var nb2 = fila.querySelector('.celda-nombre b');
+      var b2 = nb2.querySelector('.badge-vetado');
+      if (b2) b2.remove();
+      celda.innerHTML = fila.dataset.accionesOrig || markupNormal();
+      aviso(nb2.textContent.trim() + ' volvió a tener acceso a la sala.');
+    }
+  });
+
+  $('.ver-mas').addEventListener('click', function () {
+    aviso('Los otros 20 alumnos aparecen en el listado completo.');
+  });
+})();
+</script>
+
+</body>
+</html>

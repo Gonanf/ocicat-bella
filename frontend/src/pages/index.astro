@@ -1,0 +1,59 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const features = [
+  {
+    kicker: 'Materiales',
+    titulo: 'Una biblioteca estilo Drive',
+    texto: 'Guías, videos, apuntes e instaladores ordenados por materia. El profe sube una vez y lo encuentra toda la clase.',
+  },
+  {
+    kicker: 'Sandboxes',
+    titulo: 'Subís tu proyecto y lo corrés',
+    texto: 'Cada alumno ejecuta su código en el server de la escuela y sigue los logs en vivo, línea por línea, como en la terminal.',
+  },
+  {
+    kicker: 'Federación',
+    titulo: 'Escuelas conectadas entre sí',
+    texto: 'Mirá y corré proyectos de otras escuelas de la red. Lo que hace un curso puede inspirar al de al lado.',
+  },
+];
+---
+
+<Layout titulo="Materiales y sandboxes para escuelas" active="inicio">
+  <section class="py-12 md:py-16">
+    <div class="flex flex-wrap gap-2 mb-6">
+      {['FOSS', 'Auto-hospedado', 'Ligero'].map((b) => (
+        <span class="badge badge-outline text-base-content/60 font-mono text-[11px] tracking-widest">{b}</span>
+      ))}
+    </div>
+    <h1 class="font-display font-normal text-5xl md:text-7xl leading-[0.95] tracking-tight max-w-4xl">
+      La fuente de verdad de lo que producen las escuelas:
+      <em class="italic text-primary">materiales y proyectos</em> que se ejecutan de verdad.
+    </h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-base-content/60">
+      El lugar del curso: la biblioteca de la materia y los proyectos corriendo en el server de la escuela. Los chicos
+      entran con un código y listo.
+    </p>
+    <div class="mt-8 flex gap-3 flex-wrap">
+      <a href="/materiales/" class="btn btn-primary btn-lg rounded-full">Crear sala</a>
+      <a href="/unirse/" class="btn btn-lg rounded-full bg-base-100 border border-base-300 hover:border-base-content">
+        Unirse con código
+      </a>
+    </div>
+  </section>
+
+  <section aria-label="Qué ofrece Ocicat Bella" class="grid md:grid-cols-3 gap-4 pb-16">
+    {features.map((f) => (
+      <article class="card bg-base-100 border border-base-300 shadow-sm">
+        <div class="card-body gap-2">
+          <p class="eyebrow-like font-mono text-[11px] tracking-[0.12em] uppercase font-semibold text-primary">
+            {f.kicker}
+          </p>
+          <h2 class="font-display font-normal text-2xl tracking-tight">{f.titulo}</h2>
+          <p class="text-base-content/60 leading-relaxed">{f.texto}</p>
+        </div>
+      </article>
+    ))}
+  </section>
+</Layout>

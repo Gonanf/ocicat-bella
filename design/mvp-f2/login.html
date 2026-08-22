@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="es" data-theme="light"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · Ocicat Bella</title>
+<meta name="description" content="Entrá sin contraseña: te mandamos un link a tu email. Mirá todo como visitante o unite a una sala con tu código.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=DM+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --chip-fg: #1B4332;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --chip-fg: #7BC79A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100dvh;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  /* ---------- Header mínimo ---------- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px clamp(16px, 4vw, 28px); }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 32px; height: 32px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.35rem; line-height: 1;
+    letter-spacing: .01em;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Centro ---------- */
+  main { flex: 1; display: flex; justify-content: center; padding: clamp(24px, 6vh, 64px) 20px 60px; }
+  .col { width: min(440px, 100%); }
+
+  .bienvenida { text-align: center; margin-bottom: 22px; }
+  .bienvenida h1 {
+    margin: 0 0 6px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2rem, 5vw, 2.5rem); line-height: 1.08;
+    letter-spacing: -.01em;
+  }
+  .bienvenida p { margin: 0; color: var(--muted); font-size: .97rem; }
+
+  /* ---------- Card de acceso ---------- */
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 26px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+  .field label { font-size: .9rem; font-weight: 600; }
+  .field input {
+    min-height: 46px; padding: 11px 14px;
+    font: inherit; color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border-strong); border-radius: 11px;
+    transition: border-color .15s ease;
+  }
+  .field input::placeholder { color: var(--muted); opacity: 1; }
+  .field input:hover { border-color: var(--accent); }
+  .field-hint { margin: -8px 0 15px; font-size: .8rem; color: var(--muted); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 46px; width: 100%;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .98rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-text-row { display: flex; justify-content: center; gap: 14px; margin-top: 14px; }
+  .btn-text {
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-size: .88rem; font-weight: 500; color: var(--muted);
+    padding: 6px 10px; border-radius: 8px;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .btn-text:hover { color: var(--accent); }
+
+  /* Estado "link enviado" */
+  .estado-enviado[hidden] { display: none; }
+  .enviado-icono {
+    width: 52px; height: 52px; margin: 2px auto 12px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--accent); color: var(--on-accent);
+  }
+  .enviado-icono svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .estado-enviado h2 {
+    margin: 0 0 6px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.55rem; line-height: 1.15; text-align: center;
+  }
+  .estado-enviado p { margin: 0 0 4px; color: var(--muted); font-size: .95rem; text-align: center; }
+  .estado-enviado .mail-resaltado {
+    font-family: "JetBrains Mono", monospace; font-size: .88rem;
+    color: var(--fg); overflow-wrap: anywhere;
+  }
+  .sin-password {
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-top: 18px; padding: 12px 14px;
+    background: var(--accent-soft); border-radius: 12px;
+    font-size: .86rem; color: var(--fg);
+  }
+  .sin-password svg {
+    flex-shrink: 0; width: 17px; height: 17px; margin-top: 2px;
+    fill: none; stroke: var(--chip-fg); stroke-width: 1.9;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .sin-password p { margin: 0; }
+
+  /* ---------- Bloque código de sala ---------- */
+  .codigo-bloque {
+    margin-top: 18px;
+    background: transparent;
+    border: 2px dashed var(--border-strong);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+  }
+  .codigo-bloque h2 {
+    margin: 0 0 4px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.45rem; line-height: 1.15;
+  }
+  .codigo-bloque p { margin: 0 0 16px; color: var(--muted); font-size: .92rem; }
+  .codigo-fila { display: flex; gap: 10px; align-items: stretch; }
+  .codigo-input {
+    flex: 1; min-width: 0; min-height: 50px;
+    text-align: center;
+    font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 1.25rem;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--fg);
+    background: var(--surface);
+    border: 1px solid var(--border-strong); border-radius: 12px;
+    transition: border-color .15s ease;
+  }
+  .codigo-input::placeholder { letter-spacing: .22em; color: var(--muted); opacity: 1; }
+  .codigo-input:hover { border-color: var(--accent); }
+  .btn-unirme {
+    flex-shrink: 0; min-height: 50px; padding-inline: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--accent);
+    background: transparent; color: var(--accent);
+    font: inherit; font-weight: 600; cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  .btn-unirme:hover { background: var(--accent); color: var(--on-accent); }
+  .codigo-hint { margin: 10px 0 0; font-size: .78rem; color: var(--muted); }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="topbar" data-od-id="app-header">
+  <a class="brand" href="#" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+    <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+      <g fill="var(--accent)">
+        <path d="M8 17 L9.5 4 L18 11 Z"></path>
+        <path d="M28 17 L26.5 4 L18 11 Z"></path>
+        <rect x="5" y="10" width="26" height="23" rx="10"></rect>
+      </g>
+      <text x="18" y="27.5" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="16" fill="var(--on-accent)">O</text>
+    </svg>
+    <span class="brand-name">Ocicat <em>bella</em></span>
+  </a>
+
+  <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema" aria-label="Cambiar tema claro u oscuro">
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+    </svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4.2"></circle>
+      <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"></path>
+    </svg>
+  </button>
+</header>
+
+<main id="contenido">
+  <div class="col">
+
+    <div class="bienvenida" data-od-id="bienvenida-login">
+      <h1 id="titulo-login">Buenas, ¿ya sos parte?</h1>
+      <p>Mirá todo como visitante o entrá con tu cuenta: acá no hay contraseñas.</p>
+    </div>
+
+    <div class="auth-card" data-od-id="card-auth">
+      <form id="form-magic" novalidate data-od-id="form-magic-link">
+        <div class="field">
+          <label for="m-nombre">Nombre completo</label>
+          <input id="m-nombre" type="text" autocomplete="name" placeholder="Valentina Costa">
+        </div>
+        <div class="field">
+          <label for="m-email">Email</label>
+          <input id="m-email" type="email" autocomplete="email" placeholder="vos@alumnos.epet.edu.ar">
+        </div>
+        <p class="field-hint">Si ya tenés cuenta, es el mismo email de siempre.</p>
+        <button class="btn btn-primary" type="submit" data-od-id="btn-pedir-link">Mandame el link de acceso</button>
+        <div class="sin-password" data-od-id="nota-sin-password">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2"/>
+          </svg>
+          <p><b>Sin contraseñas para alumnos:</b> te mandamos un link a tu email y entrás desde ahí.</p>
+        </div>
+      </form>
+
+      <div class="estado-enviado" id="estado-enviado" hidden data-od-id="panel-link-enviado" role="status">
+        <span class="enviado-icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        </span>
+        <h2>Listo, revisá tu correo</h2>
+        <p>Te mandamos un link a<br><b class="mail-resaltado" id="mail-enviado">vos@alumnos.epet.edu.ar</b></p>
+        <p>Tocá el link del mail y entrás directo a tu cuenta.</p>
+        <div class="btn-text-row">
+          <button class="btn-text" type="button" id="btn-reenviar" data-od-id="btn-reenviar-link">Reenviar link</button>
+          <button class="btn-text" type="button" id="btn-otro-mail" data-od-id="btn-usar-otro-email">Usar otro email</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="codigo-bloque" data-od-id="bloque-codigo-sala">
+      <h2 id="titulo-codigo">¿Tenés código de sala?</h2>
+      <p>Como visitante podés ver todo el contenido educativo y los proyectos.
+         Para <b>entrar a una sala</b> necesitás tu cuenta registrada:
+         el código une a la sala, pero no reemplaza el registro.</p>
+      <div class="codigo-fila">
+        <input class="codigo-input" id="f-codigo" type="text" maxlength="7"
+               placeholder="PROG5A" autocomplete="off" spellcheck="false"
+               aria-label="Código de la sala" data-od-id="input-codigo-sala">
+        <button class="btn-unirme" type="button" id="btn-unirme" data-od-id="btn-unirme">Unirme</button>
+      </div>
+      <p class="codigo-hint">Primero creá tu cuenta con el link; después ingresás el código una sola vez.</p>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Magic link ---------- */
+  var form = $('#form-magic');
+  var enviado = $('#estado-enviado');
+  var mailEnviado = $('#mail-enviado');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var nombre = $('#m-nombre').value.trim();
+    var email = $('#m-email').value.trim();
+    if (!nombre) { $('#m-nombre').focus(); aviso('Decinos cómo te llamás.'); return; }
+    if (!email || email.indexOf('@') === -1) { $('#m-email').focus(); aviso('Necesitamos un email válido para mandarte el link.'); return; }
+    mailEnviado.textContent = email;
+    form.hidden = true;
+    enviado.hidden = false;
+    $('#btn-reenviar').focus();
+    aviso('Link enviado a tu email.');
+  });
+
+  $('#btn-reenviar').addEventListener('click', function () {
+    aviso('Te mandamos el link otra vez a ' + mailEnviado.textContent + '.');
+  });
+
+  $('#btn-otro-mail').addEventListener('click', function () {
+    enviado.hidden = true;
+    form.hidden = false;
+    $('#m-email').focus();
+  });
+
+  /* ---------- Código de sala ---------- */
+  var fCodigo = $('#f-codigo');
+  fCodigo.addEventListener('input', function () {
+    this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  });
+  $('#btn-unirme').addEventListener('click', function () {
+    var cod = fCodigo.value.trim();
+    if (!cod) { fCodigo.focus(); aviso('Escribí el código que te pasó tu docente.'); return; }
+    if (!form.hidden) {
+      fCodigo.focus();
+      aviso('Primero creá tu cuenta con el link: el código no reemplaza el registro.');
+      return;
+    }
+    aviso('Buscando la sala «' + cod + '»…');
+  });
+})();
+</script>
+
+
+
+</body></html>

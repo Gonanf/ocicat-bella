@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materiales — Ocicat Bella</title>
+<link rel="stylesheet" href="ocicat-editorial.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html"><span class="brand-mark">O</span><span class="brand-text"><span class="brand-name">Ocicat Bella</span><br><span class="brand-tag">escuelas que producen</span></span></a>
+    <nav class="nav" id="nav"><a href="materials.html" class="active">Materiales</a><a href="sandboxes.html">Sandboxes</a><a href="join.html">Unirse</a></nav>
+    <div class="header-actions">
+      <span class="sala-pill"><span class="dot"></span> Sala <strong>5°A · OCI-7F3K</strong></span>
+      <a class="btn btn-primary" href="#"><span>Subir material</span> ↑</a>
+      <span class="avatar">MR</span>
+      <button class="hamburger" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Sala activa · Programación 5°A — Escuela Técnica N°4</p>
+      <h1>Materiales que abren camino.</h1>
+      <p class="lead" style="font-size:15px; max-width:560px; margin:0">Todo lo que necesitan para arrancar sin perder tiempo. Guías, instaladores y plantillas curadas por la docente.</p>
+    </div>
+    <a class="btn btn-primary" href="#">+ Subir material</a>
+  </div>
+
+  <div class="layout-2col">
+    <div>
+      <div class="lib-tools">
+        <label class="search"><span aria-hidden="true">⌕</span><input id="q" type="search" placeholder="Buscar guía, instalador, plantilla…"><span style="font-size:11px; color:#8A8F98; font-weight:600">12 archivos</span></label>
+      </div>
+      <div class="chips" id="chips" role="tablist" aria-label="Filtrar">
+        <button class="chip active" data-f="todos">Todos</button>
+        <button class="chip" data-f="programacion">Programación</button>
+        <button class="chip" data-f="robotica">Robótica</button>
+        <button class="chip" data-f="instaladores">Instaladores</button>
+      </div>
+
+      <div class="material-list" id="list" style="margin-top:16px">
+        <article class="mat-card" data-cat="programacion">
+          <span class="mat-icon py">PY</span>
+          <div class="mat-main"><div class="mat-title">Guía rápida Python — de 0 a tu primer programa</div><div class="mat-meta">PDF · 1.2 MB · Compartido por María R. · hace 2 días · 84 descargas</div></div>
+          <div class="mat-actions"><a class="btn btn-secondary btn-sm" href="#">Vista previa</a><a class="btn btn-primary btn-sm" href="#">Descargar</a></div>
+        </article>
+        <article class="mat-card" data-cat="instaladores">
+          <span class="mat-icon dl">↓</span>
+          <div class="mat-main"><div class="mat-title">Python 3.12 para Windows — instalador recomendado</div><div class="mat-meta">Instalador · 28 MB · Windows 10/11 · checksum verificado · hace 1 semana</div></div>
+          <div class="mat-actions"><a class="btn btn-secondary btn-sm" href="#">Vista previa</a><a class="btn btn-primary btn-sm" href="#">Descargar</a></div>
+        </article>
+        <article class="mat-card" data-cat="robotica">
+          <span class="mat-icon rb">RB</span>
+          <div class="mat-main"><div class="mat-title">Arduino IDE + placas — paquete para el gabinete</div><div class="mat-meta">Instalador · 94 MB · Incluye drivers CH340 · Compartido por María R.</div></div>
+          <div class="mat-actions"><a class="btn btn-secondary btn-sm" href="#">Vista previa</a><a class="btn btn-primary btn-sm" href="#">Descargar</a></div>
+        </article>
+        <article class="mat-card" data-cat="programacion">
+          <span class="mat-icon web">WEB</span>
+          <div class="mat-main"><div class="mat-title">Plantilla web — tu primera página (HTML + CSS)</div><div class="mat-meta">ZIP · 18 KB · Por Tomi · Plantilla limpia para pizarra-colaborativa</div></div>
+          <div class="mat-actions"><a class="btn btn-secondary btn-sm" href="#">Vista previa</a><a class="btn btn-primary btn-sm" href="#">Descargar</a></div>
+        </article>
+      </div>
+      <p id="empty" style="display:none; text-align:center; color:#6B6E72; padding:24px; font-size:14px">Nada por acá con ese filtro. Probá con otro.</p>
+    </div>
+
+    <aside class="sidebar">
+      <div class="card-paper">
+        <h3>Programación 5°A</h3>
+        <div class="kv">
+          <div><span>Código</span><b class="mono">OCI-7F3K</b></div>
+          <div><span>Alumnos</span><b>24 activos</b></div>
+          <div><span>Archivos</span><b>12 activos</b></div>
+          <div><span>Almacenamiento</span><b>380 MB / 2 GB</b></div>
+        </div>
+        <div class="progress" style="margin:14px 0 6px"><i style="width:19%"></i></div>
+        <div style="font-size:11px; color:#6B6E72; margin-bottom:14px">19% usado · Queda lugar para mucho más</div>
+        <div style="display:flex; gap:8px; font-size:12px; color:#6B6E72"><span>●</span> Última actualización <b style="color:#1A1D23">Hoy 10:42</b> — Tomi subió plantilla web</div>
+        <div class="note" style="margin-top:14px"><b style="color:#1A1D23">Sobre instaladores:</b> Quedan en la sala para que cada PC del gabinete baje la misma versión. Sin links externos rotos ni publicidades.</div>
+      </div>
+      <div class="card-paper" style="margin-top:16px; background:var(--paper)">
+        <div style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#1B4332; margin-bottom:6px">Consejo docente</div>
+        <p style="font-size:13px; color:#6B6E72; margin:0; line-height:1.6">Subí la guía en PDF liviano (menos de 2 MB) para que abra rápido en las netbooks. Los ZIP de plantillas, mejor con nombre claro: <span class="mono" style="font-size:11px">plantilla-web-5A.zip</span>.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+<footer class="site-footer"><div class="wrap footer-inner"><span>© 2026 Ocicat Bella · Sala OCI-7F3K · 24 alumnos adentro.</span><span class="footer-links"><a href="index.html">Inicio</a><a href="sandboxes.html">Sandboxes</a><a href="join.html">Unirse</a></span></div></footer>
+<script>
+const q=document.getElementById('q'), chips=[...document.querySelectorAll('.chip')], cards=[...document.querySelectorAll('.mat-card')], empty=document.getElementById('empty');
+let cat='todos';
+chips.forEach(c=>c.addEventListener('click',()=>{chips.forEach(x=>x.classList.remove('active'));c.classList.add('active');cat=c.dataset.f;filter();}));
+q.addEventListener('input',filter);
+function filter(){
+  const term=q.value.toLowerCase();
+  let vis=0;
+  cards.forEach(card=>{
+    const okCat=cat==='todos' || (cat==='instaladores'? card.dataset.cat==='instaladores' : card.dataset.cat===cat) || (cat==='instaladores' && card.textContent.includes('Instalador'));
+    const okQ=!term || card.textContent.toLowerCase().includes(term);
+    const show=okCat && okQ;
+    card.style.display=show?'flex':'none';
+    if(show) vis++;
+  });
+  empty.style.display=vis?'none':'block';
+}
+</script>
+</body>
+</html>

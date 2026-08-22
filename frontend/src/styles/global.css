@@ -1,0 +1,110 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: ocicat --default, ocicat-dark --prefersdark;
+}
+
+/* Tema daisyUI "ocicat" — tokens de design/c84c/ocicat-editorial.css */
+@plugin "daisyui/theme" {
+  name: "ocicat";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: #FFFEFC; /* surface */
+  --color-base-200: #FAF7F2; /* bg crema */
+  --color-base-300: #F5F1E9; /* paper */
+  --color-base-content: #1A1D23; /* ink */
+
+  --color-primary: #1B4332; /* accent verde bosque */
+  --color-primary-content: #F6FBF7;
+  --color-secondary: #234E3B;
+  --color-secondary-content: #F6FBF7;
+  --color-accent: #2D6A4F;
+  --color-accent-content: #F6FBF7;
+  --color-neutral: #1A1D23;
+  --color-neutral-content: #FAF7F2;
+
+  --color-info: #1E4A7A;
+  --color-info-content: #E0F0FF;
+  --color-success: #2D6A4F;
+  --color-success-content: #E6F0E9;
+  --color-warning: #8A6D1B; /* ámbar */
+  --color-warning-content: #FFF7D6;
+  --color-error: #9B1C1C;
+  --color-error-content: #FFF5F5;
+
+  --radius-selector: 0.75rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Tokens extra accesibles como utilidades Tailwind */
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-cream: #FAF7F2;
+  --color-paper: #F5F1E9;
+  --color-surface: #FFFEFC;
+  --color-ink: #1A1D23;
+  --color-muted: #6B6E72;
+  --color-muted-2: #8A8F98;
+  --color-line: #E8E0D1;
+  --color-line-strong: #DDD6C5;
+  --color-forest-light: #E6F0E9;
+  --color-forest-mid: #B7D1C2;
+  --color-ambar-bg: #FFF7D6;
+  --color-ambar-bd: #F2E3A3;
+  --color-terminal: #111827;
+  --color-terminal-text: #D1E5FF;
+}
+
+body {
+  background-color: var(--color-base-200);
+}
+
+/* Tema oscuro — identidad editorial invertida, contraste AA */
+@plugin "daisyui/theme" {
+  name: "ocicat-dark";
+  default: false;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #1E222A; /* superficie */
+  --color-base-200: #14161A; /* fondo */
+  --color-base-300: #101216; /* hundido */
+  --color-base-content: #EDE8DD; /* crema suave */
+
+  --color-primary: #4E9B6F;
+  --color-primary-content: #0E1512;
+  --color-secondary: #5FAF82;
+  --color-secondary-content: #0E1512;
+  --color-accent: #74C69D;
+  --color-accent-content: #0E1512;
+  --color-neutral: #2A2F38;
+  --color-neutral-content: #EDE8DD;
+
+  --color-info: #6FA8DC;
+  --color-info-content: #0B1220;
+  --color-success: #4E9B6F;
+  --color-success-content: #0E1512;
+  --color-warning: #D4B95E;
+  --color-warning-content: #1A1608;
+  --color-error: #D9776B;
+  --color-error-content: #1A0806;
+
+  --radius-selector: 0.75rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}

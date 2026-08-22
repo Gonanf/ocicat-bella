@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instalación · Ocicat Bella</title>
+<meta name="description" content="Primera instalación de Ocicat Bella: escuela, cuenta del director y código global en cuatro pasos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --chip-fg: #1B4332;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --chip-fg: #7BC79A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100dvh;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+
+  /* ---------- Barra superior ---------- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px clamp(16px, 4vw, 28px); }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 32px; height: 32px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.35rem; line-height: 1;
+    letter-spacing: .01em;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .badge-instancia {
+    display: none;
+    font-size: .68rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase;
+    color: var(--amber); background: var(--amber-soft);
+    padding: 5px 13px; border-radius: 999px;
+  }
+  @media (min-width: 560px) { .badge-instancia { display: inline-block; } }
+
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Wizard ---------- */
+  main { flex: 1; display: flex; justify-content: center; padding: clamp(20px, 5vh, 52px) 20px 70px; }
+  .col { width: min(600px, 100%); }
+
+  .stepper-wrap { margin-bottom: 26px; }
+  .stepper {
+    display: flex; align-items: center; gap: 8px;
+    list-style: none; margin: 0; padding: 0;
+  }
+  .step { flex: 1; display: flex; align-items: center; min-width: 0; }
+  .step:last-child { flex: 0; }
+  .step::before {
+    content: ''; height: 2px; flex: 1; min-width: 16px;
+    background: var(--border-strong); border-radius: 2px;
+    transition: background .2s ease;
+  }
+  .step:first-child::before { display: none; }
+  .step.done::before { background: var(--accent); }
+  .step-dot {
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: .85rem;
+    border: 2px solid var(--border-strong);
+    color: var(--muted);
+    background: transparent;
+    margin-right: 9px;
+    transition: background .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .step.done .step-dot,
+  .step.current.done .step-dot { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .step.done .step-dot svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .step-dot svg { opacity: 0; }
+  .step.current { color: var(--fg); }
+  .step.current .step-dot:not(.done-dot) { border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 3px var(--bg); }
+  .step-lbl { font-weight: 600; font-size: .9rem; white-space: nowrap; color: var(--muted); }
+  .step.done .step-lbl, .step.current .step-lbl { color: var(--fg); }
+  .step.current .step-lbl { color: var(--accent); }
+
+  .panel-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: clamp(24px, 4vw, 36px);
+  }
+  .paso[hidden] { display: none; }
+
+  /* ---------- Paso 1 · Bienvenida ---------- */
+  .bienvenida { text-align: center; }
+  .logo-grande { margin: 6px auto 18px; display: block; width: 84px; height: 84px; }
+  .bienvenida h1 {
+    margin: 0 0 10px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2rem, 5vw, 2.6rem); line-height: 1.08;
+    letter-spacing: -.01em;
+  }
+  .bienvenida p { margin: 0 auto 24px; max-width: 46ch; color: var(--muted); font-size: .98rem; }
+  .bienvenida p b { color: var(--fg); font-weight: 600; }
+  .acciones-centro { display: flex; justify-content: center; }
+
+  /* ---------- Títulos de pasos ---------- */
+  .paso-titulo {
+    margin: 0 0 6px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.9rem; line-height: 1.12;
+  }
+  .paso-sub { margin: 0 0 22px; color: var(--muted); font-size: .95rem; }
+
+  /* ---------- Campos ---------- */
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .field label { font-size: .9rem; font-weight: 600; }
+  .field input {
+    min-height: 46px; padding: 11px 14px;
+    font: inherit; color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border-strong); border-radius: 11px;
+    transition: border-color .15s ease;
+  }
+  .field input::placeholder { color: var(--muted); opacity: 1; }
+  .field input:hover { border-color: var(--accent); }
+  .field-hint { margin: -10px 0 16px; font-size: .82rem; color: var(--muted); }
+
+  .nota-director {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-top: 6px; padding: 12px 14px;
+    background: var(--accent-soft); border-radius: 12px;
+    font-size: .86rem;
+  }
+  .nota-director svg {
+    flex-shrink: 0; width: 17px; height: 17px; margin-top: 2px;
+    fill: none; stroke: var(--chip-fg); stroke-width: 1.9;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .nota-director p { margin: 0; }
+
+  /* ---------- Navegación entre pasos ---------- */
+  .acciones-paso {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 26px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .acciones-paso.solo-derecha { justify-content: flex-end; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 46px; padding: 10px 24px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .97rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+  .btn-ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .volver-paso {
+    display: inline-flex; align-items: center;
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-size: .92rem; font-weight: 500; color: var(--muted);
+    padding: 10px 12px; margin-left: -12px; border-radius: 9px;
+    transition: color .15s ease, background .15s ease;
+  }
+  .volver-paso:hover { color: var(--fg); background: var(--accent-soft); }
+
+  /* ---------- Paso 4 · Código global ---------- */
+  .codigo-hero {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .codigo-global {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace; font-weight: 600;
+    font-size: clamp(1.3rem, 4.5vw, 1.7rem); letter-spacing: .14em; line-height: 1;
+    color: var(--chip-fg);
+    background: var(--accent-soft);
+    border: 1px solid var(--border-strong);
+    padding: 18px 24px; border-radius: 14px;
+    overflow-wrap: anywhere;
+  }
+  .codigo-hint { margin: 12px 0 0; font-size: .86rem; color: var(--muted); }
+
+  .explicacion-codigo {
+    display: flex; gap: 11px; align-items: flex-start;
+    padding: 15px 17px;
+    background: var(--amber-soft); border-radius: 14px;
+    font-size: .92rem;
+  }
+  .explicacion-codigo svg {
+    flex-shrink: 0; width: 19px; height: 19px; margin-top: 2px;
+    fill: none; stroke: var(--amber); stroke-width: 1.9;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .explicacion-codigo p { margin: 0; }
+  .explicacion-codigo b { font-weight: 700; }
+  .explicacion-codigo ul { margin: 8px 0 0; padding-left: 20px; }
+  .explicacion-codigo li { margin-bottom: 4px; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 560px) {
+    .step-lbl { display: none; }
+    .step-dot { margin-right: 0; }
+    .acciones-paso { flex-direction: column-reverse; align-items: stretch; }
+    .acciones-paso .btn { width: 100%; }
+    .volver-paso { justify-content: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar" data-od-id="app-header">
+  <a class="brand" href="#" aria-label="Ocicat Bella" data-od-id="brand-logo">
+    <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+      <g fill="var(--accent)">
+        <path d="M8 17 L9.5 4 L18 11 Z"/>
+        <path d="M28 17 L26.5 4 L18 11 Z"/>
+        <rect x="5" y="10" width="26" height="23" rx="10"/>
+      </g>
+      <text x="18" y="27.5" text-anchor="middle"
+            font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+            fill="var(--on-accent)">O</text>
+    </svg>
+    <span class="brand-name">Ocicat <em>bella</em></span>
+  </a>
+
+  <span class="badge-instancia" data-od-id="badge-instancia-vacia">Instancia nueva · configuración única</span>
+
+  <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+          aria-label="Cambiar tema claro u oscuro">
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+    </svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4.2"/>
+      <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+    </svg>
+  </button>
+</header>
+
+<main id="contenido">
+  <div class="col">
+
+    <div class="stepper-wrap">
+      <ol class="stepper" id="stepper" aria-label="Pasos de la instalación" data-od-id="stepper-setup">
+        <li class="step current" aria-current="step">
+          <span class="step-dot">1</span>
+          <span class="sr-only">Paso actual:</span>
+          <span class="step-lbl">Bienvenida</span>
+        </li>
+        <li class="step">
+          <span class="step-dot">2</span>
+          <span class="sr-only">Paso 2 pendiente:</span>
+          <span class="step-lbl">Escuela</span>
+        </li>
+        <li class="step">
+          <span class="step-dot">3</span>
+          <span class="sr-only">Paso 3 pendiente:</span>
+          <span class="step-lbl">Director</span>
+        </li>
+        <li class="step">
+          <span class="step-dot">4</span>
+          <span class="sr-only">Paso 4 pendiente:</span>
+          <span class="step-lbl">Código global</span>
+        </li>
+      </ol>
+    </div>
+
+    <!-- PASO 1 · Bienvenida -->
+    <section class="panel-card paso" id="paso-1" aria-labelledby="titulo-bienvenida" data-od-id="paso-bienvenida">
+      <div class="bienvenida">
+        <svg class="logo-grande" viewBox="0 0 36 36" aria-hidden="true" focusable="false" data-od-id="logo-bienvenida">
+          <g fill="var(--accent)">
+            <path d="M8 17 L9.5 4 L18 11 Z"/>
+            <path d="M28 17 L26.5 4 L18 11 Z"/>
+            <rect x="5" y="10" width="26" height="23" rx="10"/>
+          </g>
+          <text x="18" y="27.5" text-anchor="middle"
+                font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+                fill="var(--on-accent)">O</text>
+        </svg>
+        <h1 id="titulo-bienvenida" data-od-id="titulo-bienvenida">Bienvenido a Ocicat Bella</h1>
+        <p>Estás instalando <b>una instancia propia para tu escuela</b>: un lugar privado
+           para las salas, las consignas y los proyectos del curso.
+           Esta pantalla aparece una sola vez.</p>
+        <div class="acciones-centro">
+          <button class="btn btn-primary" type="button" id="btn-comenzar" data-od-id="btn-comenzar">Comenzar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PASO 2 · Escuela -->
+    <section class="panel-card paso" id="paso-2" hidden aria-labelledby="titulo-escuela" data-od-id="paso-escuela">
+      <h1 class="paso-titulo" id="titulo-escuela" data-od-id="titulo-escuela">¿Qué escuela es?</h1>
+      <p class="paso-sub">Va a aparecer en el panel y en los documentos que comparta la escuela.</p>
+
+      <form id="form-escuela" novalidate>
+        <div class="field">
+          <label for="f-escuela">Nombre de la escuela</label>
+          <input id="f-escuela" type="text" autocomplete="organization" placeholder="EEST N.º 5 Lanús" data-od-id="input-nombre-escuela">
+        </div>
+        <div class="field">
+          <label for="f-localidad">Localidad <span style="color:var(--muted);font-weight:500">(opcional)</span></label>
+          <input id="f-localidad" type="text" autocomplete="address-level2" placeholder="Lanús, Buenos Aires" data-od-id="input-localidad-escuela">
+        </div>
+      </form>
+
+      <div class="acciones-paso solo-derecha" data-od-id="acciones-paso-escuela">
+        <button class="volver-paso" type="button" data-volver="1">← Volver</button>
+        <button class="btn btn-primary" type="button" id="btn-continuar-escuela" data-od-id="btn-continuar-escuela">Continuar</button>
+      </div>
+    </section>
+
+    <!-- PASO 3 · Director -->
+    <section class="panel-card paso" id="paso-3" hidden aria-labelledby="titulo-director" data-od-id="paso-director">
+      <h1 class="paso-titulo" id="titulo-director" data-od-id="titulo-director">La cuenta del director</h1>
+      <p class="paso-sub">Esta cuenta administra la instancia: crea docentes y gestiona el código global.</p>
+
+      <form id="form-director" novalidate>
+        <div class="field">
+          <label for="f-nombre-dir">Nombre completo</label>
+          <input id="f-nombre-dir" type="text" autocomplete="name" placeholder="Marcela Duarte" data-od-id="input-nombre-director">
+        </div>
+        <div class="field">
+          <label for="f-email-dir">Email</label>
+          <input id="f-email-dir" type="email" autocomplete="email" placeholder="direccion@eest5.edu.ar" data-od-id="input-email-director">
+        </div>
+        <div class="field">
+          <label for="f-pass-dir">Contraseña</label>
+          <input id="f-pass-dir" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" data-od-id="input-password-director">
+        </div>
+        <p class="field-hint">Usá al menos 8 caracteres. Mezclar números ayuda.</p>
+
+        <div class="nota-director" data-od-id="nota-director-password">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/>
+          </svg>
+          <p><b>Vos entrás con contraseña;</b> los alumnos no: ellos reciben un link
+             por email y jamás eligen una.</p>
+        </div>
+      </form>
+
+      <div class="acciones-paso" data-od-id="acciones-paso-director">
+        <button class="volver-paso" type="button" data-volver="2">← Volver</button>
+        <button class="btn btn-primary" type="button" id="btn-crear-director" data-od-id="btn-continuar-director">Crear cuenta y continuar</button>
+      </div>
+    </section>
+
+    <!-- PASO 4 · Código global -->
+    <section class="panel-card paso" id="paso-4" hidden aria-labelledby="titulo-codigo" data-od-id="paso-codigo-global">
+      <h1 class="paso-titulo" id="titulo-codigo" data-od-id="titulo-codigo-global">Tu código de escuela</h1>
+      <p class="paso-sub">Con esto cualquier persona puede entrar a mirar sin tener cuenta.</p>
+
+      <div class="codigo-hero">
+        <span class="codigo-global" id="codigo-global" data-od-id="chip-codigo-global">ESCUELA-2026-XK42</span>
+        <p class="codigo-hint" data-od-id="hint-codigo-global">Pegalo en el cartel del aula de informática.</p>
+      </div>
+
+      <div class="explicacion-codigo" data-od-id="explicacion-codigo-global">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17h.01"/>
+        </svg>
+        <div>
+          <p><b>Qué permite este código:</b> quien lo ingresa entra como visitante y puede
+             <b>ver proyectos y documentos públicos de toda la escuela</b>.</p>
+          <ul>
+            <li>Nunca da acceso a consignas ni entregas: eso queda dentro de cada sala.</li>
+            <li>No permite publicar ni subir nada: es solo lectura.</li>
+            <li>Si se filtra, lo regenerás desde el panel y el viejo deja de funcionar.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="acciones-paso" data-od-id="acciones-paso-final">
+        <button class="btn btn-ghost" type="button" id="btn-regenerar-setup" data-od-id="btn-regenerar-codigo-setup">Regenerar</button>
+        <a class="btn btn-primary" href="admin.html" data-od-id="btn-ir-panel-director">Ir al panel del director</a>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Stepper ---------- */
+  var pasos = document.querySelectorAll('.paso');
+  var pasosNav = document.querySelectorAll('#stepper .step');
+
+  function irAPaso(n) {
+    pasos.forEach(function (p, i) { p.hidden = i !== n - 1; });
+    pasosNav.forEach(function (s, i) {
+      s.classList.toggle('done', i < n - 1);
+      s.classList.toggle('current', i === n - 1);
+      if (i === n - 1) { s.setAttribute('aria-current', 'step'); }
+      else { s.removeAttribute('aria-current'); }
+      // El punto muestra número o tilde según esté hecho
+      var dot = s.querySelector('.step-dot');
+      if (i < n - 1 && !dot.querySelector('svg')) {
+        dot.textContent = '';
+        dot.innerHTML = '<svg viewBox="0 0 14 14"><path d="M2.5 7.5 5.5 10.5 11.5 3.5"/></svg>';
+      } else if (i >= n - 1 && dot.querySelector('svg')) {
+        dot.innerHTML = '';
+        dot.textContent = String(i + 1);
+      }
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function marcarHecho(n) {
+    // deja hecho el paso n al avanzar (para volver atrás y verlo con tilde)
+    var s = pasosNav[n - 1];
+    s.classList.add('done');
+    var dot = s.querySelector('.step-dot');
+    dot.innerHTML = '<svg viewBox="0 0 14 14"><path d="M2.5 7.5 5.5 10.5 11.5 3.5"/></svg>';
+  }
+
+  /* ---------- Código global ---------- */
+  function genCodigoEscuela() {
+    var letras = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    var sufijo = '';
+    for (var i = 0; i < 4; i++) {
+      sufijo += letras[Math.floor(Math.random() * letras.length)];
+    }
+    return 'ESCUELA-' + new Date().getFullYear() + '-' + sufijo;
+  }
+
+  $('#btn-regenerar-setup').addEventListener('click', function () {
+    $('#codigo-global').textContent = genCodigoEscuela();
+    aviso('Código regenerado. Si ya estaba pegado en algún cartel, actualizalo.');
+  });
+
+  /* ---------- Navegación del wizard ---------- */
+  $('#btn-comenzar').addEventListener('click', function () {
+    marcarHecho(1);
+    irAPaso(2);
+    $('#f-escuela').focus();
+  });
+
+  $('#btn-continuar-escuela').addEventListener('click', function () {
+    var nombre = $('#f-escuela').value.trim();
+    if (!nombre) { $('#f-escuela').focus(); aviso('Escribí el nombre de la escuela.'); return; }
+    marcarHecho(2);
+    irAPaso(3);
+    $('#f-nombre-dir').focus();
+  });
+
+  $('#btn-crear-director').addEventListener('click', function () {
+    var nombre = $('#f-nombre-dir').value.trim();
+    var email = $('#f-email-dir').value.trim();
+    var pass = $('#f-pass-dir').value;
+    if (!nombre) { $('#f-nombre-dir').focus(); aviso('Decinos cómo te llamás.'); return; }
+    if (!email || email.indexOf('@') === -1) { $('#f-email-dir').focus(); aviso('Necesitamos un email válido para la cuenta del director.'); return; }
+    if (pass.length < 8) { $('#f-pass-dir').focus(); aviso('La contraseña necesita al menos 8 caracteres.'); return; }
+    marcarHecho(3);
+    irAPaso(4);
+    aviso('Cuenta del director creada. ¡Último paso!');
+  });
+
+  document.querySelectorAll('[data-volver]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      irAPaso(parseInt(b.dataset.volver, 10));
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

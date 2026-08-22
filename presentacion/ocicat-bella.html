@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ocicat Bella — Propuesta de Arquitectura y Proyecto</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1d212b; --ink:#e8ebf0; --muted:#9aa3b2;
+    --accent:#ff8a3d; --accent2:#5ec8f2; --ok:#5ad19a; --warn:#f2c45e; --line:#2a2f3a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;line-height:1.5}
+  .deck{width:100%}
+  .slide{
+    width:100%;min-height:100vh;padding:64px 72px;display:flex;flex-direction:column;justify-content:center;
+    border-bottom:1px solid var(--line);page-break-after:always;
+  }
+  .slide.cover{background:radial-gradient(1200px 600px at 70% -10%,#2a1c12 0%,var(--bg) 55%);justify-content:center}
+  h1{font-size:46px;margin:0 0 8px;letter-spacing:-.5px}
+  h2{font-size:30px;margin:0 0 20px;color:var(--accent)}
+  h3{font-size:19px;margin:18px 0 8px;color:var(--accent2)}
+  p,li{font-size:17px;color:var(--ink)}
+  .muted{color:var(--muted)}
+  .tag{display:inline-block;background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+       padding:4px 12px;border-radius:999px;font-size:13px;margin-right:8px}
+  .kicker{text-transform:uppercase;letter-spacing:2px;font-size:13px;color:var(--accent);margin-bottom:10px}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .card h3{margin-top:0}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:6px}
+  th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent2)}
+  td.ok{color:var(--ok)} td.warn{color:var(--warn)} td.bad{color:#ff7b7b}
+  .arch{display:flex;flex-wrap:wrap;gap:14px;align-items:stretch;justify-content:center;margin:10px 0}
+  .node{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;min-width:160px;text-align:center}
+  .node small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+  .arrow{color:var(--accent);font-size:26px;align-self:center}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .pill{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;flex:1;min-width:200px}
+  .pill b{color:var(--accent2)}
+  ul{margin:8px 0 8px 0;padding-left:20px}
+  .foot{margin-top:auto;color:var(--muted);font-size:13px;padding-top:18px;border-top:1px solid var(--line)}
+  .reco{background:linear-gradient(180deg,#1b2330,#141821);border:1px solid var(--accent);border-radius:14px;padding:20px 24px}
+  .reco h2{color:var(--accent)}
+  code{background:var(--panel2);padding:2px 6px;border-radius:6px;font-size:14px;color:var(--accent2)}
+  @media print{
+    .slide{min-height:100vh;page-break-after:always;border:none}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- 1. PORTADA -->
+  <section class="slide cover">
+    <div class="kicker">Plataforma FOSS para educación</div>
+    <h1>Ocicat Bella</h1>
+    <p style="font-size:22px;max-width:760px;color:var(--ink)">
+      Centralizá materiales educativos y ejecutá proyectos de alumnos en contenedores
+      aislados. Para escuelas y universidades públicas, sin licencias, auditables.
+    </p>
+    <div style="margin-top:26px">
+      <span class="tag">FOSS</span><span class="tag">Docker aislado</span>
+      <span class="tag">Federación entre instituciones</span><span class="tag">Auto-host</span>
+    </div>
+    <div class="foot">Propuesta de arquitectura y proyecto · Kateto · 2026</div>
+  </section>
+
+  <!-- 2. EL PROBLEMA -->
+  <section class="slide">
+    <div class="kicker">Por qué existe</div>
+    <h2>El problema que resolvemos</h2>
+    <div class="grid g2">
+      <div class="card">
+        <h3>“En mi máquina funciona”</h3>
+        <p>El alumno sube su proyecto y en la de otro no corre: diferencias de dependencias,
+        versiones de runtime, SO. La demo muere en el aula.</p>
+      </div>
+      <div class="card">
+        <h3>Sin presupuesto, sin licencias</h3>
+        <p>Escuelas públicas no pagan SaaS. Necesitan software que corra en su propia
+        infra, auditable y modificable por cualquiera.</p>
+      </div>
+      <div class="card">
+        <h3>Materiales esparcidos</h3>
+        <p>Libros, docs y videos viven en drives personales, drives caídos, links rotos.
+        Nada centralizado ni institucional.</p>
+      </div>
+      <div class="card">
+        <h3>Instituciones aisladas</h3>
+        <p>La UTN Córdoba no comparte con la Técnica de Buenos Aires. Cada curso reinventa
+        la rueda en su rincón.</p>
+      </div>
+    </div>
+    <div class="foot">Ocicat Bella cierra el círculo: contenedor aislado + federación + FOSS.</div>
+  </section>
+
+  <!-- 3. ALCANCE -->
+  <section class="slide">
+    <div class="kicker">Qué entrega</div>
+    <h2>Alcance del MVP</h2>
+    <div class="row">
+      <div class="pill"><b>Materiales</b><br>Subir y listar libros, documentos y videos desde la web.</div>
+      <div class="pill"><b>Proyectos</b><br>Registrar el proyecto del alumno y su lenguaje (py/node/go).</div>
+      <div class="pill"><b>Ejecución aislada</b><br>Lanzar el proyecto en un contenedor con límites y sin red.</div>
+      <div class="pill"><b>Federación</b><b> (post-MVP)</b><br>Compartir metadatos de proyectos entre servidores.</div>
+    </div>
+    <h3>Fuentera del valor</h3>
+    <p>El contenedor aislado mata el “en mi máquina funciona”: el alumno sube y corre en
+    cualquier lado. La federación convierte una clase en una comunidad entre instituciones.</p>
+    <div class="foot">Requisito duro: FOSS y auditable. Nada de código cerrado ni telemetría.</div>
+  </section>
+
+  <!-- 4. ARQUITECTURA -->
+  <section class="slide">
+    <div class="kicker">Cómo se compone</div>
+    <h2>Arquitectura propuesta</h2>
+    <div class="arch">
+      <div class="node">Navegador<small>Alumno / Docente</small></div>
+      <div class="arrow">→</div>
+      <div class="node">Backend API<small>HTTP + auth básica</small></div>
+      <div class="arrow">→</div>
+      <div class="node">Runner<small>Orquesta contenedores</small></div>
+    </div>
+    <div class="arch" style="margin-top:-4px">
+      <div class="node">Storage<small>SQLite / FS local</small></div>
+      <div class="arrow">↔</div>
+      <div class="node">Backend API</div>
+      <div class="arrow">↔</div>
+      <div class="node">Federation Peers<small>Otros servidores Ocicat</small></div>
+    </div>
+    <div class="grid g3" style="margin-top:18px">
+      <div class="card"><h3>Backend</h3><p>API que registra materiales y proyectos, y expone el estado de ejecuciones.</p></div>
+      <div class="card"><h3>Runner</h3><p>Lanza contenedores efímeros con <code>mem_limit</code>, <code>network_mode=none</code>, sin privilegios.</p></div>
+      <div class="card"><h3>Federación</h3><p>Intercambio JSON de metadatos vía <code>/federation/announce</code> y <code>/sync</code>.</p></div>
+    </div>
+    <div class="foot">El aislamiento es responsabilidad del Runner: sin red saliente, RAM/CPU limitadas, FS efímero.</div>
+  </section>
+
+  <!-- 5. STACK -->
+  <section class="slide">
+    <div class="kicker">Revisión de stack</div>
+    <h2>Python → ¿Rust, TS, Go o Zig?</h2>
+    <table>
+      <tr><th>Lenguaje</th><th>Deploy en escuela</th><th>Mantenimiento</th><th>Runner/Docker</th><th>Veredicto</th></tr>
+      <tr><td>Python</td><td class="warn">Runtime (venv)</td><td class="ok">Muy alta</td><td class="warn">Medio</td><td class="muted">Actual, pero depende de runtime</td></tr>
+      <tr><td>Rust</td><td class="ok">Binario único</td><td class="bad">Baja (borrow chk)</td><td class="ok">Alta</td><td class="muted">Máxima seguridad, costo alto</td></tr>
+      <tr><td>TypeScript</td><td class="warn">Runtime (Node)</td><td class="warn">Media</td><td class="warn">Medio</td><td class="muted">Familiar, pero pesado en memoria</td></tr>
+      <tr><td><b>Go</b></td><td class="ok">Binario único</td><td class="ok">Alta</td><td class="ok">Excelente</td><td class="ok"><b>Recomendado</b></td></tr>
+      <tr><td>Zig</td><td class="ok">Binario único</td><td class="bad">Muy baja</td><td class="ok">Alta</td><td class="bad">Ecosistema inmaduro</td></tr>
+    </table>
+    <div class="reco" style="margin-top:18px">
+      <h2>Recomendación: Go (backend + runner) + Go Templates (UI)</h2>
+      <ul>
+        <li><b>Binario único</b> → se copia y corre, sin versiones de runtime. Ideal para personal no experto.</li>
+        <li><b>Docker SDK de Go</b> es robusto y estable; el runner queda nativo.</li>
+        <li><b>Tipado estático</b> sin la complejidad del borrow checker de Rust.</li>
+        <li><b>UI con Go Templates</b> se sirve desde el mismo binario: sin SPA pesado que mantener.</li>
+      </ul>
+    </div>
+    <div class="foot">La decisión final es tuya — ver “Decisiones abiertas”.</div>
+  </section>
+
+  <!-- 6. ROADMAP -->
+  <section class="slide">
+    <div class="kicker">Cómo avanza</div>
+    <h2>Roadmap por fases</h2>
+    <div class="grid g3">
+      <div class="card"><h3>Fase 1 · MVP</h3>
+        <ul><li>Materiales (subir/listar)</li><li>Registro de proyectos</li><li>Ejecución aislada básica</li><li>SQLite + Docker</li></ul></div>
+      <div class="card"><h3>Fase 2 · Federación</h3>
+        <ul><li>Protocolo announce/sync</li><li>Catálogo entre peers</li><li>Conflictos de metadatos</li></ul></div>
+      <div class="card"><h3>Fase 3 · Robustez</h3>
+        <ul><li>UI completa</li><li>Aislamiento fuerte (gVisor/Firecracker)</li><li>Auth y roles</li><li>Métricas</li></ul></div>
+    </div>
+    <div class="foot">Cada fase entrega algo usable. No se construye todo para recién mostrar.</div>
+  </section>
+
+  <!-- 7. SEGURIDAD -->
+  <section class="slide">
+    <div class="kicker">Riesgo principal</div>
+    <h2>Aislamiento de contenedores</h2>
+    <div class="grid g2">
+      <div class="card"><h3>Contenedor = superficie de ataque</h3>
+        <p>El proyecto del alumno corre código ajeno. Si escapa, compromete el host de la escuela.</p></div>
+      <div class="card"><h3>Mitigaciones (MVP)</h3>
+        <ul><li>Sin privilegios (<code>--user</code>)</li><li><code>network_mode=none</code> por defecto</li><li>RAM/CPU fijas (<code>mem_limit</code>)</li><li>Filesystem efímero</li></ul></div>
+      <div class="card"><h3>Mitigaciones (Fase 3)</h3>
+        <ul><li><b>gVisor</b> o <b>Firecracker</b> para micro-VM</li><li>seccomp / AppArmor</li><li>Cuotas de disco por proyecto</li></ul></div>
+      <div class="card"><h3>DoS</h3>
+        <p>Limitar cantidad de contenedores concurrentes y recursos totales por institución.</p></div>
+    </div>
+    <div class="foot">El aislamiento es el ítem no negociable. Un escape rompe la confianza en la plataforma.</div>
+  </section>
+
+  <!-- 8. FEDERACION -->
+  <section class="slide">
+    <div class="kicker">Comunidad, no solo clase</div>
+    <h2>Capa de federación</h2>
+    <div class="row">
+      <div class="pill"><b>Formato</b><br>JSON con <code>project_id</code>, <code>name</code>, <code>language</code>, <code>author</code>.</div>
+      <div class="pill"><b>Endpoints</b><br><code>POST /federation/announce</code> y <code>GET /federation/sync</code>.</div>
+      <div class="pill"><b>Modelo</b><br>Relay centralizado simple vs P2P (decisión abierta).</div>
+    </div>
+    <h3>Por qué importa</h3>
+    <p>Un servidor en la UTN Córdoba puede anunciar un proyecto y que la Técnica de Buenos Aires
+    lo vea en su catálogo. Los alumnos aprenden de pares de otras instituciones, no solo de su aula.</p>
+    <div class="foot">En MVP: metadatos solos. El código/binario queda en el servidor de origen.</div>
+  </section>
+
+  <!-- 9. DECISIONES -->
+  <section class="slide">
+    <div class="kicker">Faltas vos</div>
+    <h2>Decisiones abiertas</h2>
+    <div class="grid g2">
+      <div class="card"><h3>1 · Lenguaje</h3>
+        <p>¿Aceptás <b>Go</b> (recomendado) o querés Rust/TS/Zig? Define todo el desarrollo.</p></div>
+      <div class="card"><h3>2 · UI</h3>
+        <p>¿Go Templates (simple, un binario) o un SPA (React/Vue, más mantenimiento)?</p></div>
+      <div class="card"><h3>3 · Aislamiento</h3>
+        <p>¿Docker standard (MVP) o gVisor/Firecracker (Fase 3)? ¿Qué exige tu contexto?</p></div>
+      <div class="card"><h3>4 · Federación</h3>
+        <p>¿Relay centralizado (simple) o P2P (resiliente pero complejo)?</p></div>
+    </div>
+    <div class="reco" style="margin-top:18px">
+      <h2>Próximo paso</h2>
+      <p>Definir lenguaje → armar scaffold en Go → Fase 1 (materiales + ejecución aislada).
+      El muse-spark-1.2-contributor de OpenCode Go queda pendiente hasta habilitar el workspace.</p>
+    </div>
+    <div class="foot">Ocicat Bella — propuesta v0.1 · generada por Kateto</div>
+  </section>
+
+</div>
+</body>
+</html>

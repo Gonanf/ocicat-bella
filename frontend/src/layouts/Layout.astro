@@ -1,0 +1,152 @@
+---
+import '../styles/global.css';
+import { salas } from '../data/mock';
+
+interface Props {
+  titulo: string;
+  active?: 'inicio' | 'materiales' | 'sandboxes' | 'mis-salas' | 'perfil' | 'consignas' | 'login' | 'entregas' | string;
+  navRole?: 'public' | 'alumno';
+  hideNav?: boolean;
+}
+
+const { titulo, active = '', navRole = 'public', hideNav = false } = Astro.props;
+
+const publicLinks = [
+  { href: '/', label: 'Inicio', key: 'inicio' },
+  { href: '/materiales/', label: 'Materiales', key: 'materiales' },
+  { href: '/sandboxes/', label: 'Sandboxes', key: 'sandboxes' },
+  { href: '/mis-salas/', label: 'Mis salas', key: 'mis-salas' },
+];
+
+const alumnoLinks = [
+  { href: '/mis-salas/', label: 'Mis salas', key: 'mis-salas' },
+  { href: '/consignas/', label: 'Consignas', key: 'consignas' },
+  { href: '/materiales/', label: 'Materiales', key: 'materiales' },
+  { href: '/sandboxes/', label: 'Sandboxes', key: 'sandboxes' },
+  { href: '/perfil/', label: 'Perfil', key: 'perfil' },
+];
+
+const links = navRole === 'alumno' ? alumnoLinks : publicLinks;
+---
+
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Materiales y sandboxes para escuelas. FOSS, auto-hospedado, ligero." />
+    <title>{titulo} — Ocicat Bella</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-dvh flex flex-col font-sans text-base-content antialiased bg-base-200">
+    <header class="sticky top-0 z-50 bg-base-100/90 backdrop-blur-md border-b border-base-300">
+      <div class="navbar h-16 max-w-[1180px] mx-auto px-4 sm:px-7">
+        <div class="navbar-start gap-2">
+          {!hideNav && (
+            <div class="dropdown md:hidden">
+              <div tabindex="0" role="button" class="btn btn-ghost btn-square btn-sm" aria-label="Abrir menú">☰</div>
+              <ul tabindex="0" class="dropdown-content menu z-50 mt-2 w-52 rounded-box bg-base-100 border border-base-300 shadow-lg p-2">
+                {links.map((l) => (
+                  <li><a href={l.href} class={active === l.key ? 'active font-semibold' : ''} aria-current={active === l.key ? 'page' : undefined}>{l.label}</a></li>
+                ))}
+                <li><a href="/unirse/">Unirse con código</a></li>
+                <li><a href="/login/">Acceso / Login</a></li>
+              </ul>
+            </div>
+          )}
+          <a href="/" class="flex items-center gap-3 min-w-0" aria-label="Ocicat Bella — Inicio">
+            <span class="grid place-items-center size-9 rounded-[10px] bg-primary shrink-0 text-primary-content">
+              <svg width="24" height="24" viewBox="0 0 36 36" aria-hidden="true" class="fill-current">
+                <path d="M8 15 9.2 4.5 15.5 10Z" opacity=".8" />
+                <path d="M28 15 26.8 4.5 20.5 10Z" opacity=".8" />
+                <circle cx="18" cy="21" r="11.5" fill="var(--color-base-100)" />
+                <circle cx="11" cy="17.5" r="1.7" fill="var(--color-primary)" opacity=".85" />
+                <circle cx="24" cy="24" r="2" fill="var(--color-primary)" opacity=".85" />
+                <circle cx="19.5" cy="29" r="1.3" fill="var(--color-primary)" opacity=".7" />
+                <circle cx="14" cy="19.5" r="1.7" fill="var(--color-base-100)" />
+                <circle cx="22" cy="19.5" r="1.7" fill="var(--color-base-100)" />
+                <path d="M16.7 23.6h2.6L18 25.6Z" fill="var(--color-primary)" />
+              </svg>
+            </span>
+            <span class="font-display text-lg leading-tight tracking-tight whitespace-nowrap">
+              Ocicat <em class="italic text-primary">Bella</em>
+            </span>
+          </a>
+        </div>
+
+        {!hideNav && (
+          <div class="navbar-center hidden md:flex">
+            <ul class="menu menu-horizontal gap-1 px-1">
+              {links.map((l) => (
+                <li>
+                  <a
+                    href={l.href}
+                    aria-current={active === l.key ? 'page' : undefined}
+                    class:list={[
+                      'rounded-full text-sm font-medium transition-colors',
+                      active === l.key
+                        ? 'bg-neutral text-neutral-content'
+                        : 'text-base-content/70 hover:bg-base-300 hover:text-base-content',
+                    ]}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div class="navbar-end gap-2">
+          <label class="swap swap-rotate btn btn-ghost btn-sm md:btn-md btn-circle" aria-label="Cambiar tema">
+            <input type="checkbox" class="theme-controller" value="ocicat-dark" />
+            <svg class="swap-off size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-14a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1Zm8-8a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1ZM7 12a1 1 0 0 1-1 1H4a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1Zm10.657-5.657a1 1 0 0 1 0 1.414l-1.414 1.415a1 1 0 1 1-1.415-1.415l1.415-1.414a1 1 0 0 1 1.414 0ZM9.172 14.828a1 1 0 0 1 0 1.415L7.757 17.66a1 1 0 0 1-1.414-1.415l1.414-1.414a1 1 0 0 1 1.415 0Z"/></svg>
+            <svg class="swap-on size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+          </label>
+          <a href="/unirse/" class="btn btn-outline btn-primary btn-sm md:btn-md rounded-full">
+            <span class="md:hidden">Unirse</span>
+            <span class="hidden md:inline">Unirse con código</span>
+          </a>
+          <a href="/login/" class="btn btn-primary btn-sm md:btn-md rounded-full">
+            Entrar
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-[1180px] mx-auto px-4 sm:px-7">
+      <slot />
+    </main>
+
+    <footer class="mt-16 border-t border-base-300 bg-base-300">
+      <div class="max-w-[1180px] mx-auto px-4 sm:px-7 py-8 flex flex-wrap justify-between gap-4 text-sm text-base-content/60">
+        <span>Ocicat Bella es software libre (FOSS), hecho para escuelas.</span>
+        <span>v0.1 · prototipo</span>
+      </div>
+    </footer>
+  </body>
+  <script is:inline>
+    // Persistencia de tema — corre antes del paint para evitar flash
+    (() => {
+      const saved = localStorage.getItem('ocicat-theme');
+      if (saved) document.documentElement.dataset.theme = saved;
+      const isDark = () => (document.documentElement.dataset.theme || '') === 'ocicat-dark'
+        || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+      // sincronizar todos los toggles con el tema EFECTIVO (guardado o del SO)
+      const sync = () => document.querySelectorAll('.theme-controller').forEach((el) => { el.checked = isDark(); });
+      sync();
+      document.querySelectorAll('.theme-controller').forEach((el) => {
+        el.addEventListener('change', () => {
+          const t = el.checked ? 'ocicat-dark' : 'ocicat';
+          document.documentElement.dataset.theme = t;
+          localStorage.setItem('ocicat-theme', t);
+        });
+      });
+    })();
+  </script>
+</html>

@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía N.º 3: listas y bucles · Ocicat Bella</title>
+<meta name="description" content="Guía de Programación 5.º A: listas y bucles en Python, con ejemplos y ejercicios. Leela acá mismo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --chip-fg: #1B4332;
+    --term-bg: #101216;
+    --term-fg: #D7DEE8;
+    --term-dim: #7B8594;
+    --term-ok: #7BC79A;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --chip-fg: #7BC79A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 900px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; align-items: center; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Encabezado del documento ---------- */
+  .doc-head { padding: clamp(26px, 5vw, 42px) 0 22px; }
+  .volver {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin: 0 0 14px -10px; padding: 6px 10px; border-radius: 8px;
+    color: var(--muted); text-decoration: none;
+    font-size: .92rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .volver:hover { color: var(--fg); background: var(--accent-soft); }
+  .eyebrow {
+    margin: 0 0 12px;
+    font-size: .76rem; font-weight: 600; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  h1.doc-title {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2rem, 4.6vw, 2.8rem); line-height: 1.08;
+    letter-spacing: -.01em;
+  }
+  .doc-meta { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 14px; }
+  .meta-chip {
+    font-family: "JetBrains Mono", monospace; font-size: .76rem; font-weight: 600;
+    color: var(--chip-fg); background: var(--accent-soft);
+    border: 1px solid var(--border-strong);
+    padding: 3px 11px; border-radius: 999px;
+  }
+
+  /* ---------- Acciones ---------- */
+  .doc-actions {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 46px; padding: 10px 22px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .95rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-text {
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-size: .88rem; font-weight: 500; color: var(--muted);
+    padding: 6px 10px; border-radius: 8px;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .btn-text:hover { color: var(--accent); }
+  .nota-visitante { margin: 0; font-size: .86rem; color: var(--muted); }
+
+  /* ---------- Vista previa del documento ---------- */
+  .visor-section { padding-bottom: 40px; }
+  .visor {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: clamp(18px, 3vw, 30px);
+  }
+  .paginas {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(16px, 3vw, 28px);
+    justify-items: center;
+  }
+  .hoja {
+    width: min(360px, 100%);
+    aspect-ratio: 210 / 297;
+    background: #FFFEFC;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 14px 34px -22px rgba(15, 17, 21, .45);
+    border-radius: 4px 12px 12px 4px;
+    padding: clamp(20px, 4vw, 32px);
+    color: #23262C;
+    overflow: hidden;
+  }
+  [data-theme="dark"] .hoja { color: #23262C; }
+  .hoja h2 {
+    margin: 0 0 4px;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(1.25rem, 2.6vw, 1.55rem); line-height: 1.15;
+    color: var(--accent);
+  }
+  .hoja .folio {
+    margin: 0 0 14px;
+    font-family: "JetBrains Mono", monospace; font-size: .62rem;
+    letter-spacing: .14em; text-transform: uppercase; color: #9AA0AA;
+  }
+  .hoja p { margin: 0 0 10px; font-size: .84rem; line-height: 1.55; }
+  .hoja h3 { margin: 12px 0 5px; font-size: .92rem; font-weight: 700; color: #23262C; }
+  .hoja pre {
+    margin: 0 0 10px;
+    background: #101216; color: #D7DEE8;
+    font-family: "JetBrains Mono", monospace; font-size: .68rem; line-height: 1.65;
+    padding: 10px 12px; border-radius: 8px;
+    white-space: pre; overflow-x: auto;
+  }
+  .hoja .kw { color: #7BC79A; font-weight: 600; }
+  .hoja .cm { color: #7B8594; }
+  .hoja ul { margin: 0 0 10px; padding-left: 18px; font-size: .84rem; }
+  .hoja li { margin-bottom: 4px; }
+
+  .visor-nota { margin: 16px 0 0; text-align: center; font-size: .82rem; color: var(--muted); }
+
+  /* ---------- Relacionados ---------- */
+  .relacionados { padding-bottom: 90px; }
+  .rel-title {
+    margin: 34px 0 14px;
+    font-size: .74rem; font-weight: 600; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .rel-lista { display: flex; flex-direction: column; gap: 8px; max-width: 520px; }
+  .rel-item {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-decoration: none; color: inherit;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .rel-item:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .rel-item b { font-weight: 600; font-size: .93rem; }
+  .rel-item span { font-family: "JetBrains Mono", monospace; font-size: .74rem; color: var(--muted); flex-shrink: 0; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="index.html" data-od-id="nav-inicio">Inicio</a>
+      <a class="nav-link" href="materiales.html" aria-current="page" data-od-id="nav-materiales">Materiales</a>
+      <a class="nav-link" href="sandboxes.html" data-od-id="nav-sandboxes">Sandboxes</a>
+      <a class="nav-link" href="login.html" data-od-id="nav-entrar">Entrar</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="container">
+
+    <section class="doc-head" data-od-id="encabezado-documento">
+      <a class="volver" href="materiales.html" data-od-id="volver-materiales">← Materiales</a>
+      <p class="eyebrow">Programación · 5.º A · Biblioteca</p>
+      <h1 class="doc-title" id="titulo-doc" data-od-id="titulo-documento">Guía N.º 3: listas y bucles</h1>
+      <div class="doc-meta" data-od-id="meta-documento">
+        <span class="meta-chip">PDF</span>
+        <span class="meta-chip">1,2 MB</span>
+        <span class="meta-chip">12/08</span>
+        <span class="meta-chip">subió Carina M.</span>
+      </div>
+      <div class="doc-actions" data-od-id="acciones-documento">
+        <button class="btn btn-primary" type="button" id="btn-descargar" data-od-id="btn-descargar-doc">Descargar guía</button>
+        <p class="nota-visitante">Para descargar necesitás tu cuenta.
+          <button class="btn-text" type="button" onclick="window.location.href='login.html'" data-od-id="link-entrar-login">Entrar</button></p>
+      </div>
+    </section>
+
+    <section class="visor-section" aria-label="Vista previa del documento" data-od-id="visor-documento">
+      <div class="visor">
+        <div class="paginas">
+
+          <article class="hoja" data-od-id="pagina-1">
+            <h2>Listas y bucles</h2>
+            <p class="folio">Guía N.º 3 · Programación · 5.º A</p>
+            <p>Una lista guarda varios valores en orden. En Python se escribe con
+               corchetes y los elementos separados por comas:</p>
+            <pre><span class="kw">frutas</span> = [<span class="cm">"manzana"</span>, <span class="cm">"banana"</span>, <span class="cm">"naranja"</span>]</pre>
+            <p>Para recorrer una lista usamos el bucle <b>for</b>: en cada vuelta,
+               la variable toma el valor del siguiente elemento.</p>
+            <pre><span class="kw">for</span> fruta <span class="kw">in</span> frutas:
+    print(<span class="cm">"Me gusta la"</span>, fruta)</pre>
+            <p>Ese programa imprime una línea por cada fruta de la lista,
+               sin repetir código a mano.</p>
+          </article>
+
+          <article class="hoja" data-od-id="pagina-2">
+            <h2>Bucles while</h2>
+            <p class="folio">Guía N.º 3 · página 2</p>
+            <p>El bucle <b>while</b> repite mientras una condición sea verdadera.
+               Sirve cuando no sabés de antemano cuántas vueltas necesitás.</p>
+            <pre>vidas = <span class="kw">3</span>
+<span class="kw">while</span> vidas &gt; <span class="kw">0</span>:
+    print(<span class="cm">"Te quedan"</span>, vidas)
+    vidas = vidas - <span class="kw">1</span></pre>
+            <h3>Ojo con esto</h3>
+            <ul>
+              <li>Si la condición nunca cambia, el bucle no termina nunca.</li>
+              <li>Dentro del while algo tiene que actualizar la variable.</li>
+            </ul>
+            <h3>Ejercicio 1</h3>
+            <p>Escribí un programa que pida números hasta que el usuario escriba 0
+               y al final muestre la suma de todos.</p>
+          </article>
+
+        </div>
+        <p class="visor-nota">Vista previa del documento — leelo completo acá o descargalo para imprimir.</p>
+      </div>
+    </section>
+
+    <section class="relacionados" aria-labelledby="titulo-rel" data-od-id="relacionados">
+      <h2 class="rel-title" id="titulo-rel">Seguir mirando</h2>
+      <nav class="rel-lista" aria-label="Materiales relacionados">
+        <a class="rel-item" href="materiales.html" data-od-id="rel-condicionales">
+          <b>Guía N.º 2: condicionales</b><span>PDF · 1,0 MB</span>
+        </a>
+        <a class="rel-item" href="materiales.html" data-od-id="rel-diccionarios">
+          <b>Apuntes: diccionarios en Python</b><span>DOC · 240 kB</span>
+        </a>
+        <a class="rel-item" href="consignas.html" data-od-id="rel-consignas">
+          <b>Consignas de la sala</b><span>TP2 vence viernes</span>
+        </a>
+      </nav>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  document.getElementById('btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = document.getElementById('toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  document.getElementById('btn-descargar').addEventListener('click', function () {
+    aviso('Para descargar necesitás tu cuenta: tocá «Entrar» arriba.');
+  });
+})();
+</script>
+
+</body>
+</html>

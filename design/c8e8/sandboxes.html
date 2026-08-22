@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sandboxes — Ocicat Bella</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topnav" data-od-id="topnav">
+  <div class="container topnav-inner">
+    <a class="brand" href="index.html" data-od-id="brand-home">
+      <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M8 15 9.2 4.5 15.5 10Z" fill="var(--accent)"/>
+        <path d="M28 15 26.8 4.5 20.5 10Z" fill="var(--accent)"/>
+        <circle cx="18" cy="21" r="11.5" fill="var(--fg)"/>
+        <circle cx="11" cy="17.5" r="1.7" fill="var(--accent)" opacity=".85"/>
+        <circle cx="24" cy="24" r="2" fill="var(--accent)" opacity=".85"/>
+        <circle cx="19.5" cy="29" r="1.3" fill="var(--accent)" opacity=".7"/>
+        <circle cx="14" cy="19.5" r="1.7" fill="var(--surface)"/>
+        <circle cx="22" cy="19.5" r="1.7" fill="var(--surface)"/>
+        <path d="M16.7 23.6h2.6L18 25.6Z" fill="var(--accent)"/>
+      </svg>
+      <span class="brand-name">Ocicat <em>Bella</em></span>
+    </a>
+    <nav aria-label="Principal">
+      <ul class="nav-links">
+        <li><a class="nav-link" href="index.html">Inicio</a></li>
+        <li><a class="nav-link" href="materiales.html">Materiales</a></li>
+        <li><a class="nav-link" href="sandboxes.html" aria-current="page">Sandboxes</a></li>
+      </ul>
+    </nav>
+    <span class="room-chip" data-od-id="room-chip">Sala: Programación 5°A · <span class="code">OCI-7F3K</span></span>
+    <a class="btn btn-primary nav-cta" href="unirse.html">Unirse con código</a>
+  </div>
+</header>
+
+<main class="container" data-od-id="sandboxes-main">
+
+  <div class="page-head">
+    <div>
+      <h1 class="page-title" data-od-id="sandboxes-title">Sandboxes</h1>
+      <p class="page-sub">Los proyectos del curso, corriendo en el server de la escuela.</p>
+    </div>
+  </div>
+
+  <div class="rooms-bar">
+    <span class="rooms-label">Sala:</span>
+    <div class="segmented" role="group" aria-label="Cambiar de sala" data-od-id="room-switcher">
+      <button class="seg-btn active" type="button" data-room="progra" aria-pressed="true">Programación 5°A</button>
+      <button class="seg-btn" type="button" data-room="robotica" aria-pressed="false">Robótica 6°B</button>
+    </div>
+  </div>
+
+  <section class="card budget-card" aria-label="Presupuesto de sandboxes" data-od-id="budget-card">
+    <div class="budget-top">
+      <span class="budget-num"><strong>2</strong> de <strong>4</strong> sandboxes prendidos</span>
+      <span class="budget-tag">server de la escuela</span>
+    </div>
+    <div class="budget-track" role="img" aria-label="2 de 4 sandboxes en uso">
+      <div class="budget-fill"></div>
+    </div>
+    <p class="budget-note">La máquina de la escuela corre hasta 4 sandboxes a la vez. Si está lleno, esperá tu turno: se libera rápido.</p>
+  </section>
+
+  <section class="sb-grid" id="sb-grid" data-od-id="sb-grid">
+
+    <article class="card sb-card" data-sala="progra" data-od-id="sandbox-adivinanza">
+      <div class="sb-head">
+        <h2 class="sb-name">Adivinanza numérica</h2>
+        <span class="pill pill-ok"><span class="dot dot-live"></span>corriendo</span>
+      </div>
+      <div class="sb-tags">
+        <span class="chip-mono">Python</span>
+        <span class="chip-mono">job</span>
+      </div>
+      <p class="sb-author">por <span class="alias">Alumno-7F3K-12</span></p>
+      <div class="sb-actions">
+        <button class="btn btn-primary btn-sm" type="button" disabled title="Ya está corriendo">▶ Correr</button>
+        <a class="btn btn-secondary btn-sm" href="sandbox-detalle.html">Ver detalle</a>
+      </div>
+    </article>
+
+    <article class="card sb-card" data-sala="progra" data-od-id="sandbox-primer-html">
+      <div class="sb-head">
+        <h2 class="sb-name">Mi primer HTML</h2>
+        <span class="pill pill-mute"><span class="dot"></span>detenido</span>
+      </div>
+      <div class="sb-tags">
+        <span class="chip-mono">Web</span>
+        <span class="chip-mono">job</span>
+      </div>
+      <p class="sb-author">por <span class="alias">Valen</span> (Alumno-7F3K-07)</p>
+      <div class="sb-actions">
+        <button class="btn btn-primary btn-sm" type="button">▶ Correr</button>
+        <a class="btn btn-secondary btn-sm" href="sandbox-detalle.html">Ver detalle</a>
+      </div>
+    </article>
+
+    <article class="card sb-card" data-sala="robotica" data-od-id="sandbox-semaforo">
+      <div class="sb-head">
+        <h2 class="sb-name">Semáforo con LEDs</h2>
+        <span class="pill pill-warn"><span class="dot"></span>histórico</span>
+      </div>
+      <div class="sb-tags">
+        <span class="chip-mono">Arduino</span>
+        <span class="chip-mono">job</span>
+        <span class="pill pill-warn" style="font-size:12px;">registro histórico</span>
+      </div>
+      <p class="sb-author">curso <span class="alias">Robótica 6°B</span></p>
+      <div class="sb-actions">
+        <button class="btn btn-primary btn-sm" type="button">▶ Correr</button>
+        <a class="btn btn-secondary btn-sm" href="sandbox-detalle.html">Ver detalle</a>
+      </div>
+    </article>
+
+    <article class="card sb-card" data-sala="progra" data-od-id="sandbox-calculadora">
+      <div class="sb-head">
+        <h2 class="sb-name">Calculadora de promedios</h2>
+        <span class="pill pill-mute"><span class="dot"></span>detenido</span>
+      </div>
+      <div class="sb-tags">
+        <span class="chip-mono">Python</span>
+        <span class="chip-mono">job</span>
+      </div>
+      <p class="sb-author">por <span class="alias">Alumno-7F3K-15</span></p>
+      <div class="sb-actions">
+        <button class="btn btn-limit btn-sm" type="button" disabled>Esperá: límite alcanzado</button>
+        <a class="btn btn-secondary btn-sm" href="sandbox-detalle.html">Ver detalle</a>
+      </div>
+    </article>
+
+    <article class="card sb-card" data-sala="progra" data-od-id="sandbox-blog-curso">
+      <div class="sb-head">
+        <h2 class="sb-name">Blog del curso</h2>
+        <span class="pill pill-ok"><span class="dot dot-live"></span>corriendo</span>
+      </div>
+      <div class="sb-tags">
+        <span class="chip-mono">Web</span>
+        <span class="chip-mono">service</span>
+      </div>
+      <a class="service-url" href="http://ocicat.local/s/44" onclick="return false;">ocicat.local/s/44</a>
+      <p class="sb-author">por <span class="alias">Alumno-7F3K-21</span></p>
+      <div class="sb-actions">
+        <button class="btn btn-primary btn-sm" type="button" disabled title="Ya está corriendo">▶ Correr</button>
+        <a class="btn btn-secondary btn-sm" href="sandbox-detalle.html">Ver detalle</a>
+      </div>
+    </article>
+
+    <div class="sb-empty" hidden data-od-id="sb-empty">Todavía no hay sandboxes en esta sala.</div>
+
+  </section>
+
+</main>
+
+<footer class="footer" data-od-id="footer">
+  <div class="container footer-inner">
+    <span>Ocicat Bella es software libre (FOSS), hecho para escuelas.</span>
+    <span>v0.1 · prototipo</span>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+</body>
+</html>

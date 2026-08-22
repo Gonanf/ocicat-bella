@@ -1,0 +1,264 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { perfilMock } from '../data/mock';
+---
+
+<Layout titulo="Perfil" active="perfil" navRole="alumno">
+  <div class="py-8 md:py-12 flex justify-center">
+    <div class="w-full max-w-2xl flex flex-col gap-6">
+
+      <!-- Hero con Avatar -->
+      <section class="flex items-center gap-5">
+        <div class="size-16 rounded-2xl bg-primary text-primary-content font-display italic text-2xl grid place-items-center shrink-0 shadow-sm" id="avatar-iniciales">
+          {perfilMock.iniciales}
+        </div>
+        <div>
+          <h1 class="font-display font-normal text-4xl md:text-5xl tracking-tight text-base-content" id="titulo-perfil">
+            Perfil
+          </h1>
+          <p class="font-mono text-xs md:text-sm text-base-content/60 mt-0.5" id="hero-email">
+            {perfilMock.email}
+          </p>
+        </div>
+      </section>
+
+      <!-- Form Card -->
+      <div class="card bg-base-100 border border-base-300 shadow-sm">
+        <form id="form-perfil" novalidate class="card-body p-6 sm:p-8 gap-6">
+
+          <!-- Sección 1: Datos personales -->
+          <div class="flex flex-col gap-4">
+            <h2 class="font-mono text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+              <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Datos personales
+            </h2>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div class="form-control flex flex-col gap-1.5">
+                <label for="f-nombre" class="text-xs font-bold uppercase tracking-wider text-base-content/70">
+                  Nombre completo
+                </label>
+                <input
+                  id="f-nombre"
+                  type="text"
+                  value={perfilMock.nombre}
+                  autocomplete="name"
+                  class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary"
+                />
+              </div>
+
+              <div class="form-control flex flex-col gap-1.5">
+                <label for="f-email" class="text-xs font-bold uppercase tracking-wider text-base-content/70">
+                  Email para Magic Link
+                </label>
+                <input
+                  id="f-email"
+                  type="email"
+                  value={perfilMock.email}
+                  autocomplete="email"
+                  class="input input-bordered w-full rounded-xl font-mono text-sm bg-base-200/60 focus:bg-base-100 focus:border-primary"
+                />
+              </div>
+            </div>
+
+            <p class="text-xs text-base-content/55">
+              El email es tu identificador único: si lo cambiás, te enviaremos un magic link de confirmación a la nueva dirección.
+            </p>
+          </div>
+
+          <div class="divider my-0 border-base-200"></div>
+
+          <!-- Sección 2: Sesiones activas -->
+          <div class="flex flex-col gap-4">
+            <h2 class="font-mono text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+              <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="5" width="18" height="12" rx="2"></rect>
+                <path d="M8 21h8M12 17v4"></path>
+              </svg>
+              Sesiones activas
+            </h2>
+
+            <div class="flex flex-col gap-2.5" id="lista-sesiones">
+              {perfilMock.sesiones.map((sesion) => (
+                <div class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-base-200/60 border border-base-300 sesion-row" data-id={sesion.id} data-nombre={sesion.navegador}>
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="size-10 rounded-xl bg-primary/10 text-primary font-mono font-bold text-xs grid place-items-center shrink-0">
+                      {sesion.osBadge}
+                    </span>
+                    <div class="min-w-0 flex flex-col">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-medium text-sm text-base-content sesion-titulo">
+                          {sesion.navegador}
+                        </span>
+                        {sesion.actual && (
+                          <span class="badge badge-xs bg-primary/15 border border-primary/20 text-primary font-semibold uppercase tracking-wider text-[9px] px-2 py-0.5">
+                            Esta sesión
+                          </span>
+                        )}
+                      </div>
+                      <span class="text-xs text-base-content/60 truncate">
+                        {sesion.ubicacion} · {sesion.actividad}
+                      </span>
+                    </div>
+                  </div>
+
+                  {!sesion.actual && (
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold rounded-lg shrink-0 btn-cerrar-sesion"
+                      aria-label={`Cerrar sesión en ${sesion.navegador}`}
+                    >
+                      Cerrar
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <p id="sesiones-vacias" hidden class="text-xs text-base-content/60 italic py-1">
+              No quedan otras sesiones abiertas.
+            </p>
+
+            <div class="pt-1">
+              <button
+                type="button"
+                id="btn-cerrar-todas"
+                class="btn btn-outline btn-error btn-sm rounded-xl font-semibold"
+              >
+                Cerrar otras sesiones
+              </button>
+            </div>
+          </div>
+
+          <div class="divider my-0 border-base-200"></div>
+
+          <!-- Acciones Guardar -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <p class="text-xs text-base-content/55 text-center sm:text-left">
+              Entrás siempre sin contraseñas mediante tu magic link.
+            </p>
+            <button
+              type="submit"
+              id="btn-guardar"
+              class="btn btn-primary rounded-xl font-semibold px-7 w-full sm:w-auto"
+            >
+              Guardar cambios
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+
+      // Toast feedback
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer = null;
+      function aviso(msg) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 2800);
+      }
+
+      const listaSesiones = $('#lista-sesiones');
+      const btnCerrarOtras = $('#btn-cerrar-todas');
+      const sesionesVacias = $('#sesiones-vacias');
+
+      function chequearVacio() {
+        const otras = listaSesiones ? listaSesiones.querySelectorAll('.btn-cerrar-sesion').length : 0;
+        if (btnCerrarOtras) btnCerrarOtras.hidden = otras === 0;
+        if (sesionesVacias) sesionesVacias.hidden = otras !== 0;
+      }
+
+      // Cerrar sesión individual
+      if (listaSesiones) {
+        listaSesiones.addEventListener('click', (e) => {
+          const btn = e.target.closest('.btn-cerrar-sesion');
+          if (!btn) return;
+          const fila = btn.closest('.sesion-row');
+          if (!fila) return;
+          const nombre = fila.dataset.nombre || 'el dispositivo';
+          fila.remove();
+          chequearVacio();
+          aviso(`Cerraste la sesión de «${nombre}».`);
+        });
+      }
+
+      // Cerrar todas las otras sesiones
+      if (btnCerrarOtras) {
+        btnCerrarOtras.addEventListener('click', () => {
+          if (listaSesiones) {
+            listaSesiones.querySelectorAll('.sesion-row').forEach((fila) => {
+              if (fila.querySelector('.btn-cerrar-sesion')) {
+                fila.remove();
+              }
+            });
+          }
+          chequearVacio();
+          aviso('Cerramos tus otras sesiones. Esta permanece activa.');
+        });
+      }
+
+      // Guardar formulario
+      const form = $('#form-perfil');
+      const inputNombre = $('#f-nombre');
+      const inputEmail = $('#f-email');
+      const heroEmail = $('#hero-email');
+      const avatarIniciales = $('#avatar-iniciales');
+
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const nombre = inputNombre.value.trim();
+          const email = inputEmail.value.trim();
+
+          if (!nombre) {
+            inputNombre.focus();
+            aviso('Completá tu nombre antes de guardar.');
+            return;
+          }
+
+          if (!email || !email.includes('@')) {
+            inputEmail.focus();
+            aviso('Ingresá un email válido para tu cuenta.');
+            return;
+          }
+
+          // Actualizar iniciales y hero
+          if (heroEmail) heroEmail.textContent = email;
+          if (avatarIniciales) {
+            const partes = nombre.split(' ').filter(Boolean);
+            const inits = partes.length >= 2 ? (partes[0][0] + partes[1][0]).toUpperCase() : nombre.slice(0, 2).toUpperCase();
+            avatarIniciales.textContent = inits;
+          }
+
+          aviso(`Cambios guardados para ${nombre.split(' ')[0]}.`);
+        });
+      }
+
+      chequearVacio();
+    })();
+  </script>
+</Layout>

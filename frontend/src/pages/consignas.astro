@@ -1,0 +1,224 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { consignas, salas } from '../data/mock';
+
+const sala = salas[0]; // Programación 5.º A
+const totalConsignas = consignas.length;
+const totalRecibidas = consignas.reduce((acc, c) => acc + c.stats.recibidas, 0);
+const totalEsperadas = consignas.reduce((acc, c) => acc + c.stats.total, 0);
+const totalOk = consignas.reduce((acc, c) => acc + c.stats.ok, 0);
+---
+
+<Layout titulo={`Consignas — ${sala.nombre}`} active="consignas" navRole="alumno">
+  <div class="py-8 md:py-12">
+    <div class="flex flex-col gap-6">
+
+      <!-- Hero Header -->
+      <section class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <a
+            href="/mis-salas/"
+            class="inline-flex items-center gap-1.5 text-xs text-base-content/60 hover:text-primary transition-colors font-medium mb-2"
+          >
+            ← Mis salas
+          </a>
+          <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">
+            {sala.nombre} · {sala.curso} · {sala.turno}
+          </p>
+          <h1 class="font-display font-normal text-4xl md:text-5xl tracking-tight text-base-content mt-1">
+            Consignas
+          </h1>
+          <p class="text-sm md:text-base text-base-content/60 mt-1">
+            {totalConsignas} consignas · {totalRecibidas} de {totalEsperadas} entregas recibidas · {totalOk} correctas.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 self-start md:self-end">
+          <div class="flex items-center gap-2 p-1 bg-base-100 rounded-2xl border border-base-300 shadow-sm">
+            <span class="badge badge-lg bg-primary/10 border-0 text-primary font-mono font-bold tracking-wider rounded-xl px-3 text-sm">
+              {sala.codigo}
+            </span>
+            <button
+              type="button"
+              id="btn-copiar-codigo"
+              data-codigo={sala.codigo}
+              class="btn btn-ghost btn-sm rounded-xl text-xs font-semibold hover:text-primary"
+              aria-label="Copiar código de la sala"
+            >
+              Copiar
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sub-navegación de la sala -->
+      <div role="tablist" class="tabs tabs-border gap-2 overflow-x-auto pb-1 border-b border-base-300">
+        <a href="/consignas/" role="tab" class="tab tab-active font-semibold text-primary border-primary">
+          Consignas ({totalConsignas})
+        </a>
+        <a href="/materiales/" role="tab" class="tab font-medium text-base-content/60 hover:text-base-content">
+          Materiales
+        </a>
+        <a href="/sandboxes/" role="tab" class="tab font-medium text-base-content/60 hover:text-base-content">
+          Sandboxes del curso
+        </a>
+      </div>
+
+      <!-- Lista de Consignas -->
+      <section aria-label="Listado de consignas de la sala" class="flex flex-col divide-y divide-base-300">
+        {consignas.map((c) => {
+          const porcOk = Math.round((c.stats.ok / c.stats.total) * 100);
+          const porcErr = Math.round((c.stats.error / c.stats.total) * 100);
+          const porcTar = Math.round((c.stats.tardia / c.stats.total) * 100);
+
+          return (
+            <article class="py-5 md:py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-base-100/50 transition-colors rounded-xl px-2 md:px-4">
+
+              <!-- Columna Principal -->
+              <div class="flex-1 min-w-0 flex flex-col gap-2.5">
+                <div class="flex items-center gap-3 flex-wrap">
+                  <h2 class="font-display font-normal text-2xl tracking-tight text-base-content group-hover:text-primary transition-colors">
+                    <a href={`/entregas/${c.id}/`}>{c.titulo}</a>
+                  </h2>
+                  <span class="badge badge-sm badge-outline font-mono text-[10px] uppercase font-bold tracking-wider text-base-content/70">
+                    {c.runtime}
+                  </span>
+                  {c.estadoAlumno === 'aprobado' && (
+                    <span class="badge badge-sm badge-success badge-soft font-semibold text-[10px]">
+                      Aprobado ✓
+                    </span>
+                  )}
+                  {c.estadoAlumno === 'entregado' && (
+                    <span class="badge badge-sm badge-warning badge-soft font-semibold text-[10px]">
+                      Entregado
+                    </span>
+                  )}
+                </div>
+
+                <p class:list={[
+                  'text-xs',
+                  c.vencida ? 'text-error font-semibold' : 'text-base-content/60'
+                ]}>
+                  {c.vence}
+                </p>
+
+                <!-- Barra de progreso segmentada -->
+                <div
+                  class="flex h-2 max-w-md w-full rounded-full overflow-hidden bg-base-300"
+                  role="progressbar"
+                  aria-label={`${c.stats.ok} OK, ${c.stats.error} error, ${c.stats.tardia} tardía de ${c.stats.recibidas} entregas`}
+                >
+                  <div class="bg-primary h-full" style={`width: ${porcOk}%`}></div>
+                  <div class="bg-error h-full" style={`width: ${porcErr}%`}></div>
+                  <div class="bg-warning h-full" style={`width: ${porcTar}%`}></div>
+                </div>
+
+                <!-- Desglose de estados -->
+                <ul class="flex items-center gap-4 flex-wrap text-xs text-base-content/65 font-medium">
+                  <li class="inline-flex items-center gap-1.5">
+                    <span class="size-2 rounded-full bg-primary inline-block"></span>
+                    {c.stats.ok} OK
+                  </li>
+                  <li class="inline-flex items-center gap-1.5">
+                    <span class="size-2 rounded-full bg-error inline-block"></span>
+                    {c.stats.error} con error
+                  </li>
+                  <li class="inline-flex items-center gap-1.5">
+                    <span class="size-2 rounded-full bg-warning inline-block"></span>
+                    {c.stats.tardia} tardía
+                  </li>
+                  <li class="text-base-content/45">
+                    {c.stats.sinEntregar} sin entregar
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Columna Lateral / Acción -->
+              <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-base-200">
+                <div class="text-left md:text-right">
+                  <span class="font-mono font-bold text-lg text-base-content block leading-tight">
+                    {c.stats.recibidas}<span class="text-base-content/40 text-sm font-normal">/{c.stats.total}</span>
+                  </span>
+                  <span class="text-[10px] uppercase font-bold tracking-widest text-base-content/50 block">
+                    entregas
+                  </span>
+                </div>
+
+                <a
+                  href={`/entregas/${c.id}/`}
+                  class:list={[
+                    'btn btn-sm rounded-xl font-semibold px-5',
+                    c.estadoAlumno === 'pendiente' ? 'btn-primary' : 'btn-ghost text-primary hover:bg-primary/10'
+                  ]}
+                >
+                  {c.estadoAlumno === 'pendiente' ? 'Entregar tarea' : 'Ver entrega'}
+                </a>
+              </div>
+
+            </article>
+          );
+        })}
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+
+      // Toast feedback
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer = null;
+      function aviso(msg) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 2800);
+      }
+
+      // Copiar código de sala
+      const btnCopiar = $('#btn-copiar-codigo');
+      btnCopiar?.addEventListener('click', function () {
+        const codigo = this.dataset.codigo || 'PROG5A';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(codigo).then(
+            () => aviso(`Código ${codigo} copiado al portapapeles.`),
+            () => copiarFallback(codigo)
+          );
+        } else {
+          copiarFallback(codigo);
+        }
+      });
+
+      function copiarFallback(texto) {
+        const ta = document.createElement('textarea');
+        ta.value = texto;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          aviso(`Código ${texto} copiado al portapapeles.`);
+        } catch (e) {
+          aviso(`El código de la sala es ${texto}`);
+        }
+        document.body.removeChild(ta);
+      }
+    })();
+  </script>
+</Layout>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materiales — Ocicat Bella</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topnav" data-od-id="topnav">
+  <div class="container topnav-inner">
+    <a class="brand" href="index.html" data-od-id="brand-home">
+      <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M8 15 9.2 4.5 15.5 10Z" fill="var(--accent)"/>
+        <path d="M28 15 26.8 4.5 20.5 10Z" fill="var(--accent)"/>
+        <circle cx="18" cy="21" r="11.5" fill="var(--fg)"/>
+        <circle cx="11" cy="17.5" r="1.7" fill="var(--accent)" opacity=".85"/>
+        <circle cx="24" cy="24" r="2" fill="var(--accent)" opacity=".85"/>
+        <circle cx="19.5" cy="29" r="1.3" fill="var(--accent)" opacity=".7"/>
+        <circle cx="14" cy="19.5" r="1.7" fill="var(--surface)"/>
+        <circle cx="22" cy="19.5" r="1.7" fill="var(--surface)"/>
+        <path d="M16.7 23.6h2.6L18 25.6Z" fill="var(--accent)"/>
+      </svg>
+      <span class="brand-name">Ocicat <em>Bella</em></span>
+    </a>
+    <nav aria-label="Principal">
+      <ul class="nav-links">
+        <li><a class="nav-link" href="index.html">Inicio</a></li>
+        <li><a class="nav-link" href="materiales.html" aria-current="page">Materiales</a></li>
+        <li><a class="nav-link" href="sandboxes.html">Sandboxes</a></li>
+      </ul>
+    </nav>
+    <span class="room-chip" data-od-id="room-chip">Sala: Programación 5°A · <span class="code">OCI-7F3K</span></span>
+    <a class="btn btn-primary nav-cta" href="unirse.html">Unirse con código</a>
+  </div>
+</header>
+
+<main class="container" data-od-id="materiales-main">
+
+  <div class="page-head">
+    <div>
+      <h1 class="page-title" data-od-id="materiales-title">Materiales</h1>
+      <p class="page-sub">La biblioteca de la sala: bajá lo que necesites o subí lo que falte.</p>
+    </div>
+    <button class="btn btn-secondary" type="button" data-od-id="btn-subir-material">＋ Subir material</button>
+  </div>
+
+  <div class="materiales-layout">
+
+    <aside class="subject-nav" aria-label="Materias" data-od-id="subjects-nav">
+      <p class="subject-label">Materias</p>
+      <button class="subject-item active" type="button" data-room="progra" aria-pressed="true">
+        Programación 5°A <span class="subject-count">5</span>
+      </button>
+      <button class="subject-item" type="button" data-room="robotica" aria-pressed="false">
+        Robótica 6°B <span class="subject-count">3</span>
+      </button>
+    </aside>
+
+    <section data-od-id="materials-section">
+
+      <div class="toolbar">
+        <input class="search-input" type="search" placeholder="Buscar en la materia…" aria-label="Buscar materiales" data-od-id="search-input">
+        <div class="filter-chips" role="group" aria-label="Filtrar por tipo">
+          <button class="chip-btn" type="button" data-tipo="todos" aria-pressed="true">Todos</button>
+          <button class="chip-btn" type="button" data-tipo="libro" aria-pressed="false">Libro</button>
+          <button class="chip-btn" type="button" data-tipo="doc" aria-pressed="false">Doc</button>
+          <button class="chip-btn" type="button" data-tipo="video" aria-pressed="false">Video</button>
+          <button class="chip-btn" type="button" data-tipo="instalador" aria-pressed="false">Instalador</button>
+        </div>
+      </div>
+
+      <div class="material-grid" id="materials-grid" data-od-id="materials-grid">
+
+        <article class="card material-card" data-materia="progra" data-tipo="libro" data-name="guía n°3 listas y bucles" data-od-id="material-guia-listas">
+          <span class="type-badge">PDF</span>
+          <h3 class="material-title">Guía N°3: listas y bucles.pdf</h3>
+          <div class="material-meta"><span>1,2 MB</span><span>·</span><span>12/08</span><span>·</span><span class="alias">Profe-Caro</span></div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+            <button class="btn btn-ghost btn-sm" type="button">Ver</button>
+          </div>
+        </article>
+
+        <article class="card material-card" data-materia="progra" data-tipo="video" data-name="video qué es un contenedor" data-od-id="material-video-contenedores">
+          <span class="type-badge">VID</span>
+          <h3 class="material-title">Video: ¿qué es un contenedor?.mp4</h3>
+          <div class="material-meta"><span>48 MB</span><span>·</span><span>10/08</span><span>·</span><span class="alias">Profe-Caro</span></div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+            <button class="btn btn-ghost btn-sm" type="button">Ver</button>
+          </div>
+        </article>
+
+        <article class="card material-card" data-materia="progra" data-tipo="doc" data-name="apuntes diccionarios python" data-od-id="material-apuntes-diccionarios">
+          <span class="type-badge">DOC</span>
+          <h3 class="material-title">Apuntes: diccionarios en Python.doc</h3>
+          <div class="material-meta"><span>240 kB</span><span>·</span><span>8/08</span><span>·</span><span class="alias">Alumno-7F3K-03</span></div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+            <button class="btn btn-ghost btn-sm" type="button">Ver</button>
+          </div>
+        </article>
+
+        <article class="card material-card" data-materia="progra" data-tipo="doc" data-name="trabajo práctico adivinanza" data-od-id="material-tp-adivinanza">
+          <span class="type-badge">DOC</span>
+          <h3 class="material-title">Trabajo práctico: la adivinanza.doc</h3>
+          <div class="material-meta"><span>96 kB</span><span>·</span><span>5/08</span><span>·</span><span class="alias">Profe-Caro</span></div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+            <button class="btn btn-ghost btn-sm" type="button">Ver</button>
+          </div>
+        </article>
+
+        <article class="card material-card" data-materia="progra" data-tipo="libro" data-name="guía n°2 condicionales" data-od-id="material-guia-condicionales">
+          <span class="type-badge">PDF</span>
+          <h3 class="material-title">Guía N°2: condicionales.pdf</h3>
+          <div class="material-meta"><span>1,0 MB</span><span>·</span><span>29/07</span><span>·</span><span class="alias">Profe-Caro</span></div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+            <button class="btn btn-ghost btn-sm" type="button">Ver</button>
+          </div>
+        </article>
+
+        <article class="card material-card" data-materia="robotica" data-tipo="doc" data-name="robótica esquema semáforo" data-od-id="material-esquema-semaforo">
+          <span class="type-badge">PNG</span>
+          <h3 class="material-title">Robótica: esquema del semáforo.png</h3>
+          <div class="material-meta"><span>310 kB</span><span>·</span><span>25/07</span><span>·</span><span class="alias">Profe-Luis</span></div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+            <button class="btn btn-ghost btn-sm" type="button">Ver</button>
+          </div>
+        </article>
+
+        <article class="card material-card" data-materia="robotica" data-tipo="libro" data-name="manual básico arduino" data-od-id="material-manual-arduino">
+          <span class="type-badge">PDF</span>
+          <h3 class="material-title">Manual básico de Arduino.pdf</h3>
+          <div class="material-meta"><span>3,4 MB</span><span>·</span><span>22/07</span><span>·</span><span class="alias">Profe-Luis</span></div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+            <button class="btn btn-ghost btn-sm" type="button">Ver</button>
+          </div>
+        </article>
+
+        <article class="card material-card" data-materia="robotica" data-tipo="video" data-name="video armado del semáforo" data-od-id="material-video-armado">
+          <span class="type-badge">VID</span>
+          <h3 class="material-title">Video: armado del semáforo.mp4</h3>
+          <div class="material-meta"><span>62 MB</span><span>·</span><span>20/07</span><span>·</span><span class="alias">Profe-Luis</span></div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+            <button class="btn btn-ghost btn-sm" type="button">Ver</button>
+          </div>
+        </article>
+
+        <div class="empty-state" id="materials-empty" hidden data-od-id="materials-empty">
+          <svg width="56" height="56" viewBox="0 0 36 36" aria-hidden="true">
+            <path d="M8 15 9.2 4.5 15.5 10Z" fill="var(--border)"/>
+            <path d="M28 15 26.8 4.5 20.5 10Z" fill="var(--border)"/>
+            <circle cx="18" cy="21" r="11.5" fill="var(--muted)" opacity=".45"/>
+            <circle cx="14" cy="19.5" r="1.6" fill="var(--surface)"/>
+            <circle cx="22" cy="19.5" r="1.6" fill="var(--surface)"/>
+          </svg>
+          <p class="empty-title">Acá no hay nada… por ahora</p>
+          <p>Probá con otra búsqueda o cambiá el filtro. Si falta algo, avisale al profe.</p>
+        </div>
+
+      </div>
+
+      <section class="instaladores" id="instaladores" data-od-id="instaladores-section">
+        <div class="section-head">
+          <h2 class="section-title">Instaladores</h2>
+          <p class="section-note">Para equipar las PCs del aula: bajalos de acá, que ya están probados.</p>
+        </div>
+        <div class="instalador-grid">
+
+          <article class="card instalador-card" data-od-id="installer-python">
+            <span class="type-badge">EXE</span>
+            <div class="instalador-info">
+              <p class="instalador-name">Python</p>
+              <p class="instalador-meta">3.12.4 · Win 64-bit · 26 MB</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+          </article>
+
+          <article class="card instalador-card" data-od-id="installer-vscode">
+            <span class="type-badge">EXE</span>
+            <div class="instalador-info">
+              <p class="instalador-name">Visual Studio Code</p>
+              <p class="instalador-meta">1.92 · Win 64-bit · 94 MB</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+          </article>
+
+          <article class="card instalador-card" data-od-id="installer-arduino">
+            <span class="type-badge">EXE</span>
+            <div class="instalador-info">
+              <p class="instalador-name">Arduino IDE</p>
+              <p class="instalador-meta">2.3.2 · Win 64-bit · 190 MB</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+          </article>
+
+          <article class="card instalador-card" data-od-id="installer-git">
+            <span class="type-badge">EXE</span>
+            <div class="instalador-info">
+              <p class="instalador-name">Git</p>
+              <p class="instalador-meta">2.46 · Win 64-bit · 58 MB</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" type="button">Descargar</button>
+          </article>
+
+        </div>
+      </section>
+
+    </section>
+
+  </div>
+
+</main>
+
+<footer class="footer" data-od-id="footer">
+  <div class="container footer-inner">
+    <span>Ocicat Bella es software libre (FOSS), hecho para escuelas.</span>
+    <span>v0.1 · prototipo</span>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+</body>
+</html>

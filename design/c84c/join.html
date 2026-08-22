@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unirse con código — Ocicat Bella</title>
+<link rel="stylesheet" href="ocicat-editorial.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html"><span class="brand-mark">O</span><span class="brand-text"><span class="brand-name">Ocicat Bella</span><br><span class="brand-tag">escuelas que producen</span></span></a>
+    <nav class="nav" id="nav"><a href="materials.html">Materiales</a><a href="sandboxes.html">Sandboxes</a><a href="join.html" class="active">Unirse</a></nav>
+    <div class="header-actions">
+      <a class="btn btn-secondary" href="index.html">Crear sala</a>
+      <span class="avatar">?</span>
+      <button class="hamburger" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+    </div>
+  </div>
+</header>
+<main class="wrap join-wrap">
+  <div class="join-card">
+    <p class="eyebrow">Entrar sin cuenta</p>
+    <h1>Ingresá el código<br>de la sala</h1>
+    <p class="sub">Te lo pasó tu docente. Son 6 a 8 letras y números.<br><span style="font-size:13px; color:#8A8F98">Ejemplo: <span class="mono" style="color:#1A1D23; font-weight:600">OCI-7F3K</span> o <span class="mono" style="color:#1A1D23; font-weight:600">OCI-2N8Q</span></span></p>
+
+    <div class="code-field">
+      <label class="sr-only" for="code">Código de sala</label>
+      <input id="code" class="code-input" type="text" placeholder="OCI-7F3K" autocomplete="off" spellcheck="false" maxlength="9" inputmode="text">
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </div>
+
+    <div class="join-actions" id="actions" style="display:none">
+      <a id="enterBtn" class="btn btn-primary" style="min-width:200px" href="sandboxes.html">Entrar a la sala →</a>
+    </div>
+
+    <details class="collapse">
+      <summary>¿Querés dejar tu nombre? (opcional) <span style="color:#8A8F98; font-weight:400">▾</span></summary>
+      <label for="nombre">Nombre o apodo — para que tu docente sepa quién corrió qué</label>
+      <input id="nombre" class="text-input" type="text" placeholder="Ej. Mica, Tomi, Alumno-7F3K-12">
+      <p style="font-size:12px; color:#8A8F98; margin:8px 0 0">Sin email, sin contraseña. Si no ponés nada, entrás como invitado y tu sandbox queda igual guardado.</p>
+    </details>
+
+    <p class="privacy">Tus datos quedan solo en la sala. Ocicat no te rastrea ni vende nada.<br>¿Sos docente? <a href="materials.html" style="color:#1B4332; font-weight:600; text-decoration:underline">Creá tu sala con Google</a> · Demo: probá <b class="mono">OCI-7F3K</b> y <b class="mono">OCI-2N8Q</b>.</p>
+  </div>
+</main>
+<footer class="site-footer"><div class="wrap footer-inner"><span>© 2026 Ocicat Bella · Entrar por código, sin cuentas.</span><span class="footer-links"><a href="index.html">Inicio</a><a href="materials.html">Ver sala 5°A</a></span></div></footer>
+<script>
+const input=document.getElementById('code'), fb=document.getElementById('feedback'), actions=document.getElementById('actions'), btn=document.getElementById('enterBtn');
+const valid={'OCI-7F3K':'Programación 5°A — Escuela Técnica N°4 · 24 compañeros adentro','OCI-2N8Q':'Robótica 6°B — Instituto Belgrano · 18 compañeros adentro'};
+function norm(v){return v.trim().toUpperCase().replace(/\s+/g,'');}
+input.addEventListener('input',()=>{
+  const v=norm(input.value);
+  if(!v){input.className='code-input'; fb.textContent=''; fb.className='feedback'; actions.style.display='none'; return;}
+  const okFormat=/^OCI-[A-Z0-9]{3,5}$/.test(v);
+  if(valid[v]){
+    input.className='code-input ok';
+    fb.className='feedback ok';
+    fb.innerHTML='<span class="feedback-dot" style="background:#1B4332"></span> Sala encontrada: '+valid[v];
+    actions.style.display='flex';
+    btn.href = v==='OCI-2N8Q' ? 'sandboxes.html' : 'sandboxes.html';
+  } else if(okFormat){
+    input.className='code-input err';
+    fb.className='feedback err';
+    fb.innerHTML='<span class="feedback-dot" style="background:#9B1C1C"></span> Ese código no existe. Revisá mayúsculas y guiones.';
+    actions.style.display='none';
+  } else if(v.length>=3){
+    input.className='code-input';
+    fb.className='feedback err';
+    fb.textContent='Formato: OCI- y 3 a 5 letras/números. Ej. OCI-7F3K';
+    actions.style.display='none';
+  } else {
+    input.className='code-input'; fb.textContent=''; actions.style.display='none';
+  }
+});
+input.addEventListener('keydown',e=>{if(e.key==='Enter' && valid[norm(input.value)]) location.href='sandboxes.html'});
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ocicat Bella — escuelas que producen</title>
+<link rel="stylesheet" href="ocicat-editorial.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html" aria-label="Ocicat Bella inicio">
+      <span class="brand-mark">O</span>
+      <span class="brand-text">
+        <span class="brand-name">Ocicat Bella</span><br>
+        <span class="brand-tag">escuelas que producen</span>
+      </span>
+    </a>
+    <nav class="nav" id="nav" aria-label="Principal">
+      <a href="materials.html">Materiales</a>
+      <a href="sandboxes.html">Sandboxes</a>
+      <a href="join.html">Unirse</a>
+    </nav>
+    <div class="header-actions">
+      <span class="sala-pill" aria-label="Sala activa"><span class="dot"></span> Sala activa <strong>OCI-7F3K</strong></span>
+      <a class="btn btn-primary" href="materials.html"><span>Crear sala</span> +</a>
+      <span class="avatar" aria-label="Usuario docente">MR</span>
+      <button class="hamburger" aria-label="Abrir menú" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow eyebrow-accent">Plataforma FOSS · Hecha para la escuela pública</p>
+      <h1 class="display">Lo que hacen<br>en clase,<br>también puede <em>funcionar.</em></h1>
+      <p class="lead">Ocicat reúne materiales y proyectos ejecutables en un mismo lugar. La docente arma la sala, comparte un código y cada grupo corre su sandbox viendo los logs en vivo. Sin humo, sin cuentas obligatorias.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="materials.html">Crear sala — con Google</a>
+        <a class="btn btn-secondary" href="join.html">Unirse con código</a>
+      </div>
+      <p class="proof">
+        <span><i></i> Sin cuentas para alumnos</span>
+        <span><i></i> Contenedores aislados</span>
+        <span><i></i> Logs en vivo</span>
+      </p>
+    </div>
+    <div class="preview-card" aria-label="Vista previa sala 5°A">
+      <div class="preview-head">
+        <span class="preview-title">Programación 5°A — Escuela Técnica N°4</span>
+        <span class="tag tag-accent mono">OCI-7F3K</span>
+      </div>
+      <div class="mini-board">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+          <span style="font-weight:600; font-size:13px">Pizarra · hoy 10:42</span>
+          <span style="font-size:11px; color:#6B6E72">Tomi compartió</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px">
+          <span style="background:#1B4332; color:#fff; padding:8px 10px; border-radius:8px; font-size:12px; text-align:center">contador.py ● ejecutando</span>
+          <span style="background:#F5F1E9; border:1px solid #E8E0D1; padding:8px 10px; border-radius:8px; font-size:12px; text-align:center">pizarra-colaborativa ↗</span>
+        </div>
+        <div style="font-size:11px; color:#6B6E72; letter-spacing:.06em; text-transform:uppercase; font-weight:600">Último log — hace 18s</div>
+      </div>
+      <div class="mini-log">$ python main.py<br>→ leyendo datos.csv · 128 filas<br>✔ 12 resultados en 0.84s · exit 0</div>
+      <div class="mini-stats" style="margin-top:12px">
+        <span class="stat"><b>24</b><span>alumnos</span></span>
+        <span class="stat"><b>5</b><span>sandboxes</span></span>
+        <span class="stat"><b>12</b><span>materiales</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="h2">Una sala, tres momentos.</h2>
+      <p class="lead" style="font-size:15px; margin:0">Todo lo que necesitan docente y estudiantes, sin saltar entre plataformas. Liviano, corre en la PC del gabinete.</p>
+    </div>
+    <div class="steps">
+      <article class="step">
+        <div class="step-num">01 — MATERIAL</div>
+        <h3 class="h3">Todo a mano, sin drive perdido.</h3>
+        <p>Guías, instaladores y plantillas en la misma sala. Vista previa y descarga directa. La docente sube un PDF y queda disponible al instante para los 24.</p>
+      </article>
+      <article class="step">
+        <div class="step-num">02 — SANDBOX</div>
+        <h3 class="h3">Cada grupo, su contenedor.</h3>
+        <p>Python, Node o Arduino. Modo job o servicio. Límites claros: 128 MB · 1 core · 120 s. Hasta 5 ejecuciones simultáneas por sala.</p>
+      </article>
+      <article class="step">
+        <div class="step-num">03 — LOGS</div>
+        <h3 class="h3">Ver cómo piensa el código.</h3>
+        <p>Logs en streaming, sin refrescar. Errores y aciertos visibles para corregir entre todos. Histórico guardado para la revisión del trimestre.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="h3" style="font-size:26px">Salas de ejemplo — entrá a mirar.</h2>
+      <a class="btn btn-ghost" href="join.html">Probar un código →</a>
+    </div>
+    <div class="rooms">
+      <article class="room-card featured">
+        <div class="room-top">
+          <span class="tag mono">OCI-7F3K · DESTACADA</span>
+          <span class="badge badge-running"><i></i> 2 corriendo</span>
+        </div>
+        <div>
+          <h3 class="room-title">Programación 5°A</h3>
+          <p style="margin:0; font-size:13px; color:#6B6E72">Escuela Técnica N°4 — Prof. María R.</p>
+          <div class="room-meta"><span>24 alumnos</span> · <span>5 sandboxes</span> · <span>12 materiales</span></div>
+        </div>
+        <div class="room-actions">
+          <a class="btn btn-primary btn-sm" href="sandboxes.html">Ver sala</a>
+          <a class="btn btn-secondary btn-sm" href="materials.html">Materiales</a>
+          <span class="mono" style="margin-left:auto; font-size:11px; color:#1B4332; font-weight:700">OCI-7F3K</span>
+        </div>
+      </article>
+      <article class="room-card">
+        <div class="room-top">
+          <span class="tag mono">OCI-2N8Q</span>
+          <span class="badge badge-stopped">En pausa</span>
+        </div>
+        <div>
+          <h3 class="room-title">Robótica 6°B</h3>
+          <p style="margin:0; font-size:13px; color:#6B6E72">Instituto Belgrano — Prof. Javier L.</p>
+          <div class="room-meta"><span>18 alumnos</span> · <span>3 sandboxes</span> · <span>8 materiales</span></div>
+        </div>
+        <div class="room-actions">
+          <a class="btn btn-secondary btn-sm" href="join.html">Unirse con OCI-2N8Q</a>
+          <span class="mono" style="margin-left:auto; font-size:11px; font-weight:700; color:#6B6E72">OCI-2N8Q</span>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>© 2026 Ocicat Bella · Software libre para escuelas · Hecho con paciencia docente.</span>
+    <span class="footer-links">
+      <a href="#">Privacidad</a><a href="#">Términos</a><a href="#">GitHub</a><a href="#">Estado</a>
+    </span>
+  </div>
+</footer>
+</body>
+</html>

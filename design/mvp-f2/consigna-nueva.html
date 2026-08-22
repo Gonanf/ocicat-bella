@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nueva consigna · Programación 5.º A · Ocicat Bella</title>
+<meta name="description" content="Creá una consigna nueva para tu sala: instrucciones, adjuntos, runtime y configuración de entrega.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --error: #B0413E;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --error: #E07A72;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 1140px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .nav-link[aria-current="page"] { color: var(--accent); font-weight: 600; }
+
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Botones ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 10px 20px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .97rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+  .btn-ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: clamp(30px, 5vw, 48px) 0 28px; }
+  .volver {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin: 0 0 14px -10px; padding: 6px 10px; border-radius: 8px;
+    color: var(--muted); text-decoration: none;
+    font-size: .92rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .volver:hover { color: var(--fg); background: var(--accent-soft); }
+  .hero h1 {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2.3rem, 5vw, 3.2rem); line-height: 1.05;
+    letter-spacing: -.01em;
+  }
+  .hero-sub { margin: 12px 0 0; max-width: 56ch; color: var(--muted); font-size: 1rem; }
+
+  /* ---------- Formulario ---------- */
+  .form-section { padding-bottom: 84px; }
+  .form-card {
+    max-width: 720px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: clamp(22px, 4vw, 34px);
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; }
+  .field label { font-size: .9rem; font-weight: 600; }
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="number"],
+  .field textarea {
+    min-height: 46px; padding: 10px 14px;
+    font: inherit; color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border-strong); border-radius: 11px;
+    transition: border-color .15s ease;
+  }
+  .field textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+  .field input::placeholder, .field textarea::placeholder { color: var(--muted); opacity: 1; }
+  .field input:hover, .field textarea:hover { border-color: var(--accent); }
+
+  .sec-title {
+    margin: 32px 0 2px;
+    font-size: .74rem; font-weight: 600; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent);
+  }
+
+  /* Dropzone de adjuntos */
+  .dropzone {
+    display: block; cursor: pointer;
+    margin-top: 12px; padding: 26px 20px;
+    text-align: center;
+    border: 2px dashed var(--border-strong); border-radius: 14px;
+    color: var(--muted); font-size: .95rem;
+    transition: border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .dropzone:hover, .dropzone.drag {
+    border-color: var(--accent); background: var(--accent-soft); color: var(--fg);
+  }
+  .dropzone svg {
+    width: 22px; height: 22px; display: block; margin: 0 auto 8px;
+    fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .dropzone strong { color: var(--fg); font-weight: 600; }
+  .dz-hint { margin: 6px 0 0; font-size: .83rem; }
+
+  .archivos { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .archivo {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 12px; font-size: .9rem;
+  }
+  .archivo .nombre { font-weight: 500; overflow-wrap: anywhere; }
+  .archivo .peso { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: .78rem; flex-shrink: 0; }
+  .archivo .quitar {
+    margin-left: auto; flex-shrink: 0;
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: .82rem; font-weight: 600;
+    padding: 5px 9px; border-radius: 7px;
+    transition: color .15s ease, background .15s ease;
+  }
+  .archivo .quitar:hover { color: var(--error); background: var(--accent-soft); }
+
+  /* Chips de runtime e intentos */
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .chip-radio { position: relative; }
+  .chip-radio input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .chip-radio span {
+    display: inline-flex; align-items: center;
+    min-height: 44px; padding: 9px 18px;
+    border: 1px solid var(--border-strong); border-radius: 999px;
+    font-weight: 600; font-size: .95rem; color: var(--fg);
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+    pointer-events: none;
+  }
+  .chip-radio span:hover { border-color: var(--accent); color: var(--accent); }
+  .chip-radio input:checked + span { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .chip-radio input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .intentos-extra { display: none; align-items: center; gap: 10px; margin-top: 12px; }
+  .intentos-extra.show { display: flex; }
+  .intentos-extra label { font-size: .88rem; font-weight: 500; color: var(--muted); }
+  #f-intentos-num {
+    width: 92px; min-height: 44px; text-align: center;
+    font-family: "JetBrains Mono", monospace; font-size: .95rem;
+    color: var(--fg); background: var(--bg);
+    border: 1px solid var(--border-strong); border-radius: 11px;
+  }
+  #f-intentos-num:hover { border-color: var(--accent); }
+
+  .fecha-hint { margin: 8px 0 0; font-size: .83rem; color: var(--muted); }
+
+  /* Switch de tardías */
+  .switchrow {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 18px;
+    margin-top: 12px; padding: 16px 18px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+  }
+  .switchrow-txt b { display: block; font-weight: 600; font-size: .97rem; }
+  .switchrow-txt p { margin: 3px 0 0; font-size: .88rem; color: var(--muted); max-width: 46ch; }
+  .switch { position: relative; flex-shrink: 0; width: 54px; height: 31px; margin-top: 3px; }
+  .switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .switch .pista {
+    position: absolute; inset: 0; pointer-events: none;
+    background: var(--border-strong); border-radius: 99px;
+    transition: background .15s ease;
+  }
+  .switch .pista::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 25px; height: 25px; border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+    transition: left .15s ease;
+  }
+  .switch input:checked + .pista { background: var(--accent); }
+  .switch input:checked + .pista::after { left: 26px; }
+  .switch input:focus-visible + .pista { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Nota de config modificable */
+  .nota-config {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-top: 20px; padding: 13px 15px;
+    background: var(--accent-soft); border-radius: 12px;
+    font-size: .9rem;
+  }
+  .nota-config svg {
+    flex-shrink: 0; width: 17px; height: 17px; margin-top: 2px;
+    fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round;
+  }
+  .nota-config b { font-weight: 600; }
+
+  .form-actions {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 30px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px) {
+    .header-inner { row-gap: 4px; }
+    .main-nav { order: 3; width: 100%; margin-inline: 0; overflow-x: auto; padding-bottom: 2px; }
+    .nav-link { white-space: nowrap; }
+    .form-actions { flex-direction: column-reverse; }
+    .form-actions .btn { width: 100%; }
+    .switchrow { flex-direction: column; gap: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="#" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="dashboard.html" aria-current="page" data-od-id="nav-salas">Salas</a>
+      <a class="nav-link" href="#" data-od-id="nav-materiales">Materiales globales</a>
+      <a class="nav-link" href="#" data-od-id="nav-perfil">Perfil</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="container">
+
+    <section class="hero" data-od-id="hero-nueva-consigna">
+      <a class="volver" href="consignas.html" data-od-id="volver-consignas">← Consignas de Programación</a>
+      <h1 id="titulo-nueva" data-od-id="titulo-nueva-consigna">Nueva consigna</h1>
+      <p class="hero-sub">Para Programación · 5.º A. Se publica apenas la creás y los alumnos la ven al instante.</p>
+    </section>
+
+    <section class="form-section" aria-labelledby="titulo-form">
+      <h2 class="sr-only" id="titulo-form">Datos de la consigna</h2>
+      <div class="form-card" data-od-id="form-card-nueva-consigna">
+
+        <form id="form-consigna" novalidate>
+
+          <p class="sec-title">Contenido</p>
+
+          <div class="field">
+            <label for="f-titulo">Título</label>
+            <input id="f-titulo" name="titulo" type="text" required autocomplete="off"
+                   placeholder="TP2 — Manejo de archivos" data-od-id="input-titulo">
+          </div>
+
+          <div class="field">
+            <label for="f-instrucciones">Instrucciones</label>
+            <textarea id="f-instrucciones" name="instrucciones" required
+                      placeholder="Qué tienen que hacer, cómo se evalúa y qué se espera recibir…" data-od-id="input-instrucciones"></textarea>
+          </div>
+
+          <p class="sec-title">Adjuntos (opcional)</p>
+
+          <label class="dropzone" id="dropzone" for="f-archivos" data-od-id="dropzone-adjuntos">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 16V4M7 9l5-5 5 5"/>
+              <path d="M4 16v3a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3"/>
+            </svg>
+            Arrastrá hasta acá o <strong>elegí archivos</strong>
+            <p class="dz-hint">PDF, imágenes o código · máx. 10 MB por archivo</p>
+          </label>
+          <input id="f-archivos" type="file" multiple class="sr-only" tabindex="-1"
+                 accept=".pdf,.png,.jpg,.jpeg,.zip,.py,.ino,.cpp,.html,.css,.js" aria-hidden="true">
+          <ul class="archivos" id="lista-archivos" data-od-id="lista-adjuntos"></ul>
+
+          <p class="sec-title">Corrección automática</p>
+
+          <fieldset style="border:none;padding:0;margin:0">
+            <legend class="field" style="padding:0"><label style="all:unset">Runtime esperado</label></legend>
+            <div class="chips" role="radiogroup" aria-label="Runtime esperado" data-od-id="chips-runtime">
+              <label class="chip-radio">
+                <input type="radio" name="runtime" value="python" checked>
+                <span>Python</span>
+              </label>
+              <label class="chip-radio">
+                <input type="radio" name="runtime" value="web">
+                <span>Web</span>
+              </label>
+              <label class="chip-radio">
+                <input type="radio" name="runtime" value="cpp">
+                <span>C++</span>
+              </label>
+              <label class="chip-radio">
+                <input type="radio" name="runtime" value="arduino">
+                <span>Arduino</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <p class="sec-title">Entrega</p>
+
+          <div class="field" style="margin-top:12px">
+            <label for="f-vencimiento">Fecha límite (opcional)</label>
+            <input id="f-vencimiento" name="vencimiento" type="date" data-od-id="input-fecha-limite">
+            <p class="fecha-hint">Si lo dejás vacío, la consigna no vence.</p>
+          </div>
+
+          <div class="field">
+            <label id="lbl-intentos">Intentos permitidos</label>
+            <div class="chips" role="radiogroup" aria-labelledby="lbl-intentos" data-od-id="chips-intentos">
+              <label class="chip-radio">
+                <input type="radio" name="intentos" value="ilimitados" checked>
+                <span>Ilimitados</span>
+              </label>
+              <label class="chip-radio">
+                <input type="radio" name="intentos" value="n">
+                <span>N intentos</span>
+              </label>
+              <label class="chip-radio">
+                <input type="radio" name="intentos" value="uno">
+                <span>Uno solo</span>
+              </label>
+            </div>
+            <div class="intentos-extra" id="intentos-extra">
+              <label for="f-intentos-num">Cantidad:</label>
+              <input id="f-intentos-num" type="number" min="2" max="10" value="3" data-od-id="input-cantidad-intentos">
+            </div>
+          </div>
+
+          <div class="switchrow" data-od-id="config-tardias">
+            <div class="switchrow-txt">
+              <b>Permitir entregas tardías</b>
+              <p>Llegan después de la fecha límite y quedan marcadas como tardías para corregir igual.</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="f-tardias" checked data-od-id="switch-tardias">
+              <span class="pista" aria-hidden="true"></span>
+              <span class="sr-only">Permitir entregas tardías</span>
+            </label>
+          </div>
+
+          <div class="nota-config" data-od-id="nota-config-modificable">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11v5"/>
+            </svg>
+            <p style="margin:0"><b>Esta configuración es modificable en cualquier momento,</b> incluso con la consigna ya publicada.</p>
+          </div>
+
+          <div class="form-actions">
+            <a class="btn btn-ghost" href="consignas.html" data-od-id="btn-cancelar-consigna">Cancelar</a>
+            <button class="btn btn-primary" type="submit" data-od-id="btn-crear-consigna">Crear consigna</button>
+          </div>
+
+        </form>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Dropzone de adjuntos ---------- */
+  var dropzone = $('#dropzone');
+  var inputArchivos = $('#f-archivos');
+  var listaArchivos = $('#lista-archivos');
+
+  function pesoLegible(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function pintarArchivos(files) {
+    listaArchivos.innerHTML = '';
+    Array.prototype.forEach.call(files, function (file) {
+      var li = document.createElement('li');
+      li.className = 'archivo';
+      var nombre = document.createElement('span');
+      nombre.className = 'nombre';
+      nombre.textContent = file.name;
+      var peso = document.createElement('span');
+      peso.className = 'peso';
+      peso.textContent = pesoLegible(file.size);
+      var quitar = document.createElement('button');
+      quitar.type = 'button';
+      quitar.className = 'quitar';
+      quitar.textContent = 'Quitar';
+      quitar.addEventListener('click', function () {
+        li.remove();
+        try { inputArchivos.value = ''; } catch (e) {}
+      });
+      li.appendChild(nombre);
+      li.appendChild(peso);
+      li.appendChild(quitar);
+      listaArchivos.appendChild(li);
+    });
+  }
+
+  inputArchivos.addEventListener('change', function () {
+    pintarArchivos(inputArchivos.files);
+  });
+
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    dropzone.addEventListener(ev, function (e) {
+      e.preventDefault();
+      dropzone.classList.add('drag');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dropzone.addEventListener(ev, function (e) {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+    });
+  });
+  dropzone.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files.length) {
+      try {
+        inputArchivos.files = e.dataTransfer.files;
+      } catch (err) {
+        pintarArchivos(e.dataTransfer.files);
+        return;
+      }
+      pintarArchivos(inputArchivos.files);
+    }
+  });
+
+  /* ---------- Intentos condicionales ---------- */
+  var radiosIntentos = document.querySelectorAll('input[name="intentos"]');
+  var extra = $('#intentos-extra');
+  radiosIntentos.forEach(function (r) {
+    r.addEventListener('change', function () {
+      extra.classList.toggle('show', this.value === 'n');
+      if (this.value === 'n') $('#f-intentos-num').focus();
+    });
+  });
+
+  /* ---------- Envío (demo estática) ---------- */
+  $('#form-consigna').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var titulo = $('#f-titulo');
+    var instrucciones = $('#f-instrucciones');
+    if (!titulo.value.trim()) { titulo.focus(); aviso('Ponle un título a la consigna.'); return; }
+    if (!instrucciones.value.trim()) { instrucciones.focus(); aviso('Contale qué tienen que hacer los alumnos.'); return; }
+    var runtime = document.querySelector('input[name="runtime"]:checked').value;
+    aviso('Consigna «' + titulo.value.trim() + '» creada · runtime ' + runtime);
+  });
+})();
+</script>
+
+</body>
+</html>

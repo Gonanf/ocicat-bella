@@ -1,0 +1,110 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { salas, materiales, instaladores } from '../data/mock';
+
+const conteoPorSala = salas.map((s) => ({
+  ...s,
+  total: materiales.filter((m) => m.salaId === s.id).length,
+}));
+
+const filtros = ['Todos', 'Libro', 'Doc', 'Video'];
+---
+
+<Layout titulo="Materiales" active="materiales">
+  <div class="py-8 border-b border-base-300 flex flex-wrap justify-between items-end gap-4 mb-6">
+    <div>
+      <h1 class="font-display font-normal text-5xl tracking-tight">Materiales</h1>
+      <p class="mt-2 text-base-content/60">La biblioteca de la sala: bajá lo que necesites o subí lo que falte.</p>
+    </div>
+    <button type="button" class="btn rounded-full border border-base-300 bg-base-100 hover:border-base-content">＋ Subir material</button>
+  </div>
+
+  <div class="grid lg:grid-cols-[260px_1fr] gap-6 items-start">
+    <aside aria-label="Materias" class="card lg:sticky lg:top-24">
+      <div class="card-body py-4 px-3 gap-1">
+        <p class="px-2 pb-1 font-mono text-[11px] uppercase tracking-[0.12em] text-base-content/60">Materias</p>
+        {conteoPorSala.map((s, i) => (
+          <button
+            type="button"
+            aria-pressed={i === 0 ? 'true' : 'false'}
+            class:list={[
+              'btn w-full justify-between rounded-xl border-transparent',
+              i === 0 ? 'bg-neutral text-neutral-content' : 'bg-base-100 text-base-content hover:bg-base-300',
+            ]}
+          >
+            <span>{s.nombre}</span>
+            <span class:list={['badge badge-sm font-mono', i === 0 ? 'badge-neutral' : 'badge-ghost']}>{s.total}</span>
+          </button>
+        ))}
+      </div>
+    </aside>
+
+    <section>
+      <div class="flex flex-wrap gap-2 items-center mb-4">
+        <input
+          type="search"
+          placeholder="Buscar en la materia…"
+          aria-label="Buscar materiales"
+          class="input input-bordered flex-1 min-w-56 rounded-full bg-base-100 border-base-300 focus:border-primary"
+        />
+        <div role="group" aria-label="Filtrar por tipo" class="flex gap-2 flex-wrap">
+          {filtros.map((f, i) => (
+            <button
+              type="button"
+              aria-pressed={i === 0 ? 'true' : 'false'}
+              class:list={[
+                'btn btn-sm rounded-full',
+                i === 0 ? 'bg-neutral text-neutral-content border-transparent' : 'bg-base-100 border-base-300 hover:border-base-content',
+              ]}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-3">
+        {materiales.map((m) => (
+          <article class="card bg-base-100 border border-base-300 hover:border-base-300 transition-colors">
+            <div class="card-body p-4 gap-2">
+              <div class="flex items-start justify-between gap-2">
+                <h2 class="font-semibold text-sm leading-snug break-words">{m.nombre}</h2>
+                <span class="badge badge-sm badge-ghost font-mono shrink-0">{m.etiqueta}</span>
+              </div>
+              <p class="text-xs text-base-content/60">
+                {m.tamano} · {m.fecha} · {m.autor}
+              </p>
+              <div class="card-actions justify-end pt-2 border-t border-base-300 mt-1">
+                <button type="button" class="btn btn-xs rounded-full border border-base-300 bg-base-100 hover:border-base-content">Descargar</button>
+                <button type="button" class="btn btn-xs btn-ghost rounded-full">Ver</button>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <section aria-label="Instaladores" class="mt-10">
+        <div class="mb-3">
+          <h2 class="font-display font-normal text-3xl tracking-tight">Instaladores</h2>
+          <p class="text-sm text-base-content/60 mt-1">Para equipar las PCs del aula: bajalos de acá, que ya están probados.</p>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          {instaladores.map((inst) => (
+            <article class="card bg-base-100 border border-base-300">
+              <div class="card-body p-4 flex-row items-center gap-3">
+                <span class="badge badge-primary font-mono">EXE</span>
+                <div class="min-w-0">
+                  <p class="font-semibold text-sm">{inst.nombre}</p>
+                  <p class="text-xs text-base-content/60 truncate">{inst.version}</p>
+                </div>
+                <button type="button" class="btn btn-sm ml-auto rounded-full border border-base-300 bg-base-100 hover:border-base-content">
+                  Descargar
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </section>
+  </div>
+</Layout>

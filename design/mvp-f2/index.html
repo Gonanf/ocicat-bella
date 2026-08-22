@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ocicat Bella · El aula digital de tu escuela</title>
+<meta name="description" content="Materiales, consignas y sandboxes para escuelas técnicas. Entrá como docente o unite a una sala con un código.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --chip-fg: #1B4332;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --chip-fg: #7BC79A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 1080px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header mínimo ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; align-items: center; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Hero: solo dos acciones ---------- */
+  .hero {
+    text-align: center;
+    padding: clamp(56px, 13vh, 120px) 0 clamp(48px, 10vh, 96px);
+  }
+  .eyebrow {
+    margin: 0 0 16px;
+    font-size: .76rem; font-weight: 600; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .hero h1 {
+    margin: 0 auto 18px;
+    max-width: 18ch;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2.6rem, 6.5vw, 4.4rem); line-height: 1.04;
+    letter-spacing: -.01em;
+  }
+  .hero-sub {
+    margin: 0 auto 34px;
+    max-width: 52ch;
+    color: var(--muted); font-size: clamp(1rem, 2vw, 1.15rem);
+  }
+  .hero-acciones {
+    display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
+  }
+
+  /* Acceso secundario discreto */
+  .acceso-secundario { margin: 22px auto 0; font-size: .92rem; color: var(--muted); }
+  .acceso-secundario a {
+    color: var(--accent); font-weight: 600;
+    text-decoration: underline; text-underline-offset: 3px;
+    padding: 4px 6px; border-radius: 6px;
+    transition: background .15s ease;
+  }
+  .acceso-secundario a:hover { background: var(--accent-soft); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 52px; padding: 12px 30px;
+    border-radius: 14px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: 1.02rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-outline { background: transparent; color: var(--accent); border-color: var(--accent); }
+  .btn-outline:hover { background: var(--accent); color: var(--on-accent); }
+
+  /* ---------- Modo visitante ---------- */
+  .visitante-wrap { padding-bottom: clamp(40px, 8vh, 72px); }
+  .visitante {
+    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+    font-size: .95rem; color: var(--muted); text-align: center;
+  }
+  .visitante a {
+    color: var(--accent); font-weight: 600;
+    text-decoration: underline; text-underline-offset: 3px;
+    padding: 4px 6px; border-radius: 6px;
+  }
+  .visitante a:hover { background: var(--accent-soft); }
+
+  /* ---------- Features ---------- */
+  .features-section { padding-bottom: clamp(60px, 10vh, 110px); }
+  .rule { border: none; border-top: 1px solid var(--border); margin: 0 0 clamp(36px, 6vh, 56px); }
+  .features-grid {
+    display: grid; gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+  .feature-card {
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 26px 24px;
+  }
+  .feature-num {
+    font-family: "JetBrains Mono", monospace; font-size: .74rem; font-weight: 600;
+    color: var(--chip-fg);
+    letter-spacing: .1em;
+  }
+  .feature-titulo {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.55rem; line-height: 1.15;
+  }
+  .feature-texto { margin: 0; color: var(--muted); font-size: .95rem; }
+
+  /* ---------- Pie ---------- */
+  .pie {
+    border-top: 1px solid var(--border);
+    padding: 26px 0 40px;
+  }
+  .pie-inner {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 14px; flex-wrap: wrap;
+    font-size: .85rem; color: var(--muted);
+  }
+  .pie-inner span b { color: var(--fg); font-weight: 600; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px) {
+    .header-inner { row-gap: 4px; }
+    .main-nav { order: 3; width: 100%; margin-inline: 0; overflow-x: auto; padding-bottom: 2px; }
+    .nav-link { white-space: nowrap; }
+    .hero-acciones .btn { width: min(320px, 100%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="materiales.html" data-od-id="nav-materiales">Materiales</a>
+      <a class="nav-link" href="sandboxes.html" data-od-id="nav-sandboxes">Sandboxes</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+
+  <section class="hero container" data-od-id="hero-landing">
+    <p class="eyebrow">Ocicat Bella</p>
+    <h1 id="titulo-landing" data-od-id="titulo-landing">El aula digital de tu escuela técnica.</h1>
+    <p class="hero-sub">Materiales, consignas y sandboxes en un solo lugar,
+       hecho para las PC del aula.</p>
+    <div class="hero-acciones" data-od-id="acciones-principales">
+      <a class="btn btn-primary" href="dashboard.html" data-od-id="cta-soy-docente">Soy docente</a>
+      <a class="btn btn-outline" href="login.html" data-od-id="cta-tengo-codigo">Tengo un código</a>
+    </div>
+    <p class="acceso-secundario" data-od-id="link-codigo-escuela">
+      ¿Tenés código de escuela?
+      <a href="login.html" data-od-id="link-entrar-visitante">Entrar como visitante</a>
+    </p>
+  </section>
+
+  <div class="visitante-wrap container">
+    <p class="visitante" data-od-id="nota-modo-visitante">
+      ¿Solo mirando? Como visitante podés recorrer
+      <a href="materiales.html" data-od-id="link-visitante-materiales">los materiales</a> y
+      <a href="sandboxes.html" data-od-id="link-visitante-sandboxes">los proyectos</a>.
+      Para entrar a una sala necesitás tu cuenta.
+    </p>
+  </div>
+
+  <section class="features-section container" aria-labelledby="titulo-features" data-od-id="seccion-features">
+    <hr class="rule">
+    <h2 class="sr-only" id="titulo-features">Qué ofrece Ocicat Bella</h2>
+
+    <div class="features-grid">
+
+      <article class="feature-card" data-od-id="feature-biblioteca">
+        <span class="feature-num">01</span>
+        <h3 class="feature-titulo">Biblioteca compartida</h3>
+        <p class="feature-texto">Guías, apuntes e instaladores probados, con vista previa
+           al toque. Cada sala tiene la suya y nadie busca más por el chat.</p>
+      </article>
+
+      <article class="feature-card" data-od-id="feature-sandboxes">
+        <span class="feature-num">02</span>
+        <h3 class="feature-titulo">Sandboxes efímeros</h3>
+        <p class="feature-texto">Cada trabajo corre aislado en el server de la escuela:
+           prende, se usa y se apaga. Sin instalar nada en las PCs del aula.</p>
+      </article>
+
+      <article class="feature-card" data-od-id="feature-salas">
+        <span class="feature-num">03</span>
+        <h3 class="feature-titulo">Salas con código</h3>
+        <p class="feature-texto">El docente crea la sala y comparte un código corto.
+           Los alumnos se anotan con su cuenta y entran una sola vez.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <footer class="pie">
+    <div class="container pie-inner">
+      <span><b>Ocicat Bella</b> es software libre, hecho para escuelas.</span>
+      <span>v0.1 · prototipo</span>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  document.getElementById('btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+})();
+</script>
+
+</body>
+</html>

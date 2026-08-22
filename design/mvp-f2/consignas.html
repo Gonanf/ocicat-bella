@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consignas · Programación 5.º A · Ocicat Bella</title>
+<meta name="description" content="Consignas de la sala Programación 5.º A: vencimientos, entregas y estados.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --error: #B0413E;
+    --chip-fg: #1B4332;
+    --shadow-card: 0 12px 32px -20px rgba(26, 29, 35, .28);
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --error: #E07A72;
+    --chip-fg: #7BC79A;
+    --shadow-card: 0 12px 32px -18px rgba(0, 0, 0, .6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 1140px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .nav-link[aria-current="page"] { color: var(--accent); font-weight: 600; }
+
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Botones ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 10px 20px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: .97rem;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-mini {
+    display: inline-flex; align-items: center;
+    min-height: 42px; padding-inline: 13px;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong); border-radius: 11px;
+    font: inherit; font-size: .92rem; font-weight: 500; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-mini:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .btn-text {
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-weight: 600; color: var(--accent);
+    padding: 8px 10px; border-radius: 8px; text-decoration: none;
+  }
+  .btn-text:hover { background: var(--accent-soft); text-decoration: underline; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: clamp(30px, 5vw, 48px) 0 28px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap;
+  }
+  .volver {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin: 0 0 14px -10px; padding: 6px 10px; border-radius: 8px;
+    color: var(--muted); text-decoration: none;
+    font-size: .92rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .volver:hover { color: var(--fg); background: var(--accent-soft); }
+  .eyebrow {
+    margin: 0 0 12px;
+    font-size: .76rem; font-weight: 600; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .hero h1 {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2.3rem, 5vw, 3.2rem); line-height: 1.05;
+    letter-spacing: -.01em;
+  }
+  .resumen { margin: 14px 0 0; max-width: 56ch; color: var(--muted); font-size: 1rem; }
+  .hero-side { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; flex-shrink: 0; }
+  .chip-copy { display: flex; align-items: center; gap: 8px; }
+
+  .codigo-chip {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace; font-weight: 600;
+    letter-spacing: .12em; line-height: 1;
+    color: var(--chip-fg);
+    background: var(--accent-soft);
+    border: 1px solid var(--border-strong);
+    padding: 10px 14px; border-radius: 12px;
+  }
+  .codigo-chip.sm { font-size: 1.05rem; padding: 8px 11px; }
+
+  /* ---------- Sub-tabs de la sala ---------- */
+  .subtabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; margin-bottom: 24px; }
+  .subtab {
+    padding: 9px 15px; border-radius: 10px;
+    text-decoration: none; white-space: nowrap;
+    color: var(--muted); font-weight: 500; font-size: .95rem;
+    transition: color .15s ease, background .15s ease;
+  }
+  .subtab:hover { color: var(--fg); background: var(--accent-soft); }
+  .subtab[aria-current="page"] { color: var(--accent); font-weight: 600; background: var(--accent-soft); }
+
+  /* ---------- Lista de consignas ---------- */
+  .lista-section { padding-bottom: 84px; }
+  .rule { border: none; border-top: 1px solid var(--border); margin: 6px 0 8px; }
+
+  .consigna-row {
+    display: flex; gap: 24px; justify-content: space-between;
+    padding: 22px 6px; border-bottom: 1px solid var(--border);
+    transition: background .15s ease;
+  }
+  .consigna-row:hover { background: var(--surface); }
+
+  .row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+  .row-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .row-head h3 {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: 1.4rem; line-height: 1.2;
+  }
+  .chip-runtime {
+    font-size: .7rem; font-weight: 600; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--border-strong);
+    padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  }
+  .row-meta { margin: 0; font-size: .9rem; color: var(--muted); }
+  .vencida { color: var(--error); font-weight: 600; }
+
+  .barra {
+    display: flex; height: 8px; max-width: 420px;
+    border-radius: 99px; overflow: hidden;
+    background: var(--border);
+  }
+  .seg { height: 100%; }
+  .seg.ok { background: var(--accent); }
+  .seg.err { background: var(--error); }
+  .seg.tar { background: var(--amber); }
+
+  .estados {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    list-style: none; margin: 0; padding: 0;
+    font-size: .86rem; color: var(--muted);
+  }
+  .estados li { display: flex; align-items: center; gap: 7px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-ok { background: var(--accent); }
+  .dot-err { background: var(--error); }
+  .dot-tar { background: var(--amber); }
+
+  .row-side {
+    display: flex; flex-direction: column;
+    align-items: flex-end; justify-content: center; gap: 4px;
+    flex-shrink: 0; text-align: right;
+  }
+  .recibidas { font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 1.35rem; line-height: 1; }
+  .recibidas span { color: var(--muted); font-weight: 400; font-size: 1rem; }
+  .side-label {
+    font-size: .66rem; font-weight: 600; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px) {
+    .header-inner { row-gap: 4px; }
+    .main-nav { order: 3; width: 100%; margin-inline: 0; overflow-x: auto; padding-bottom: 2px; }
+    .nav-link { white-space: nowrap; }
+    .hero { align-items: flex-start; flex-direction: column; }
+    .hero-side { align-items: flex-start; }
+    .consigna-row { flex-direction: column; gap: 14px; }
+    .row-side {
+      flex-direction: row; align-items: baseline; justify-content: space-between;
+      width: 100%; text-align: left;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="#" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="dashboard.html" aria-current="page" data-od-id="nav-salas">Salas</a>
+      <a class="nav-link" href="#" data-od-id="nav-materiales">Materiales globales</a>
+      <a class="nav-link" href="#" data-od-id="nav-perfil">Perfil</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="container">
+
+    <section class="hero" data-od-id="hero-consignas">
+      <div>
+        <a class="volver" href="dashboard.html" data-od-id="volver-salas">← Mis salas</a>
+        <p class="eyebrow">Programación · 5.º A · Turno tarde</p>
+        <h1 id="titulo-consignas" data-od-id="titulo-consignas">Consignas</h1>
+        <p class="resumen" id="resumen" data-od-id="resumen-consignas">Cargando resumen…</p>
+      </div>
+      <div class="hero-side">
+        <div class="chip-copy">
+          <span class="codigo-chip sm" data-od-id="chip-codigo-sala">PROG5A</span>
+          <button class="btn-mini" type="button" data-copy="PROG5A"
+                  aria-label="Copiar código de la sala PROG5A" data-od-id="btn-copiar-codigo">Copiar</button>
+        </div>
+        <a class="btn btn-primary" href="consigna-nueva.html" data-od-id="btn-nueva-consigna">+ Nueva consigna</a>
+      </div>
+    </section>
+
+    <nav class="subtabs" aria-label="Secciones de la sala" data-od-id="subnav-sala">
+      <a class="subtab" href="consignas.html" aria-current="page">Consignas</a>
+      <a class="subtab" href="alumnos.html">Alumnos</a>
+      <a class="subtab" href="sala-config.html">Configuración</a>
+    </nav>
+
+    <section class="lista-section" aria-labelledby="titulo-lista">
+      <h2 class="sr-only" id="titulo-lista">Listado de consignas</h2>
+      <div class="consignas-lista" id="lista" data-od-id="lista-consignas">
+
+        <article class="consigna-row" data-od-id="consigna-tp1"
+                 data-recibidas="24" data-total="28" data-ok="20">
+          <div class="row-main">
+            <div class="row-head">
+              <h3>TP1 — Primeros pasos con Python</h3>
+              <span class="chip-runtime">Python</span>
+            </div>
+            <p class="row-meta">Vence el viernes 28 de agosto</p>
+            <div class="barra" role="img" aria-label="20 correctas, 3 con error, 1 tardía de 24 entregas">
+              <i class="seg ok" style="width:71%"></i><i class="seg err" style="width:11%"></i><i class="seg tar" style="width:4%"></i>
+            </div>
+            <ul class="estados">
+              <li><i class="dot dot-ok" aria-hidden="true"></i>20 OK</li>
+              <li><i class="dot dot-err" aria-hidden="true"></i>3 con error</li>
+              <li><i class="dot dot-tar" aria-hidden="true"></i>1 tardía</li>
+              <li>4 sin entregar</li>
+            </ul>
+          </div>
+          <div class="row-side">
+            <b class="recibidas">24<span>/28</span></b>
+            <span class="side-label">entregas</span>
+            <a class="btn-text" href="#" data-od-id="ver-entregas-tp1">Ver entregas</a>
+          </div>
+        </article>
+
+        <article class="consigna-row" data-od-id="consigna-condicionales"
+                 data-recibidas="19" data-total="28" data-ok="15">
+          <div class="row-main">
+            <div class="row-head">
+              <h3>Práctica: condicionales</h3>
+              <span class="chip-runtime">Python</span>
+            </div>
+            <p class="row-meta">Vence el miércoles 2 de septiembre</p>
+            <div class="barra" role="img" aria-label="15 correctas, 3 con error, 1 tardía de 19 entregas">
+              <i class="seg ok" style="width:54%"></i><i class="seg err" style="width:11%"></i><i class="seg tar" style="width:4%"></i>
+            </div>
+            <ul class="estados">
+              <li><i class="dot dot-ok" aria-hidden="true"></i>15 OK</li>
+              <li><i class="dot dot-err" aria-hidden="true"></i>3 con error</li>
+              <li><i class="dot dot-tar" aria-hidden="true"></i>1 tardía</li>
+              <li>9 sin entregar</li>
+            </ul>
+          </div>
+          <div class="row-side">
+            <b class="recibidas">19<span>/28</span></b>
+            <span class="side-label">entregas</span>
+            <a class="btn-text" href="#" data-od-id="ver-entregas-condicionales">Ver entregas</a>
+          </div>
+        </article>
+
+        <article class="consigna-row" data-od-id="consigna-calculadora"
+                 data-recibidas="9" data-total="28" data-ok="7">
+          <div class="row-main">
+            <div class="row-head">
+              <h3>Mini-proyecto: calculadora</h3>
+              <span class="chip-runtime">Python</span>
+            </div>
+            <p class="row-meta">Vence el viernes 11 de septiembre</p>
+            <div class="barra" role="img" aria-label="7 correctas, 1 con error, 1 tardía de 9 entregas">
+              <i class="seg ok" style="width:25%"></i><i class="seg err" style="width:4%"></i><i class="seg tar" style="width:4%"></i>
+            </div>
+            <ul class="estados">
+              <li><i class="dot dot-ok" aria-hidden="true"></i>7 OK</li>
+              <li><i class="dot dot-err" aria-hidden="true"></i>1 con error</li>
+              <li><i class="dot dot-tar" aria-hidden="true"></i>1 tardía</li>
+              <li>19 sin entregar</li>
+            </ul>
+          </div>
+          <div class="row-side">
+            <b class="recibidas">9<span>/28</span></b>
+            <span class="side-label">entregas</span>
+            <a class="btn-text" href="#" data-od-id="ver-entregas-calculadora">Ver entregas</a>
+          </div>
+        </article>
+
+        <article class="consigna-row" data-od-id="consigna-kata"
+                 data-recibidas="14" data-total="28" data-ok="11">
+          <div class="row-main">
+            <div class="row-head">
+              <h3>Kata de funciones</h3>
+              <span class="chip-runtime">Python</span>
+            </div>
+            <p class="row-meta">Sin fecha límite · práctica continua</p>
+            <div class="barra" role="img" aria-label="11 correctas, 2 con error, 1 tardía de 14 entregas">
+              <i class="seg ok" style="width:39%"></i><i class="seg err" style="width:7%"></i><i class="seg tar" style="width:4%"></i>
+            </div>
+            <ul class="estados">
+              <li><i class="dot dot-ok" aria-hidden="true"></i>11 OK</li>
+              <li><i class="dot dot-err" aria-hidden="true"></i>2 con error</li>
+              <li><i class="dot dot-tar" aria-hidden="true"></i>1 tardía</li>
+              <li>14 sin entregar</li>
+            </ul>
+          </div>
+          <div class="row-side">
+            <b class="recibidas">14<span>/28</span></b>
+            <span class="side-label">entregas</span>
+            <a class="btn-text" href="#" data-od-id="ver-entregas-kata">Ver entregas</a>
+          </div>
+        </article>
+
+        <article class="consigna-row" data-od-id="consigna-repaso"
+                 data-recibidas="27" data-total="28" data-ok="21">
+          <div class="row-main">
+            <div class="row-head">
+              <h3>Repaso: listas y bucles</h3>
+              <span class="chip-runtime">Python</span>
+            </div>
+            <p class="row-meta"><span class="vencida">Venció el lunes 3 de agosto</span> · podés seguir corrigiendo</p>
+            <div class="barra" role="img" aria-label="21 correctas, 4 con error, 2 tardías de 27 entregas">
+              <i class="seg ok" style="width:75%"></i><i class="seg err" style="width:14%"></i><i class="seg tar" style="width:7%"></i>
+            </div>
+            <ul class="estados">
+              <li><i class="dot dot-ok" aria-hidden="true"></i>21 OK</li>
+              <li><i class="dot dot-err" aria-hidden="true"></i>4 con error</li>
+              <li><i class="dot dot-tar" aria-hidden="true"></i>2 tardías</li>
+              <li>1 sin entregar</li>
+            </ul>
+          </div>
+          <div class="row-side">
+            <b class="recibidas">27<span>/28</span></b>
+            <span class="side-label">entregas</span>
+            <a class="btn-text" href="#" data-od-id="ver-entregas-repaso">Ver entregas</a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Resumen del hero ---------- */
+  function refrescarResumen() {
+    var rows = document.querySelectorAll('.consigna-row');
+    var suma = function (k) {
+      return Array.prototype.reduce.call(rows, function (acc, r) {
+        return acc + (parseInt(r.dataset[k], 10) || 0);
+      }, 0);
+    };
+    var recibidas = suma('recibidas'), total = suma('total'), ok = suma('ok');
+    var n = rows.length;
+    $('#resumen').textContent =
+      n + (n === 1 ? ' consigna' : ' consignas') +
+      ' · ' + recibidas + ' de ' + total + ' entregas recibidas' +
+      ' · ' + ok + ' correctas.';
+  }
+
+  /* ---------- Copiar código de la sala ---------- */
+  document.querySelector('[data-copy]').addEventListener('click', function () {
+    copiar(this.getAttribute('data-copy'));
+  });
+
+  function copiar(texto) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto).then(
+        function () { aviso('Código ' + texto + ' copiado al portapapeles'); },
+        function () { copiarFallback(texto); }
+      );
+    } else {
+      copiarFallback(texto);
+    }
+  }
+  function copiarFallback(texto) {
+    var ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); aviso('Código ' + texto + ' copiado al portapapeles'); }
+    catch (err) { aviso('No se pudo copiar: el código es ' + texto); }
+    document.body.removeChild(ta);
+  }
+
+  refrescarResumen();
+})();
+</script>
+
+</body>
+</html>

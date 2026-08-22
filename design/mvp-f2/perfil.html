@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perfil · Ocicat Bella</title>
+<meta name="description" content="Tus datos de cuenta, contraseña y sesiones activas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('ocicat-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* sin localStorage: queda claro */ }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #FAF7F2;
+    --surface: #FFFEFC;
+    --fg: #1A1D23;
+    --muted: #575E68;
+    --border: #E5DFD3;
+    --border-strong: #CDC4B4;
+    --accent: #1B4332;
+    --accent-hover: #153829;
+    --accent-soft: #E9F0EB;
+    --on-accent: #FBF9F4;
+    --amber: #8A6D1B;
+    --amber-soft: rgba(138, 109, 27, .09);
+    --error: #B0413E;
+    --error-soft: rgba(176, 65, 62, .10);
+    --chip-fg: #1B4332;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161A;
+    --surface: #1C1F25;
+    --fg: #EDE8DD;
+    --muted: #A9A296;
+    --border: #2A2E36;
+    --border-strong: #3D434E;
+    --accent: #4E9B6F;
+    --accent-hover: #5FAF80;
+    --accent-soft: rgba(78, 155, 111, .14);
+    --on-accent: #101512;
+    --amber: #D9B44A;
+    --amber-soft: rgba(217, 180, 74, .10);
+    --error: #E07A72;
+    --error-soft: rgba(224, 122, 114, .12);
+    --chip-fg: #7BC79A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+  }
+  .skip-link {
+    position: absolute; left: 16px; top: -48px; z-index: 100;
+    background: var(--accent); color: var(--on-accent);
+    padding: 10px 16px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; transition: top .15s ease;
+  }
+  .skip-link:focus-visible { top: 12px; }
+
+  .container { max-width: 760px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 28px); }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex; align-items: center; gap: 24px;
+    min-height: 64px; flex-wrap: wrap; padding-block: 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand-mark { display: block; width: 34px; height: 34px; }
+  .brand-name {
+    font-family: "Instrument Serif", serif; font-size: 1.4rem; line-height: 1;
+    letter-spacing: .01em; white-space: nowrap;
+  }
+  .brand-name em { font-style: italic; color: var(--accent); }
+
+  .main-nav { display: flex; gap: 2px; margin-inline: auto; }
+  .nav-link {
+    display: inline-block; padding: 8px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav-link:hover { color: var(--fg); background: var(--accent-soft); }
+  .nav-link[aria-current="page"] { color: var(--accent); font-weight: 600; }
+
+  .theme-toggle {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="dark"] .icon-moon { display: none; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    padding: clamp(30px, 5vw, 48px) 0 26px;
+  }
+  .avatar {
+    width: 64px; height: 64px; flex-shrink: 0;
+    border-radius: 20px;
+    display: grid; place-items: center;
+    background: var(--accent); color: var(--on-accent);
+    font-family: "Instrument Serif", serif; font-style: italic;
+    font-size: 1.6rem; line-height: 1;
+  }
+  .hero h1 {
+    margin: 0;
+    font-family: "Instrument Serif", serif; font-weight: 400;
+    font-size: clamp(2.1rem, 4.6vw, 2.9rem); line-height: 1.05;
+    letter-spacing: -.01em;
+  }
+  .hero-mail {
+    margin: 4px 0 0;
+    font-family: "JetBrains Mono", monospace; font-size: .88rem;
+    color: var(--muted);
+  }
+
+  /* ---------- Secciones ---------- */
+  .perfil-section { padding-bottom: 90px; }
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: clamp(22px, 4vw, 32px);
+  }
+
+  .sec-title {
+    margin: 36px 0 14px;
+    font-size: .74rem; font-weight: 600; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .sec-title:first-child { margin-top: 0; }
+  .sec-title svg { width: 13px; height: 13px; vertical-align: -1px; margin-right: 7px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { font-size: .9rem; font-weight: 600; }
+  .field input {
+    min-height: 46px; padding: 11px 14px;
+    font: inherit; color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border-strong); border-radius: 11px;
+    transition: border-color .15s ease;
+  }
+  .field input.mono {
+    font-family: "JetBrains Mono", monospace; font-size: .92rem;
+  }
+  .field input::placeholder { color: var(--muted); opacity: 1; }
+  .field input:hover { border-color: var(--accent); }
+  .field-hint { margin: -8px 0 15px; font-size: .8rem; color: var(--muted); }
+
+  /* Sesiones activas */
+  .sesion-lista { display: flex; flex-direction: column; gap: 10px; }
+  .sesion-row {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 12px 15px;
+  }
+  .sesion-logo {
+    width: 38px; height: 38px; flex-shrink: 0;
+    border-radius: 11px;
+    display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--chip-fg);
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: .68rem;
+  }
+  .sesion-info { flex: 1; min-width: 0; }
+  .sesion-nombre { display: block; font-weight: 600; font-size: .94rem; line-height: 1.3; }
+  .sesion-meta { display: block; color: var(--muted); font-size: .8rem; }
+  .badge-actual {
+    display: inline-block; margin-left: 8px;
+    font-size: .62rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--chip-fg); background: var(--accent-soft);
+    border: 1px solid var(--border-strong);
+    padding: 2px 9px; border-radius: 999px;
+    vertical-align: middle;
+  }
+  .btn-cerrar-sesion {
+    flex-shrink: 0;
+    min-height: 38px; padding-inline: 13px;
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-size: .84rem; font-weight: 600;
+    color: var(--error); border-radius: 9px;
+    transition: background .15s ease;
+  }
+  .btn-cerrar-sesion:hover { background: var(--error-soft); }
+  .btn-cerrar-todas {
+    margin-top: 14px;
+    min-height: 42px; padding-inline: 16px;
+    background: transparent; color: var(--error);
+    border: 1px solid currentColor; border-radius: 11px;
+    font: inherit; font-size: .88rem; font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .btn-cerrar-todas:hover { background: var(--error-soft); }
+  .sesiones-vacias[hidden] { display: none; }
+  .sesiones-vacias { margin: 12px 0 0; font-size: .86rem; color: var(--muted); }
+
+  /* Guardar */
+  .form-actions {
+    display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+    margin-top: 34px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .nota-guardado { margin-right: auto; color: var(--muted); font-size: .85rem; max-width: 34ch; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; z-index: 70;
+    transform: translate(-50%, 14px);
+    background: var(--fg); color: var(--bg);
+    padding: 11px 20px; border-radius: 999px;
+    font-size: .93rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    max-width: min(92vw, 480px); text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px) {
+    .header-inner { row-gap: 4px; }
+    .main-nav { order: 3; width: 100%; margin-inline: 0; overflow-x: auto; padding-bottom: 2px; }
+    .nav-link { white-space: nowrap; }
+    .field-row { grid-template-columns: 1fr; }
+    .form-actions { flex-direction: column-reverse; align-items: stretch; }
+    .form-actions .btn { width: 100%; }
+    .nota-guardado { margin-right: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Ir al contenido</a>
+
+<header class="site-header" data-od-id="app-header">
+  <div class="container header-inner">
+    <a class="brand" href="#" data-od-id="brand-logo" aria-label="Ocicat Bella — inicio">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <g fill="var(--accent)">
+          <path d="M8 17 L9.5 4 L18 11 Z"/>
+          <path d="M28 17 L26.5 4 L18 11 Z"/>
+          <rect x="5" y="10" width="26" height="23" rx="10"/>
+        </g>
+        <text x="18" y="27.5" text-anchor="middle"
+              font-family="Instrument Serif, serif" font-style="italic" font-size="16"
+              fill="var(--on-accent)">O</text>
+      </svg>
+      <span class="brand-name">Ocicat <em>bella</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="nav-link" href="mis-salas.html" data-od-id="nav-mis-salas">Mis salas</a>
+      <a class="nav-link" href="perfil.html" aria-current="page" data-od-id="nav-perfil">Perfil</a>
+    </nav>
+
+    <button class="theme-toggle" type="button" id="btn-tema" data-od-id="btn-toggle-tema"
+            aria-label="Cambiar tema claro u oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+  <div class="container">
+
+    <section class="hero" data-od-id="hero-perfil">
+      <span class="avatar" aria-hidden="true">VC</span>
+      <div>
+        <h1 id="titulo-perfil" data-od-id="titulo-perfil">Perfil</h1>
+        <p class="hero-mail" data-od-id="email-perfil">vcosta@alumnos.epet.edu.ar</p>
+      </div>
+    </section>
+
+    <section class="perfil-section" aria-labelledby="titulo-form">
+      <h2 class="sr-only" id="titulo-form">Datos de tu cuenta</h2>
+
+      <form id="form-perfil" novalidate>
+        <div class="form-card">
+
+          <p class="sec-title">Datos personales</p>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-nombre">Nombre completo</label>
+              <input id="f-nombre" type="text" value="Valentina Costa" autocomplete="name" data-od-id="input-nombre">
+            </div>
+            <div class="field">
+              <label for="f-email">Email</label>
+              <input id="f-email" type="email" value="vcosta@alumnos.epet.edu.ar" autocomplete="email" data-od-id="input-email">
+            </div>
+          </div>
+
+          <p class="sec-title" id="sec-password">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            Cambiar contraseña
+          </p>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-pass-actual">Contraseña actual</label>
+              <input id="f-pass-actual" type="password" autocomplete="current-password" placeholder="••••••••">
+            </div>
+            <div class="field">
+              <label for="f-pass-nueva">Contraseña nueva</label>
+              <input id="f-pass-nueva" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+            </div>
+          </div>
+          <div class="field" style="max-width:50%">
+            <label for="f-pass-repetir">Repetir contraseña nueva</label>
+            <input id="f-pass-repetir" type="password" autocomplete="new-password" placeholder="Otra vez, por las dudas">
+          </div>
+
+          <p class="sec-title" id="sec-sesiones">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Sesiones activas
+          </p>
+          <div class="sesion-lista" id="lista-sesiones" data-od-id="lista-sesiones">
+            <div class="sesion-row">
+              <span class="sesion-logo" aria-hidden="true">LIN</span>
+              <div class="sesion-info">
+                <span class="sesion-nombre">Chrome en Linux<span class="badge-actual">Esta sesión</span></span>
+                <span class="sesion-meta">Buenos Aires · activa ahora</span>
+              </div>
+            </div>
+            <div class="sesion-row">
+              <span class="sesion-logo" aria-hidden="true">AND</span>
+              <div class="sesion-info">
+                <span class="sesion-nombre">Firefox en Android</span>
+                <span class="sesion-meta">Buenos Aires · hace 3 días</span>
+              </div>
+              <button class="btn-cerrar-sesion" type="button">Cerrar</button>
+            </div>
+            <div class="sesion-row">
+              <span class="sesion-logo" aria-hidden="true">WIN</span>
+              <div class="sesion-info">
+                <span class="sesion-nombre">Edge en Windows</span>
+                <span class="sesion-meta">La Plata · hace 2 semanas</span>
+              </div>
+              <button class="btn-cerrar-sesion" type="button">Cerrar</button>
+            </div>
+          </div>
+          <p class="sesiones-vacias" id="sesiones-vacias" hidden>No quedan otras sesiones abiertas.</p>
+          <button class="btn-cerrar-todas" type="button" id="btn-cerrar-otras" data-od-id="btn-cerrar-otras-sesiones">Cerrar otras sesiones</button>
+
+          <div class="form-actions">
+            <p class="nota-guardado">El email es tu identificador: si lo cambiás, entrás con el nuevo.</p>
+            <button class="btn btn-primary" type="submit" data-od-id="btn-guardar-perfil">Guardar cambios</button>
+          </div>
+
+        </div>
+      </form>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" data-od-id="toast-global"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (sel) { return document.querySelector(sel); };
+
+  /* ---------- Tema ---------- */
+  var root = document.documentElement;
+  $('#btn-tema').addEventListener('click', function () {
+    var nuevo = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nuevo);
+    try { localStorage.setItem('ocicat-theme', nuevo); } catch (e) { /* modo privado */ }
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = $('#toast');
+  var toastTimer = null;
+  function aviso(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Sesiones individuales ---------- */
+  $('#lista-sesiones').addEventListener('click', function (e) {
+    var btn = e.target.closest('.btn-cerrar-sesion');
+    if (!btn) return;
+    var fila = btn.closest('.sesion-row');
+    var nombre = fila.querySelector('.sesion-nombre');
+    nombre.childNodes[0].textContent = nombre.childNodes[0].textContent.replace(/ $/, '');
+    var titulo = fila.querySelector('.sesion-nombre').textContent.trim();
+    fila.remove();
+    aviso('Cerraste la sesión de «' + titulo.replace('Esta sesión', '').trim() + '».');
+    chequearVacio();
+  });
+
+  function otrasSesiones() {
+    return document.querySelectorAll('#lista-sesiones .btn-cerrar-sesion').length;
+  }
+  function chequearVacio() {
+    $('#btn-cerrar-otras').hidden = otrasSesiones() === 0;
+    $('#sesiones-vacias').hidden = otrasSesiones() !== 0;
+  }
+
+  /* ---------- Cerrar otras sesiones ---------- */
+  $('#btn-cerrar-otras').addEventListener('click', function () {
+    document.querySelectorAll('#lista-sesiones .btn-cerrar-sesion').forEach(function (b) {
+      b.closest('.sesion-row').remove();
+    });
+    chequearVacio();
+    aviso('Cerramos tus otras sesiones. Esta queda activa.');
+  });
+
+  /* ---------- Guardar cambios ---------- */
+  $('#form-perfil').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    var passActual = $('#f-pass-actual').value;
+    var passNueva = $('#f-pass-nueva').value;
+    var passRepetir = $('#f-pass-repetir').value;
+
+    if (passActual || passNueva || passRepetir) {
+      if (!passActual) { $('#f-pass-actual').focus(); aviso('Para cambiarla, primero escribí tu contraseña actual.'); return; }
+      if (passNueva.length < 8) { $('#f-pass-nueva').focus(); aviso('La contraseña nueva necesita al menos 8 caracteres.'); return; }
+      if (passNueva !== passRepetir) { $('#f-pass-repetir').focus(); aviso('Las contraseñas nuevas no coinciden.'); return; }
+      $('#f-pass-actual').value = '';
+      $('#f-pass-nueva').value = '';
+      $('#f-pass-repetir').value = '';
+      aviso('Cambios guardados · contraseña actualizada.');
+      return;
+    }
+
+    var nombre = $('#f-nombre').value.trim();
+    aviso(nombre ? 'Cambios guardados para ' + nombre.split(' ')[0] + '.' : 'Completá tu nombre antes de guardar.');
+  });
+
+  chequearVacio();
+})();
+</script>
+
+</body>
+</html>

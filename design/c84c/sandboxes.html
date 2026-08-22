@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sandboxes — Ocicat Bella</title>
+<link rel="stylesheet" href="ocicat-editorial.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html"><span class="brand-mark">O</span><span class="brand-text"><span class="brand-name">Ocicat Bella</span><br><span class="brand-tag">escuelas que producen</span></span></a>
+    <nav class="nav" id="nav"><a href="materials.html">Materiales</a><a href="sandboxes.html" class="active">Sandboxes</a><a href="join.html">Unirse</a></nav>
+    <div class="header-actions">
+      <span class="sala-pill"><span class="dot"></span> <strong>5°A · OCI-7F3K</strong> · Técnica N°4</span>
+      <a class="btn btn-primary" href="#">+ Nuevo sandbox</a>
+      <span class="avatar">MR</span>
+      <button class="hamburger" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Sala Programación 5°A · OCI-7F3K · 24 alumnos</p>
+      <h1>Sandboxes de la sala.</h1>
+      <p class="lead" style="font-size:15px; margin:0">Cada grupo corre el suyo. Vivos o guardados, siempre a mano para revisar.</p>
+    </div>
+    <div class="limit-bar" style="min-width:280px">
+      <span style="font-weight:600; white-space:nowrap">3 / 5 ejecuciones simultáneas</span>
+      <span class="progress"><i style="width:60%"></i></span>
+      <span style="font-size:11px; color:#6B6E72">históricos no cuentan, solo vivos</span>
+    </div>
+  </div>
+
+  <div class="chips" id="fchips" style="margin-bottom:16px">
+    <button class="chip active" data-f="todos">Todos 5</button>
+    <button class="chip" data-f="running">Corriendo 2</button>
+    <button class="chip" data-f="historical">Histórico 2</button>
+    <button class="chip" data-f="stopped">Detenidos 2</button>
+  </div>
+
+  <div class="grid-2" id="grid">
+    <article class="sbx-card" data-status="running">
+      <div class="sbx-top">
+        <span class="sbx-icon py">PY</span>
+        <div style="flex:1"><div class="sbx-title">contador.py</div><div class="sbx-meta">Alumno-7F3K-12 · hace 18 s · Python 3.12</div></div>
+        <span class="badge badge-running"><i></i> ejecutando</span>
+      </div>
+      <div class="tags"><span class="tag-sm">Python 3.12</span><span class="tag-sm">job</span><span class="tag-sm">histórico</span></div>
+      <div class="sbx-foot"><span>⏱ 00:18 · run #42</span><a class="btn btn-primary btn-sm" href="sandbox-detail.html">Ver ejecución</a></div>
+    </article>
+
+    <article class="sbx-card" data-status="running">
+      <div class="sbx-top">
+        <span class="sbx-icon web">WEB</span>
+        <div style="flex:1"><div class="sbx-title">pizarra-colaborativa</div><div class="sbx-meta">Tomi · hace 2 min · Node 20 / Web</div></div>
+        <span class="badge badge-running"><i></i> ejecutando</span>
+      </div>
+      <div class="tags"><span class="tag-sm">Node 20</span><span class="tag-sm">service</span><span class="tag-sm">efímero</span></div>
+      <div class="sbx-foot"><span>↗ /s/pizarra-84A · vivo</span><a class="btn btn-primary btn-sm" href="sandbox-detail.html">Abrir servicio</a></div>
+    </article>
+
+    <article class="sbx-card" data-status="stopped">
+      <div class="sbx-top">
+        <span class="sbx-icon ard">ARD</span>
+        <div style="flex:1"><div class="sbx-title">sensores-temperatura</div><div class="sbx-meta">Mica · hace 1 h · Arduino C++</div></div>
+        <span class="badge badge-stopped">detenido</span>
+      </div>
+      <div class="tags"><span class="tag-sm">Arduino C++</span><span class="tag-sm">job</span><span class="tag-sm">efímero</span></div>
+      <div class="sbx-foot"><span>⏱ último: 42 s · exit 0</span><a class="btn btn-primary btn-sm" href="sandbox-detail.html">Correr</a></div>
+    </article>
+
+    <article class="sbx-card" data-status="historical">
+      <div class="sbx-top">
+        <span class="sbx-icon py">PY</span>
+        <div style="flex:1"><div class="sbx-title">graficador-csv</div><div class="sbx-meta">Sofi · ayer 15:20 · Python 3.11</div></div>
+        <span class="badge badge-historical">guardado</span>
+      </div>
+      <div class="tags"><span class="tag-sm">Python 3.11</span><span class="tag-sm">job</span><span class="tag-sm">guardado</span></div>
+      <div class="sbx-foot"><span>⏱ 2.1 s · 3 runs guardados</span><span style="display:flex; gap:8px"><a class="btn btn-secondary btn-sm" href="sandbox-detail.html">Ver historial</a><a class="btn btn-primary btn-sm" href="sandbox-detail.html">Correr de nuevo</a></span></div>
+    </article>
+
+    <article class="sbx-card" data-status="stopped">
+      <div class="sbx-top">
+        <span class="sbx-icon ard">ARD</span>
+        <div style="flex:1"><div class="sbx-title">luces-semaforo</div><div class="sbx-meta">Alumno-7F3K-04 · ayer 11:05 · Arduino C++</div></div>
+        <span class="badge badge-stopped">detenido</span>
+      </div>
+      <div class="tags"><span class="tag-sm">Arduino C++</span><span class="tag-sm">job</span><span class="tag-sm">histórico</span></div>
+      <div class="sbx-foot"><span>⏱ 0.9 s · exit 1 · histórico</span><a class="btn btn-secondary btn-sm" href="sandbox-detail.html">Ver historial</a></div>
+    </article>
+  </div>
+</main>
+<footer class="site-footer"><div class="wrap footer-inner"><span>© 2026 Ocicat Bella · 5°A — 3 sandboxes vivos de 5 permitidos.</span><span class="footer-links"><a href="materials.html">Materiales</a><a href="join.html">Unirse</a><a href="index.html">Inicio</a></span></div></footer>
+<script>
+const chips=[...document.querySelectorAll('#fchips .chip')], cards=[...document.querySelectorAll('.sbx-card')];
+chips.forEach(c=>c.addEventListener('click',()=>{
+  chips.forEach(x=>x.classList.remove('active')); c.classList.add('active');
+  const f=c.dataset.f;
+  cards.forEach(card=>{
+    const s=card.dataset.status;
+    card.style.display=(f==='todos'||s===f)?'flex':'none';
+  });
+}));
+</script>
+</body>
+</html>

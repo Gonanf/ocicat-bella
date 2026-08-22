@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unirse a una sala — Ocicat Bella</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topnav" data-od-id="topnav">
+  <div class="container topnav-inner">
+    <a class="brand" href="index.html" data-od-id="brand-home">
+      <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M8 15 9.2 4.5 15.5 10Z" fill="var(--accent)"/>
+        <path d="M28 15 26.8 4.5 20.5 10Z" fill="var(--accent)"/>
+        <circle cx="18" cy="21" r="11.5" fill="var(--fg)"/>
+        <circle cx="11" cy="17.5" r="1.7" fill="var(--accent)" opacity=".85"/>
+        <circle cx="24" cy="24" r="2" fill="var(--accent)" opacity=".85"/>
+        <circle cx="19.5" cy="29" r="1.3" fill="var(--accent)" opacity=".7"/>
+        <circle cx="14" cy="19.5" r="1.7" fill="var(--surface)"/>
+        <circle cx="22" cy="19.5" r="1.7" fill="var(--surface)"/>
+        <path d="M16.7 23.6h2.6L18 25.6Z" fill="var(--accent)"/>
+      </svg>
+      <span class="brand-name">Ocicat <em>Bella</em></span>
+    </a>
+    <nav aria-label="Principal">
+      <ul class="nav-links">
+        <li><a class="nav-link" href="index.html">Inicio</a></li>
+        <li><a class="nav-link" href="materiales.html">Materiales</a></li>
+        <li><a class="nav-link" href="sandboxes.html">Sandboxes</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="unirse.html" aria-current="page" data-od-id="nav-cta-unirse">Unirse con código</a>
+  </div>
+</header>
+
+<main class="join-main container" data-od-id="join-main">
+
+  <form class="card join-card" id="join-form" novalidate data-od-id="join-card">
+
+    <div class="join-cat" aria-hidden="true">
+      <svg width="52" height="52" viewBox="0 0 36 36">
+        <path d="M8 15 9.2 4.5 15.5 10Z" fill="var(--accent)"/>
+        <path d="M28 15 26.8 4.5 20.5 10Z" fill="var(--accent)"/>
+        <circle cx="18" cy="21" r="11.5" fill="var(--fg)"/>
+        <circle cx="11" cy="17.5" r="1.7" fill="var(--accent)" opacity=".85"/>
+        <circle cx="24" cy="24" r="2" fill="var(--accent)" opacity=".85"/>
+        <circle cx="19.5" cy="29" r="1.3" fill="var(--accent)" opacity=".7"/>
+        <circle cx="14" cy="19.5" r="1.7" fill="var(--surface)"/>
+        <circle cx="22" cy="19.5" r="1.7" fill="var(--surface)"/>
+        <path d="M16.7 23.6h2.6L18 25.6Z" fill="var(--accent)"/>
+      </svg>
+    </div>
+
+    <h1 class="join-title" data-od-id="join-title">Unirse a una sala</h1>
+    <p class="join-sub">Escribí el código que te pasó tu profe.</p>
+
+    <label class="state-hint" for="join-code" style="position:absolute;left:-9999px;">Código de la sala</label>
+    <input class="join-input" id="join-code" type="text"
+           placeholder="OCI-7F3K" maxlength="8" autocomplete="off" spellcheck="false"
+           data-od-id="join-input">
+
+    <div class="join-status" id="join-status" role="status" aria-live="polite" data-od-id="join-status">
+      <p class="state-hint">El código tiene entre 6 y 8 caracteres, con letras y números.</p>
+    </div>
+
+    <button class="demo-chip demo-btn" type="button" id="demo-fill" data-od-id="demo-chip">
+      ¿No tenés código? Probá <span class="code">&nbsp;OCI-7F3K</span>
+    </button>
+
+    <details class="optional-name" data-od-id="optional-name">
+      <summary>Opcional: dejá tu nombre para que te encuentren</summary>
+      <input type="text" placeholder="Ej.: Valen" aria-label="Tu nombre (opcional)">
+    </details>
+
+    <p class="join-note" data-od-id="join-note">Sin cuenta, sin mail: el código te deja entrar.</p>
+
+  </form>
+
+</main>
+
+<footer class="footer" data-od-id="footer">
+  <div class="container footer-inner">
+    <span>Ocicat Bella es software libre (FOSS), hecho para escuelas.</span>
+    <span>v0.1 · prototipo</span>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+</body>
+</html>
