@@ -7,6 +7,7 @@ import (
 
 	"github.com/Gonanf/ocicat-bella/backend/internal/config"
 	"github.com/Gonanf/ocicat-bella/backend/internal/middleware"
+	"github.com/Gonanf/ocicat-bella/backend/internal/model"
 	"github.com/Gonanf/ocicat-bella/backend/internal/store"
 )
 
@@ -22,6 +23,8 @@ type Handler struct {
 	magicIPRL     *middleware.IPRateLimiter // 10/h por IP (§0.3)
 	magicEmailRL  *middleware.IPRateLimiter // 3/h por email (§0.3)
 	qrStartRL     *middleware.IPRateLimiter // 60/h por IP (§0.3)
+	joinRL        *middleware.IPRateLimiter // POST /classrooms/join: 20/h por IP (§0.3)
+	guestRL       *middleware.IPRateLimiter // POST /guest/sessions: 20/h por IP (§0.3/§10)
 	loginFailRL   *middleware.FailLimiter   // 5 fallos/15min por email+IP (§0.3)
 	sendMagicLink func(email, link string)  // seam de envío de email; inyectable en tests
 }
@@ -42,11 +45,13 @@ func NewRouter(cfg *config.Config, s store.Store) *Handler {
 		cfg:          cfg,
 		store:        s,
 		mux:          http.NewServeMux(),
-		rateLimiter:  middleware.NewIPRateLimiter(cfg.RateLimitRPH, 20),
+		rateLimiter:  middleware.NewIPRateLimiter(cfg.RateLimitRPH, 200),
 		loginEmailRL: middleware.NewIPRateLimiter(10, 10),
 		magicIPRL:    middleware.NewIPRateLimiter(10, 10),
 		magicEmailRL: middleware.NewIPRateLimiter(3, 3),
 		qrStartRL:    middleware.NewIPRateLimiter(60, 20),
+		joinRL:       middleware.NewIPRateLimiter(20, 20),
+		guestRL:      middleware.NewIPRateLimiter(20, 20),
 		loginFailRL:  middleware.NewFailLimiter(5, 15*60*time.Second),
 	}
 	// DEV: sin SMTP configurado, el link queda en el log del servidor
@@ -94,4 +99,51 @@ func (h *Handler) registerRoutes() {
 	h.mux.Handle("GET /sessions", middleware.RequireAuth(http.HandlerFunc(h.ListSessions)))
 	h.mux.Handle("DELETE /sessions/{id}", middleware.RequireAuth(http.HandlerFunc(h.DeleteSession)))
 	h.mux.Handle("POST /sessions/close-others", middleware.RequireAuth(http.HandlerFunc(h.CloseOthers)))
+
+	h.registerFase4Routes()
+}
+
+// atajos de middleware para las rutas de Fase 4.
+func requireStaff(next http.Handler) http.Handler {
+	// docente o director (director pasa checks de docente, §0.1)
+	return middleware.RequireRole(model.RoleDocente)(next)
+}
+
+func requireAlumno(next http.Handler) http.Handler {
+	return middleware.RequireRole(model.RoleAlumno)(next)
+}
+
+func requireDirector(next http.Handler) http.Handler {
+	return middleware.RequireRole(model.RoleDirector)(next)
+}
+
+func (h *Handler) registerFase4Routes() {
+	// Aulas (§3)
+	guestRO := middleware.RequireNonGuest
+	h.mux.Handle("POST /classrooms", guestRO(requireStaff(http.HandlerFunc(h.CreateClassroom))))
+	h.mux.Handle("GET /classrooms", middleware.RequireAuth(http.HandlerFunc(h.ListClassrooms)))
+	h.mux.Handle("POST /classrooms/join", guestRO(requireAlumno(http.HandlerFunc(h.JoinClassroom))))
+	h.mux.Handle("GET /classrooms/{id}", requireStaff(http.HandlerFunc(h.GetClassroomDetail)))
+	h.mux.Handle("PATCH /classrooms/{id}", guestRO(requireStaff(http.HandlerFunc(h.PatchClassroom))))
+	h.mux.Handle("DELETE /classrooms/{id}", guestRO(requireStaff(http.HandlerFunc(h.DeleteClassroom))))
+	h.mux.Handle("GET /classrooms/{id}/join_code", requireStaff(http.HandlerFunc(h.GetJoinCode)))
+	h.mux.Handle("POST /classrooms/{id}/join_code/rotate", guestRO(requireStaff(http.HandlerFunc(h.RotateJoinCode))))
+	h.mux.Handle("DELETE /classrooms/{id}/membership/me", guestRO(requireAlumno(http.HandlerFunc(h.LeaveClassroom))))
+	h.mux.Handle("GET /classrooms/{id}/students", requireStaff(http.HandlerFunc(h.ListStudents)))
+	h.mux.Handle("DELETE /classrooms/{id}/students/{user_id}", guestRO(requireStaff(http.HandlerFunc(h.RemoveStudent))))
+
+	// Materiales (§6)
+	h.mux.HandleFunc("GET /materials", h.ListMaterials) // pública, filtra por rol
+	h.mux.Handle("POST /classrooms/{id}/materials", guestRO(requireStaff(http.HandlerFunc(h.UploadMaterial))))
+	h.mux.HandleFunc("GET /materials/{id}", h.GetMaterialMeta)
+	h.mux.HandleFunc("GET /materials/{id}/file", h.ServeMaterialFile)
+	h.mux.Handle("PATCH /materials/{id}", guestRO(requireStaff(http.HandlerFunc(h.PatchMaterial))))
+	h.mux.Handle("DELETE /materials/{id}", guestRO(requireStaff(http.HandlerFunc(h.DeleteMaterial))))
+
+	// Escuela: código global + invitados (§9.1, §10)
+	h.mux.Handle("GET /school", requireDirector(http.HandlerFunc(h.SchoolInfo)))
+	h.mux.Handle("POST /school/global-code/regenerate", requireDirector(http.HandlerFunc(h.RegenerateGlobalCode)))
+	h.mux.Handle("DELETE /school/global-code", requireDirector(http.HandlerFunc(h.DisableGlobalCode)))
+	h.mux.HandleFunc("GET /school/public", h.PublicSchoolInfo)
+	h.mux.HandleFunc("POST /guest/sessions", h.GuestSession)
 }
