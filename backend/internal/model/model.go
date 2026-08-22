@@ -113,6 +113,18 @@ type StudentInfo struct {
 	TotalSubmissions int              `json:"total_submissions"` // 0 hasta Fase entregas
 }
 
+// AssignmentStats alimenta GET /assignments/{id}/stats y las métricas del
+// listado docente (§4): {total_students, delivered, tested_ok, test_errors,
+// late, missing} sobre la ÚLTIMA entrega de cada alumno.
+type AssignmentStats struct {
+	TotalStudents int `json:"total_students"`
+	Delivered     int `json:"delivered"`
+	TestedOK      int `json:"tested_ok"`
+	TestErrors    int `json:"test_errors"`
+	Late          int `json:"late"`
+	Missing       int `json:"missing"`
+}
+
 // SchoolStats alimenta GET /school (§9.1).
 type SchoolStats struct {
 	Teachers        int `json:"teachers"`
@@ -238,4 +250,126 @@ func (p *PairingSession) EffectiveStatus(now time.Time) PairingStatus {
 		return PairingExpired
 	}
 	return p.Status
+}
+
+// --- Consignas y entregas (§4, §5) ---
+
+// Runtime es el entorno de ejecución de la consigna (catálogo §10.2).
+type Runtime string
+
+const (
+	RuntimePython  Runtime = "python"
+	RuntimeWeb     Runtime = "web"
+	RuntimeCpp     Runtime = "cpp"
+	RuntimeArduino Runtime = "arduino"
+)
+
+func ValidRuntime(rt Runtime) bool {
+	return rt == RuntimePython || rt == RuntimeWeb || rt == RuntimeCpp || rt == RuntimeArduino
+}
+
+// AttemptsMode: unlimited | limited{max} | one (§4).
+type AttemptsMode string
+
+const (
+	AttemptsUnlimited AttemptsMode = "unlimited"
+	AttemptsLimited   AttemptsMode = "limited"
+	AttemptsOne       AttemptsMode = "one"
+)
+
+// AttemptsConfig guarda la config vigente; Max aplica solo a limited.
+type AttemptsConfig struct {
+	Mode AttemptsMode `json:"mode"`
+	Max  int          `json:"max,omitempty"` // 0 salvo limited
+}
+
+// MaxAttempts resuelve el tope efectivo: unlimited → sin tope (-1).
+func (a AttemptsConfig) MaxAttempts() int {
+	switch a.Mode {
+	case AttemptsOne:
+		return 1
+	case AttemptsLimited:
+		return a.Max
+	default:
+		return -1
+	}
+}
+
+// LatePolicy: allowed (tardías marcadas) | closed (cierra al vencer) (§4).
+type LatePolicy string
+
+const (
+	LateAllowed LatePolicy = "allowed"
+	LateClosed  LatePolicy = "closed"
+)
+
+// Assignment is one consigna (§4). Vive dentro del aula; publicación inmediata.
+// Deleted=true tras DELETE (soft-delete §4): entregas conservadas.
+type Assignment struct {
+	ID            string
+	ClassroomID   string
+	CreatedBy     string
+	Title         string
+	Instructions  string
+	AttachmentIDs []string
+	Runtime       Runtime
+	DueAt         time.Time // zero = sin vencimiento
+	Attempts      AttemptsConfig
+	LatePolicy    LatePolicy
+	Deleted       bool
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+// Attachment is one file adjunto a una consigna (§4). Sin AssignmentID es
+// huérfano: el GC lo purga a las 24 h.
+type Attachment struct {
+	ID           string
+	Filename     string
+	ContentType  string
+	Size         int64
+	Data         []byte
+	UploadedBy   string
+	AssignmentID string // vacío hasta que el create de assignment lo reclame
+	CreatedAt    time.Time
+}
+
+// SubmissionState: draft → delivered (+flags derivados late/tested_ok/test_error, §5).
+type SubmissionState string
+
+const (
+	SubDraft     SubmissionState = "draft"
+	SubDelivered SubmissionState = "delivered"
+)
+
+// SubmissionFile is one file dentro de una submission; Data en store como Material.
+type SubmissionFile struct {
+	ID   string
+	Name string
+	Size int64
+	Data []byte
+}
+
+// TestResult queda null hasta FASE 6 (sandboxes); campo y modelo listos (§5.2).
+type TestResult struct {
+	RunID    string `json:"run_id"`
+	ExitCode int    `json:"exit_code"`
+}
+
+// Submission = UN intento (§5). Al entregar se congela: Files se copia a
+// SnapshotFiles y nada vuelve a mutarla (reintento = nueva draft).
+type Submission struct {
+	ID             string
+	AssignmentID   string
+	StudentID      string
+	AttemptNumber  int
+	State          SubmissionState
+	Files          []SubmissionFile // vivos mientras draft
+	SnapshotFiles  []SubmissionFile // copia inmutable al deliver
+	LastTestResult *TestResult      // nil hasta FASE 6
+	DeliveredAt    time.Time
+	Late           bool
+	TestedOK       bool // derivados al tener test result (FASE 6)
+	TestError      bool
+	CreatedAt      time.Time
 }
