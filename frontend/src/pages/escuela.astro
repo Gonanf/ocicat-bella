@@ -1,0 +1,197 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout titulo="Escuela — acceso de invitado" active="" navRole="anonimo">
+  <!-- Estado 1: ingresar código global -->
+  <section id="vista-codigo" class="min-h-[55vh] grid place-items-center py-10 sm:py-16">
+    <div class="card w-full max-w-xl bg-base-100 border border-base-300 shadow-xl">
+      <div class="card-body items-center text-center py-10 px-6 sm:px-10">
+        <span class="badge badge-warning badge-soft font-mono text-xs font-semibold px-3 py-1 mb-1">
+          Invitados
+        </span>
+        <h1 class="font-display font-normal text-3xl sm:text-4xl tracking-tight text-base-content">
+          Visitar la escuela
+        </h1>
+        <p class="text-sm text-base-content/70 max-w-sm">
+          Con el código global de la escuela podés ver y descargar los materiales que comparte la institución.
+          Si sos alumno, no necesitás esto: entrá con tu cuenta o el código del aula.
+        </p>
+
+        <form id="form-escuela" class="w-full max-w-sm mt-5 flex flex-col gap-3" novalidate>
+          <input
+            id="input-global"
+            type="text"
+            maxlength="16"
+            placeholder="ESCUELA-7K2M"
+            aria-label="Código global de la escuela"
+            autocomplete="off"
+            spellcheck="false"
+            required
+            class="input input-bordered h-16 w-full text-center font-mono text-2xl font-bold tracking-[0.18em] uppercase bg-base-200/60 border-2 border-base-300 rounded-2xl focus:border-primary focus:bg-base-100 focus:outline-none placeholder:text-base-content/30"
+          />
+          <button type="submit" class="btn btn-primary btn-lg rounded-2xl font-semibold shadow-xs" id="btn-ingresar">
+            Entrar como visitante
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Estado 2: vista pública de la escuela -->
+  <div id="vista-escuela" hidden class="py-8 space-y-6">
+    <section class="flex flex-wrap justify-between items-end gap-4 border-b border-base-300 pb-6">
+      <div>
+        <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">Modo visitante · solo lectura</p>
+        <h1 class="font-display font-normal text-4xl sm:text-5xl tracking-tight mt-1" id="titulo-escuela">Escuela …</h1>
+        <p class="mt-2 text-sm text-base-content/60 max-w-xl">
+          Los materiales públicos y escolares de esta institución. Podés verlos y descargarlos;
+          las consignas son privadas del curso.
+        </p>
+      </div>
+      <a href="/login/" class="btn btn-outline btn-sm rounded-full shrink-0">Tengo cuenta</a>
+    </section>
+
+    <div class="grid sm:grid-cols-2 gap-3" id="grid-publicos"></div>
+    <p id="sin-publicos" hidden class="text-sm text-base-content/60 py-8 text-center">
+      La escuela todavía no publicó materiales para visitantes.
+    </p>
+
+    <!-- Mutación como invitado → copy 403 guest_read_only (CU-1) -->
+    <button type="button" id="btn-intentar-subir" class="btn btn-outline rounded-full border-base-300 hover:border-error hover:text-error">
+      ＋ Subir material
+    </button>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { ApiError, guestSession, listMaterials, materialFileUrl, me, schoolPublic, type Material } from '../lib/api';
+
+  (() => {
+    const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
+    const toast = $('#toast');
+    const toastMsg = $('#toast-msg');
+    let toastTimer: ReturnType<typeof setTimeout> | null = null;
+    function aviso(msg: string) {
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer ?? undefined);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+      }, 3000);
+    }
+
+    function escapeHtml(s: string): string {
+      return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+    }
+
+    // Copy exacto del contrato §10 para cualquier mutación de invitado
+    const COPY_GUEST = 'Las consignas son privadas del curso; para participar necesitás que tu docente te dé de alta.';
+
+    function card(m: Material): string {
+      const tipo = { pdf: 'PDF', video: 'VID', image: 'IMG', office: 'DOC', other: 'ARC' }[m.type];
+      const fecha = new Date(m.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+      return `
+      <article class="card bg-base-100 border border-base-300">
+        <div class="card-body p-4 gap-2">
+          <div class="flex items-start justify-between gap-2">
+            <h2 class="font-semibold text-sm leading-snug break-words">${escapeHtml(m.title)}</h2>
+            <span class="badge badge-sm badge-ghost font-mono shrink-0">${tipo}</span>
+          </div>
+          <p class="text-xs text-base-content/60">${m.subject ? `${escapeHtml(m.subject)} · ` : ''}${escapeHtml(m.uploaded_by)} · ${fecha}</p>
+          <div class="card-actions justify-end pt-2 border-t border-base-300 mt-1">
+            <a href="${materialFileUrl(m.id)}" target="_blank" rel="noopener" class="btn btn-xs btn-ghost rounded-full">Ver</a>
+            <a href="${materialFileUrl(m.id, true)}" class="btn btn-xs rounded-full border border-base-300 bg-base-100 hover:border-base-content">Descargar</a>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    async function mostrarEscuela() {
+      try {
+        const { name } = await schoolPublic();
+        $('#titulo-escuela')!.textContent = `Escuela ${name}`;
+        const { materials } = await listMaterials({ scope: 'public' });
+        $('#grid-publicos')!.innerHTML = materials.map(card).join('');
+        $('#sin-publicos')!.hidden = materials.length > 0;
+        $('#vista-codigo')!.hidden = true;
+        $('#vista-escuela')!.hidden = false;
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          // sesión de invitado vencida → volver al código
+          return;
+        }
+        aviso('No pudimos cargar la escuela. Intentá de nuevo.');
+      }
+    }
+
+    async function init() {
+      // ¿Ya hay sesión de invitado?
+      try {
+        const yo = await me();
+        if (yo.role === 'invitado') {
+          await mostrarEscuela();
+          return;
+        }
+        // Alumno/docente/director no necesita el flujo de invitado
+        window.location.href = yo.role === 'alumno' ? '/mis-salas/' : '/dashboard/';
+        return;
+      } catch {
+        // anónimo → mostrar formulario
+      }
+    }
+
+    $('#form-escuela')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = $('#input-global') as HTMLInputElement;
+      const btn = $('#btn-ingresar') as HTMLButtonElement;
+      const code = input.value.trim().toUpperCase();
+      if (!code) {
+        input.focus();
+        aviso('Ingresá el código global de la escuela.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Entrando…';
+      try {
+        await guestSession(code); // 201 + cookie de invitado (§10)
+        $('#vista-codigo')!.hidden = true;
+        await mostrarEscuela();
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.code === 'invalid_code' || err.status === 404) {
+            aviso('Este código ya no funciona; pedile el nuevo a la escuela.');
+            input.select();
+          } else if (err.code === 'rate_limited') {
+            const mins = err.retryAfter ? Math.ceil(err.retryAfter / 60) : 0;
+            aviso(`Demasiados intentos. Probá de nuevo${mins > 0 ? ` en ${mins} min` : ' más tarde'}.`);
+          } else {
+            aviso(err.message || 'No pudimos conectar con el servidor.');
+          }
+        } else {
+          aviso('No pudimos conectar con el servidor.');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Entrar como visitante';
+      }
+    });
+
+    // Mutación como invitado → límite CU-1/CU-14
+    $('#btn-intentar-subir')?.addEventListener('click', () => {
+      aviso(COPY_GUEST);
+    });
+
+    void init();
+  })();
+</script>
