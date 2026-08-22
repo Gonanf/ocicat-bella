@@ -11,11 +11,12 @@ import (
 	"github.com/Gonanf/ocicat-bella/backend/internal/model"
 )
 
-// Store sentinel errors for magic-token consumption (§2.2).
+// Store sentinel errors for magic-token consumption (§2.2) and QR pairing claims (§2.3).
 var (
-	ErrNotFound     = fmt.Errorf("resource not found")
-	ErrTokenExpired = fmt.Errorf("token expired")
-	ErrTokenUsed    = fmt.Errorf("token already used")
+	ErrNotFound       = fmt.Errorf("resource not found")
+	ErrTokenExpired   = fmt.Errorf("token expired")
+	ErrTokenUsed      = fmt.Errorf("token already used")
+	ErrAlreadyClaimed = fmt.Errorf("pairing already claimed")
 )
 
 // Store defines the storage operations required by the backend.
@@ -37,6 +38,19 @@ type Store interface {
 	CreateMagicToken(ctx context.Context, token *model.MagicToken) error
 	ConsumeMagicToken(ctx context.Context, token string, now time.Time) (*model.MagicToken, error)
 
+	// Pairing sessions QR inverso (§2.3): transiciones atómicas single-use.
+	// Scan/Claim/Deny devuelven ErrNotFound | ErrTokenExpired | ErrAlreadyClaimed
+	// cuando la transición no aplica al estado actual.
+	CreatePairingSession(ctx context.Context, p *model.PairingSession) error
+	GetPairingSession(ctx context.Context, pairingID string) (*model.PairingSession, error)
+	GetPairingSessionByToken(ctx context.Context, qrToken string) (*model.PairingSession, error)
+	ScanPairingSession(ctx context.Context, pairingID, userID string, now time.Time) error
+	// ClaimPairingSession marca scanned→confirmed exactamente una vez y crea la
+	// sesión pc_temporal del alumno en la misma operación; claims concurrentes:
+	// uno gana, el resto ErrAlreadyClaimed.
+	ClaimPairingSession(ctx context.Context, pairingID, userID string, sess *model.Session, now time.Time) error
+	DenyPairingSession(ctx context.Context, pairingID, userID string, now time.Time) error
+
 	// Setup wizard (§1): una única escuela por instancia
 	IsConfigured(ctx context.Context) (bool, error)
 	CreateSchool(ctx context.Context, school *model.School) error
@@ -49,6 +63,7 @@ type MemStore struct {
 	users    map[string]*model.User
 	sessions map[string]*model.Session
 	tokens   map[string]*model.MagicToken
+	pairings map[string]*model.PairingSession // clave: PairingID
 	school   *model.School
 }
 
@@ -58,6 +73,7 @@ func NewMemStore() *MemStore {
 		users:    make(map[string]*model.User),
 		sessions: make(map[string]*model.Session),
 		tokens:   make(map[string]*model.MagicToken),
+		pairings: make(map[string]*model.PairingSession),
 	}
 }
 
@@ -235,4 +251,99 @@ func (m *MemStore) GetSchool(ctx context.Context) (*model.School, error) {
 	}
 	sCopy := *m.school
 	return &sCopy, nil
+}
+
+// --- Pairing sessions QR inverso (§2.3) ---
+
+func copyPairing(p *model.PairingSession) *model.PairingSession {
+	c := *p
+	return &c
+}
+
+func (m *MemStore) CreatePairingSession(ctx context.Context, p *model.PairingSession) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.pairings[p.PairingID] = copyPairing(p)
+	return nil
+}
+
+func (m *MemStore) GetPairingSession(ctx context.Context, pairingID string) (*model.PairingSession, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	p, ok := m.pairings[pairingID]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return copyPairing(p), nil
+}
+
+func (m *MemStore) GetPairingSessionByToken(ctx context.Context, qrToken string) (*model.PairingSession, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for _, p := range m.pairings {
+		if p.QRToken == qrToken {
+			return copyPairing(p), nil
+		}
+	}
+	return nil, ErrNotFound
+}
+
+// transition aplica una transición condicional bajo lock y clasifica el fallo.
+func (m *MemStore) transition(p *model.PairingSession, from model.PairingStatus, userID string, now time.Time) error {
+	if now.After(p.ExpiresAt) {
+		return ErrTokenExpired
+	}
+	if p.Status != from || (userID != "" && p.UserID != userID) {
+		return ErrAlreadyClaimed
+	}
+	return nil
+}
+
+func (m *MemStore) ScanPairingSession(ctx context.Context, pairingID, userID string, now time.Time) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	p, ok := m.pairings[pairingID]
+	if !ok {
+		return ErrNotFound
+	}
+	if err := m.transition(p, model.PairingWaiting, "", now); err != nil {
+		return err
+	}
+	p.Status = model.PairingScanned
+	p.UserID = userID
+	return nil
+}
+
+func (m *MemStore) ClaimPairingSession(ctx context.Context, pairingID, userID string, sess *model.Session, now time.Time) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	p, ok := m.pairings[pairingID]
+	if !ok {
+		return ErrNotFound
+	}
+	if err := m.transition(p, model.PairingScanned, userID, now); err != nil {
+		return err
+	}
+	p.Status = model.PairingConfirmed
+	sCopy := *sess
+	m.sessions[sess.ID] = &sCopy
+	p.SessionID = sess.ID
+	return nil
+}
+
+func (m *MemStore) DenyPairingSession(ctx context.Context, pairingID, userID string, now time.Time) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	p, ok := m.pairings[pairingID]
+	if !ok {
+		return ErrNotFound
+	}
+	if err := m.transition(p, model.PairingScanned, userID, now); err != nil {
+		return err
+	}
+	p.Status = model.PairingDenied
+	return nil
 }

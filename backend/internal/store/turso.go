@@ -59,8 +59,20 @@ CREATE TABLE IF NOT EXISTS magic_tokens(
 	expires_at TEXT NOT NULL,
 	used_at TEXT
 );
+CREATE TABLE IF NOT EXISTS pairing_sessions(
+	pairing_id TEXT PRIMARY KEY,
+	qr_token TEXT NOT NULL UNIQUE,
+	user_id TEXT NOT NULL DEFAULT '',
+	device_label TEXT NOT NULL DEFAULT '',
+	origin_ip TEXT NOT NULL DEFAULT '',
+	status TEXT NOT NULL,
+	created_at TEXT NOT NULL,
+	expires_at TEXT NOT NULL,
+	session_id TEXT NOT NULL DEFAULT ''
+);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_magic_tokens_user_id ON magic_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_pairing_sessions_user_id ON pairing_sessions(user_id);
 `
 
 // NewTursoStore crea el store contra Turso y ejecuta el schema (idempotente).
@@ -470,4 +482,129 @@ func (t *TursoStore) GetSchool(ctx context.Context) (*model.School, error) {
 		GlobalCode: cellStr(rows[0], 2),
 		CreatedAt:  createdAt,
 	}, nil
+}
+
+// --- Pairing sessions QR inverso (§2.3) ---
+
+const pairingCols = "pairing_id, qr_token, user_id, device_label, origin_ip, status, created_at, expires_at, session_id"
+
+func scanPairing(row []sqlVal) (*model.PairingSession, error) {
+	createdAt, err := cellTime(row, 6)
+	if err != nil {
+		return nil, err
+	}
+	expiresAt, err := cellTime(row, 7)
+	if err != nil {
+		return nil, err
+	}
+	return &model.PairingSession{
+		PairingID:   cellStr(row, 0),
+		QRToken:     cellStr(row, 1),
+		UserID:      cellStr(row, 2),
+		DeviceLabel: cellStr(row, 3),
+		OriginIP:    cellStr(row, 4),
+		Status:      model.PairingStatus(cellStr(row, 5)),
+		CreatedAt:   createdAt,
+		ExpiresAt:   expiresAt,
+		SessionID:   cellStr(row, 8),
+	}, nil
+}
+
+func (t *TursoStore) CreatePairingSession(ctx context.Context, p *model.PairingSession) error {
+	_, err := t.exec(ctx,
+		`INSERT INTO pairing_sessions (`+pairingCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		textArg(p.PairingID), textArg(p.QRToken), textArg(p.UserID), textArg(p.DeviceLabel),
+		textArg(p.OriginIP), textArg(string(p.Status)), timeArg(p.CreatedAt), timeArg(p.ExpiresAt),
+		textArg(p.SessionID))
+	return err
+}
+
+func (t *TursoStore) getPairing(ctx context.Context, where string, arg sqlVal) (*model.PairingSession, error) {
+	rows, err := t.query(ctx, `SELECT `+pairingCols+` FROM pairing_sessions WHERE `+where, arg)
+	if err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return nil, ErrNotFound
+	}
+	return scanPairing(rows[0])
+}
+
+func (t *TursoStore) GetPairingSession(ctx context.Context, pairingID string) (*model.PairingSession, error) {
+	return t.getPairing(ctx, `pairing_id = ?`, textArg(pairingID))
+}
+
+func (t *TursoStore) GetPairingSessionByToken(ctx context.Context, qrToken string) (*model.PairingSession, error) {
+	return t.getPairing(ctx, `qr_token = ?`, textArg(qrToken))
+}
+
+// clasificarTransición relee el pairing para distinguir expirado de ya reclamado.
+func (t *TursoStore) clasificarTransición(ctx context.Context, pairingID string, now time.Time) error {
+	p, err := t.GetPairingSession(ctx, pairingID)
+	if err != nil {
+		return err
+	}
+	if now.After(p.ExpiresAt) {
+		return ErrTokenExpired
+	}
+	return ErrAlreadyClaimed
+}
+
+// ScanPairingSession hace waiting→scanned con UPDATE condicional (single-writer SQLite).
+func (t *TursoStore) ScanPairingSession(ctx context.Context, pairingID, userID string, now time.Time) error {
+	affected, err := t.exec(ctx,
+		`UPDATE pairing_sessions SET status = ?, user_id = ? WHERE pairing_id = ? AND status = ? AND expires_at > ?`,
+		textArg(string(model.PairingScanned)), textArg(userID), textArg(pairingID),
+		textArg(string(model.PairingWaiting)), timeArg(now))
+	if err != nil {
+		return err
+	}
+	if affected == 1 {
+		return nil
+	}
+	return t.clasificarTransición(ctx, pairingID, now)
+}
+
+// ClaimPairingSession hace scanned→confirmed exactamente una vez y crea la sesión
+// pc_temporal en el mismo pipeline; claims concurrentes: uno gana (affected=1).
+// ponytail: el perdedor de una carrera deja su INSERT como sesión huérfana sin
+// entregar; TTL pc_temporal ≤60min la mata sola. Reordenar en 2 pipelines si eso
+// alguna vez importara.
+func (t *TursoStore) ClaimPairingSession(ctx context.Context, pairingID, userID string, sess *model.Session, now time.Time) error {
+	results, err := t.run(ctx,
+		stmtIn{SQL: `INSERT INTO sessions (` + sessionCols + `) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			Args: []sqlVal{
+				textArg(sess.ID), textArg(sess.UserID), textArg(string(sess.Kind)),
+				textArg(sess.DeviceLabel), timeArg(sess.CreatedAt), timeArg(sess.LastSeenAt),
+				timeArg(sess.ExpiresAt),
+			}},
+		stmtIn{SQL: `UPDATE pairing_sessions SET status = ?, session_id = ?
+			WHERE pairing_id = ? AND status = ? AND user_id = ? AND expires_at > ?`,
+			Args: []sqlVal{
+				textArg(string(model.PairingConfirmed)), textArg(sess.ID), textArg(pairingID),
+				textArg(string(model.PairingScanned)), textArg(userID), timeArg(now),
+			}},
+	)
+	if err != nil {
+		return err
+	}
+	if results[1].Response != nil && results[1].Response.Result != nil &&
+		results[1].Response.Result.AffectedRowCount == 1 {
+		return nil
+	}
+	return t.clasificarTransición(ctx, pairingID, now)
+}
+
+func (t *TursoStore) DenyPairingSession(ctx context.Context, pairingID, userID string, now time.Time) error {
+	affected, err := t.exec(ctx,
+		`UPDATE pairing_sessions SET status = ? WHERE pairing_id = ? AND status = ? AND user_id = ? AND expires_at > ?`,
+		textArg(string(model.PairingDenied)), textArg(pairingID),
+		textArg(string(model.PairingScanned)), textArg(userID), timeArg(now))
+	if err != nil {
+		return err
+	}
+	if affected == 1 {
+		return nil
+	}
+	return t.clasificarTransición(ctx, pairingID, now)
 }

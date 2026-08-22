@@ -119,3 +119,48 @@ func (s *Session) IsExpired(now time.Time) bool {
 
 	return false
 }
+
+// PairingStatus de un pairing QR inverso (§2.3). "expired" nunca se persiste:
+// EffectiveStatus lo deriva de ExpiresAt; confirmed/denied son terminales.
+type PairingStatus string
+
+const (
+	PairingWaiting   PairingStatus = "waiting"
+	PairingScanned   PairingStatus = "scanned"
+	PairingConfirmed PairingStatus = "confirmed"
+	PairingDenied    PairingStatus = "denied"
+	PairingExpired   PairingStatus = "expired"
+)
+
+const (
+	// QRTTL is the pairing session lifetime ([C3]: ≤90s single-use).
+	QRTTL = 90 * time.Second
+	// QRRefreshAfter es la regeneración sugerida para la PC (segundos, §2.3).
+	QRRefreshAfter = 60
+)
+
+// PairingSession is one inverse-QR login attempt on a shared PC (CU-16).
+type PairingSession struct {
+	PairingID   string // opaco, para poll de la PC; independiente del QRToken
+	QRToken     string // ≥128 bits base64url; lo que codifica el QR
+	UserID      string // cuenta del celular tras /scan; vacío mientras waiting
+	DeviceLabel string // autodeclarado por la PC ([C3]: decorativo)
+	OriginIP    string // IP de quien creó el QR; se muestra en el celular [C3]
+	Status      PairingStatus
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
+	SessionID   string // sesión pc_temporal emitida al confirmar
+}
+
+// EffectiveStatus resuelve el estado visible: los terminales son definitivos;
+// vencido gana sobre waiting/scanned.
+func (p *PairingSession) EffectiveStatus(now time.Time) PairingStatus {
+	switch p.Status {
+	case PairingConfirmed, PairingDenied:
+		return p.Status
+	}
+	if now.After(p.ExpiresAt) {
+		return PairingExpired
+	}
+	return p.Status
+}
