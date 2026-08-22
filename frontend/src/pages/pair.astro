@@ -1,0 +1,358 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout titulo="Conectar con QR" active="pair" hideNav={false}>
+  <div class="py-6 md:py-10 flex flex-col items-center">
+    
+    <!-- Contenedor Principal Pair -->
+    <div class="w-full max-w-[860px] card bg-base-100 border border-base-300 shadow-sm overflow-hidden">
+      
+      <!-- Barra de identificación de equipo -->
+      <div class="bg-base-200/80 border-b border-base-300 px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="relative flex size-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+            <span class="relative inline-flex rounded-full size-2.5 bg-success"></span>
+          </span>
+          <span class="font-mono font-bold text-sm text-primary tracking-wide">LAB-PC07</span>
+          <span class="text-xs text-base-content/60 font-medium">· Laboratorio 1 · Fila 2</span>
+        </div>
+
+        <div class="badge badge-outline font-mono text-[11px] text-base-content/70">
+          Terminal Escolar Compartida
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-base-300">
+
+        <!-- Columna Izquierda: Código QR de un solo uso -->
+        <div class="p-6 sm:p-8 flex flex-col items-center justify-center text-center bg-base-200/40">
+          
+          <div class="relative p-4 bg-white rounded-2xl border-2 border-base-300 shadow-md group transition-transform hover:scale-[1.02]" id="qr-wrapper">
+            <!-- QR Vectorial de Alta Resolución con Branding Ocicat -->
+            <svg class="size-52 sm:size-56 block text-neutral" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Código QR para inicio de sesión en LAB-PC07">
+              <rect width="220" height="220" fill="#FFFFFF"/>
+              <!-- Esquinas / Finder patterns -->
+              <path d="M14 14 H74 V74 H14 Z M26 26 V62 H62 V26 Z M38 38 H50 V50 H38 Z" fill="currentColor"/>
+              <path d="M146 14 H206 V74 H146 Z M158 26 V62 H194 V26 Z M170 38 H182 V50 H170 Z" fill="currentColor"/>
+              <path d="M14 146 H74 V206 H14 Z M26 158 V194 H62 V158 Z M38 170 H50 V182 H38 Z" fill="currentColor"/>
+              
+              <!-- Data modules -->
+              <g fill="currentColor">
+                <rect x="86" y="18" width="10" height="10"/>
+                <rect x="102" y="18" width="10" height="10"/>
+                <rect x="122" y="18" width="10" height="10"/>
+                <rect x="86" y="34" width="10" height="10"/>
+                <rect x="114" y="34" width="10" height="10"/>
+                <rect x="94" y="50" width="10" height="10"/>
+                <rect x="122" y="50" width="10" height="10"/>
+                <rect x="86" y="66" width="10" height="10"/>
+                <rect x="102" y="66" width="10" height="10"/>
+
+                <rect x="18" y="86" width="10" height="10"/>
+                <rect x="34" y="86" width="10" height="10"/>
+                <rect x="50" y="86" width="10" height="10"/>
+                <rect x="66" y="86" width="10" height="10"/>
+                <rect x="86" y="86" width="10" height="10"/>
+                <rect x="114" y="86" width="10" height="10"/>
+                <rect x="138" y="86" width="10" height="10"/>
+                <rect x="162" y="86" width="10" height="10"/>
+                <rect x="194" y="86" width="10" height="10"/>
+
+                <rect x="18" y="102" width="10" height="10"/>
+                <rect x="50" y="102" width="10" height="10"/>
+                <rect x="66" y="102" width="10" height="10"/>
+                <rect x="146" y="102" width="10" height="10"/>
+                <rect x="178" y="102" width="10" height="10"/>
+
+                <rect x="18" y="122" width="10" height="10"/>
+                <rect x="34" y="122" width="10" height="10"/>
+                <rect x="50" y="122" width="10" height="10"/>
+                <rect x="138" y="122" width="10" height="10"/>
+                <rect x="162" y="122" width="10" height="10"/>
+                <rect x="194" y="122" width="10" height="10"/>
+
+                <rect x="86" y="146" width="10" height="10"/>
+                <rect x="114" y="146" width="10" height="10"/>
+                <rect x="138" y="146" width="10" height="10"/>
+                <rect x="170" y="146" width="10" height="10"/>
+                <rect x="194" y="146" width="10" height="10"/>
+
+                <rect x="86" y="162" width="10" height="10"/>
+                <rect x="102" y="162" width="10" height="10"/>
+                <rect x="146" y="162" width="10" height="10"/>
+                <rect x="162" y="162" width="10" height="10"/>
+                <rect x="178" y="162" width="10" height="10"/>
+
+                <rect x="94" y="178" width="10" height="10"/>
+                <rect x="122" y="178" width="10" height="10"/>
+                <rect x="138" y="178" width="10" height="10"/>
+                <rect x="186" y="178" width="10" height="10"/>
+
+                <rect x="86" y="194" width="10" height="10"/>
+                <rect x="114" y="194" width="10" height="10"/>
+                <rect x="154" y="194" width="10" height="10"/>
+                <rect x="170" y="194" width="10" height="10"/>
+                <rect x="194" y="194" width="10" height="10"/>
+              </g>
+
+              <!-- Logo Ocicat Central -->
+              <rect x="88" y="88" width="44" height="44" rx="10" fill="#FAF7F2" stroke="currentColor" stroke-width="2"/>
+              <g transform="translate(94, 94)">
+                <path d="M4 14 L5.5 3 L14 9 Z" fill="currentColor"/>
+                <path d="M28 14 L26.5 3 L18 9 Z" fill="currentColor"/>
+                <rect x="2" y="8" width="28" height="20" rx="8" fill="currentColor"/>
+                <text x="16" y="23" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="14" fill="#FAF7F2">O</text>
+              </g>
+            </svg>
+
+            <!-- Overlay de Estado (cuando escanea o conecta) -->
+            <div class="absolute inset-0 bg-base-100/95 rounded-2xl hidden flex-col items-center justify-center p-5 text-base-content backdrop-blur-xs" id="qr-overlay">
+              <span class="loading loading-spinner text-primary size-9 mb-3"></span>
+              <strong id="qr-overlay-title" class="text-sm font-bold text-base-content">Dispositivo detectado</strong>
+              <p id="qr-overlay-desc" class="text-xs text-base-content/70 mt-1">Confirmá en tu celular para acceder.</p>
+            </div>
+          </div>
+
+          <!-- Barra de expiración de QR (TTL 60s) -->
+          <div class="w-full max-w-[220px] h-1.5 rounded-full bg-base-300 mt-4 overflow-hidden">
+            <div class="h-full bg-primary transition-all duration-1000 ease-linear" id="timer-progress" style="width: 100%;"></div>
+          </div>
+          
+          <div class="mt-2 text-xs font-mono text-base-content/60" id="timer-caption">
+            El código se renueva en <span id="segundos-restantes" class="font-bold text-base-content">60</span>s
+          </div>
+
+          <button class="btn btn-link btn-xs text-xs text-primary font-medium mt-1 p-0 h-auto" type="button" id="btn-refresh-qr">
+            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+            Generar nuevo código QR
+          </button>
+        </div>
+
+        <!-- Columna Derecha: Instrucciones y Acción -->
+        <div class="p-6 sm:p-8 flex flex-col justify-between gap-6">
+          <div class="space-y-4">
+            <div>
+              <h1 class="font-display font-normal text-2xl sm:text-3xl text-base-content tracking-tight">
+                Iniciá sesión en esta PC
+              </h1>
+              <p class="text-xs sm:text-sm text-base-content/70 mt-1 leading-relaxed">
+                Escaneá este código QR con la app de Ocicat en tu celular. No necesitás escribir contraseñas en computadoras compartidas.
+              </p>
+            </div>
+
+            <!-- Pasos 1, 2, 3 -->
+            <ol class="space-y-3 text-sm">
+              <li class="flex items-start gap-3">
+                <span class="size-7 rounded-full bg-primary/10 text-primary border border-primary/30 font-bold text-xs grid place-items-center shrink-0 mt-0.5">
+                  1
+                </span>
+                <div>
+                  <strong class="font-semibold text-base-content">Abrí Ocicat en tu celular</strong>
+                  <p class="text-xs text-base-content/60">Ingresá a tu app escolar instalada o tu sesión guardada.</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="size-7 rounded-full bg-primary/10 text-primary border border-primary/30 font-bold text-xs grid place-items-center shrink-0 mt-0.5">
+                  2
+                </span>
+                <div>
+                  <strong class="font-semibold text-base-content">Escaneá este código QR</strong>
+                  <p class="text-xs text-base-content/60">Tocá el botón <em>"Escanear QR de PC"</em> en la barra de tu celular.</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="size-7 rounded-full bg-primary/10 text-primary border border-primary/30 font-bold text-xs grid place-items-center shrink-0 mt-0.5">
+                  3
+                </span>
+                <div>
+                  <strong class="font-semibold text-base-content">Confirmá la conexión</strong>
+                  <p class="text-xs text-base-content/60">Aceptá la solicitud <em>"¿Conectar con LAB-PC07?"</em> en tu pantalla.</p>
+                </div>
+              </li>
+            </ol>
+
+            <!-- Caja de Estado en Vivo -->
+            <div class="p-3.5 rounded-xl border border-info/30 bg-info/10 text-xs text-base-content flex items-center gap-3 transition-all" id="status-live-box">
+              <span class="loading loading-spinner loading-xs text-primary shrink-0" id="box-spinner"></span>
+              <div id="box-text">
+                <strong class="font-semibold text-base-content">Esperando escaneo…</strong>
+                <div class="text-[11px] text-base-content/60">Apuntá con la cámara de tu celular al código QR.</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <!-- Botón simulador para abrir PWA de celular en pestaña nueva -->
+            <a
+              href="/pwa-pair/"
+              target="_blank"
+              class="btn btn-outline btn-primary rounded-xl w-full text-xs font-semibold gap-2"
+            >
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+              </svg>
+              Simular escaneo desde mi celular (PWA)
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Pie de Seguridad y Fallback (§13.9.5) -->
+      <div class="bg-base-200/60 border-t border-base-300 p-4 sm:px-6 flex flex-wrap justify-between items-center gap-3 text-xs text-base-content/70">
+        <div class="flex items-center gap-2">
+          <svg class="size-4 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>Sesión temporal (60 min). Se cerrará al cerrar esta pestaña.</span>
+        </div>
+        <div>
+          ¿No tenés tu celular?
+          <a href="/login/" class="font-bold text-primary hover:underline ml-1">
+            Ingresar con email y magic link en esta PC
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Barra de control para evaluación interactiva -->
+    <div class="w-full max-w-[860px] mt-4 p-3 bg-base-100/70 border border-base-300 rounded-xl flex flex-wrap justify-between items-center gap-2 text-xs">
+      <span class="font-semibold text-base-content/60">🧪 Simulador de estados QR:</span>
+      <div class="flex gap-1.5 flex-wrap">
+        <button type="button" class="btn btn-xs btn-outline rounded-lg font-mono" id="sim-wait">1. Esperando</button>
+        <button type="button" class="btn btn-xs btn-outline rounded-lg font-mono" id="sim-scan">2. Escaneado</button>
+        <button type="button" class="btn btn-xs btn-success btn-soft rounded-lg font-mono" id="sim-ok">3. Confirmado</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+
+      // Toast feedback
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer = null;
+      function aviso(msg) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 2800);
+      }
+
+      // Countdown Timer (60s)
+      let segRestantes = 60;
+      const timerEl = $('#segundos-restantes');
+      const progressEl = $('#timer-progress');
+      let intervalTimer = null;
+
+      function iniciarCuentaRegresiva() {
+        segRestantes = 60;
+        if (progressEl) progressEl.style.width = '100%';
+        clearInterval(intervalTimer);
+        intervalTimer = setInterval(() => {
+          segRestantes--;
+          if (segRestantes <= 0) {
+            segRestantes = 60;
+            aviso('Código QR renovado por seguridad.');
+          }
+          if (timerEl) timerEl.textContent = String(segRestantes);
+          const pct = (segRestantes / 60) * 100;
+          if (progressEl) progressEl.style.width = `${pct}%`;
+        }, 1000);
+      }
+      iniciarCuentaRegresiva();
+
+      $('#btn-refresh-qr')?.addEventListener('click', () => {
+        iniciarCuentaRegresiva();
+        aviso('Nuevo código QR efímero generado para LAB-PC07.');
+      });
+
+      // Máquina de estados
+      const statusBox = $('#status-live-box');
+      const boxSpinner = $('#box-spinner');
+      const boxText = $('#box-text');
+      const qrOverlay = $('#qr-overlay');
+      const qrOverlayTitle = $('#qr-overlay-title');
+      const qrOverlayDesc = $('#qr-overlay-desc');
+
+      function setEstado(estado) {
+        if (estado === 'esperando') {
+          qrOverlay?.classList.add('hidden');
+          qrOverlay?.classList.remove('flex');
+          if (statusBox) {
+            statusBox.className = 'p-3.5 rounded-xl border border-info/30 bg-info/10 text-xs text-base-content flex items-center gap-3 transition-all';
+          }
+          if (boxSpinner) boxSpinner.style.display = 'block';
+          if (boxText) {
+            boxText.innerHTML = '<strong class="font-semibold text-base-content">Esperando escaneo…</strong><div class="text-[11px] text-base-content/60">Apuntá con la cámara de tu celular al código QR.</div>';
+          }
+        } else if (estado === 'escaneado') {
+          qrOverlay?.classList.remove('hidden');
+          qrOverlay?.classList.add('flex');
+          if (qrOverlayTitle) qrOverlayTitle.textContent = 'Celular detectado';
+          if (qrOverlayDesc) qrOverlayDesc.textContent = 'Confirmá la conexión en tu teléfono.';
+          if (statusBox) {
+            statusBox.className = 'p-3.5 rounded-xl border border-warning/40 bg-warning/10 text-xs text-base-content flex items-center gap-3 transition-all';
+          }
+          if (boxSpinner) boxSpinner.style.display = 'block';
+          if (boxText) {
+            boxText.innerHTML = '<strong class="font-semibold text-warning-content font-mono">Xiaomi Redmi 10 detectado</strong><div class="text-[11px] text-base-content/70">Esperando que Tiziano confirme en la pantalla de su celular…</div>';
+          }
+          aviso('¡QR escaneado! Confirmá en tu celular.');
+        } else if (estado === 'conectado') {
+          qrOverlay?.classList.remove('hidden');
+          qrOverlay?.classList.add('flex');
+          if (qrOverlayTitle) qrOverlayTitle.textContent = '¡Sesión iniciada!';
+          if (qrOverlayDesc) qrOverlayDesc.textContent = 'Ingresando como Tiziano Maidana…';
+          if (statusBox) {
+            statusBox.className = 'p-3.5 rounded-xl border border-success/40 bg-success/15 text-xs text-base-content flex items-center gap-3 transition-all';
+          }
+          if (boxSpinner) boxSpinner.style.display = 'none';
+          if (boxText) {
+            boxText.innerHTML = '<strong class="font-semibold text-success">✅ ¡Conectado como Tiziano Maidana (5.º 1.ª)!</strong><div class="text-[11px] text-base-content/70">Redirigiendo a tus aulas en 2 segundos…</div>';
+          }
+          aviso('¡Conexión autorizada con éxito!');
+          setTimeout(() => {
+            window.location.href = '/mis-salas/';
+          }, 2000);
+        }
+      }
+
+      $('#sim-wait')?.addEventListener('click', () => setEstado('esperando'));
+      $('#sim-scan')?.addEventListener('click', () => setEstado('escaneado'));
+      $('#sim-ok')?.addEventListener('click', () => setEstado('conectado'));
+
+      // Escucha mensajes entre ventanas (si se abre pwa-pair)
+      window.addEventListener('message', (e) => {
+        if (e.origin !== window.location.origin) return;
+
+        if (e.data === 'qr-scanned') {
+          setEstado('escaneado');
+        } else if (e.data === 'pair-confirmed') {
+          setEstado('conectado');
+        }
+      });
+    })();
+  </script>
+</Layout>

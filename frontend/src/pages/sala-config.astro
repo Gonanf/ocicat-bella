@@ -1,0 +1,249 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { templatesEntornos, herramientasVisibles, salas } from '../data/mock';
+
+const sala = salas[0]; // Programación 5.º A
+---
+
+<Layout titulo={`Configuración — ${sala.nombre}`} active="aulas" navRole="docente">
+  <div class="py-6 sm:py-10 space-y-6">
+
+    <!-- Hero Header -->
+    <section class="pb-2">
+      <a
+        href="/consignas/"
+        class="inline-flex items-center gap-1.5 text-xs text-base-content/60 hover:text-primary transition-colors font-medium mb-2.5"
+      >
+        ← {sala.nombre} · {sala.curso}
+      </a>
+      <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">
+        {sala.nombre} · {sala.curso} · Código {sala.codigo}
+      </p>
+      <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content mt-1">
+        Configuración del aula
+      </h1>
+      <p class="text-sm text-base-content/70 mt-1 max-w-xl">
+        Definí qué pueden usar tus alumnos cuando abren un sandbox y qué herramientas ven mientras trabajan.
+      </p>
+    </section>
+
+    <!-- Sub-navegación del aula -->
+    <nav class="flex gap-1.5 overflow-x-auto pb-1 border-b border-base-300 text-sm font-medium" aria-label="Secciones del aula">
+      <a
+        href="/consignas/"
+        class="px-4 py-2 rounded-xl text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
+      >
+        Consignas (6)
+      </a>
+      <a
+        href="/alumnos/"
+        class="px-4 py-2 rounded-xl text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
+      >
+        Alumnos (28)
+      </a>
+      <a
+        href="/sala-config/"
+        class="px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold"
+        aria-current="page"
+      >
+        Configuración
+      </a>
+    </nav>
+
+    <!-- Formulario de Configuración -->
+    <div class="card bg-base-100 border border-base-300 shadow-sm max-w-3xl p-6 sm:p-8">
+      <form id="form-config" class="space-y-8" novalidate>
+
+        <!-- SECCIÓN 1: Qué pueden usar los alumnos (entornos del ejercicio) -->
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-primary">
+              Qué pueden usar los alumnos
+            </p>
+            <p class="text-xs text-base-content/70 mt-0.5">
+              Elegí los entornos base del ejercicio con los que trabajan en esta aula.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="grid-templates">
+            {templatesEntornos.map((tpl) => (
+              <label class="card bg-base-200/50 hover:bg-primary/5 border border-base-300 has-[:checked]:border-primary has-[:checked]:bg-primary/5 p-4 rounded-2xl cursor-pointer transition-all flex flex-col justify-between gap-2 select-none group">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-mono font-bold text-sm text-base-content group-hover:text-primary">
+                    {tpl.nombre}
+                  </span>
+                  <input
+                    type="checkbox"
+                    name="tpl"
+                    value={tpl.id}
+                    checked={tpl.habilitado}
+                    class="checkbox checkbox-primary checkbox-sm rounded-lg"
+                  />
+                </div>
+                <p class="text-xs text-base-content/65 leading-relaxed">
+                  {tpl.descripcion}
+                </p>
+              </label>
+            ))}
+          </div>
+
+          <p class="text-xs text-base-content/60 font-medium">
+            <strong class="text-base-content font-bold" id="tpl-num">1</strong> de <span>{templatesEntornos.length}</span> entornos habilitados para los alumnos.
+          </p>
+        </div>
+
+        <hr class="border-base-200" />
+
+        <!-- SECCIÓN 2: Herramientas visibles -->
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-primary">
+              Herramientas visibles
+            </p>
+            <p class="text-xs text-base-content/70 mt-0.5">
+              Lo que apagás acá no aparece en el sandbox del alumno.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-2.5" role="group" aria-label="Herramientas visibles en el sandbox">
+            {herramientasVisibles.map((herr) => (
+              <button
+                type="button"
+                class:list={[
+                  'btn btn-sm rounded-full font-semibold transition-all herr-chip gap-2',
+                  herr.activa ? 'btn-primary' : 'btn-outline border-base-300 text-base-content/70 hover:bg-base-200'
+                ]}
+                aria-pressed={herr.activa ? 'true' : 'false'}
+                data-id={herr.id}
+              >
+                <span class="font-mono text-xs opacity-80">{herr.icono}</span>
+                <span>{herr.nombre}</span>
+              </button>
+            ))}
+          </div>
+
+          <p class="text-[11px] text-base-content/50">
+            Tocá cada herramienta para prenderla o apagarla según la dinámica de la clase.
+          </p>
+        </div>
+
+        <hr class="border-base-200" />
+
+        <!-- SECCIÓN 3: Avanzado - Entorno propio -->
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-primary">
+              Avanzado
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-base-200/60 border border-base-300 flex items-start justify-between gap-4">
+            <div>
+              <strong class="text-xs font-bold uppercase tracking-wider text-base-content block">
+                Permitir que los alumnos armen su propio entorno (avanzado)
+              </strong>
+              <p class="text-xs text-base-content/70 mt-0.5 max-w-lg leading-relaxed">
+                Sin esto, todos parten del entorno del ejercicio que definiste arriba.
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              id="f-entorno-propio"
+              class="toggle toggle-warning shrink-0"
+              aria-label="Permitir entorno propio avanzado"
+            />
+          </div>
+
+          <!-- Alerta de seguridad pedagógica -->
+          <div class="p-4 rounded-xl bg-warning/15 border border-warning/30 flex items-start gap-3 text-xs text-base-content">
+            <svg class="size-5 text-warning shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3 2.5 20h19L12 3Z"></path>
+              <path d="M12 10v4"></path>
+              <path d="M12 17h.01"></path>
+            </svg>
+            <p class="leading-relaxed">
+              <strong>Mantenelo apagado salvo que un proyecto lo requiera:</strong> un entorno armado a medida puede consumir muchos recursos del aula o intentar conexiones no deseadas fuera del entorno controlado.
+            </p>
+          </div>
+        </div>
+
+        <!-- Guardar Configuración -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-base-200">
+          <p class="text-xs text-base-content/60 max-w-sm">
+            Los cambios se aplican a los sandboxes nuevos; los que ya están corriendo continúan como están.
+          </p>
+          <button
+            type="submit"
+            class="btn btn-primary btn-sm md:btn-md rounded-xl font-semibold px-6 shrink-0"
+          >
+            Guardar configuración
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+
+      // Toast feedback
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer = null;
+      function aviso(msg) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 2600);
+      }
+
+      // Contador de templates
+      const tpls = document.querySelectorAll('input[name="tpl"]');
+      const numEl = $('#tpl-num');
+      function refrescarConteo() {
+        let count = 0;
+        tpls.forEach((t) => { if (t.checked) count++; });
+        if (numEl) numEl.textContent = String(count);
+      }
+      tpls.forEach((t) => t.addEventListener('change', refrescarConteo));
+      refrescarConteo();
+
+      // Chips de herramientas toggleables
+      document.querySelectorAll('.herr-chip').forEach((chip) => {
+        chip.addEventListener('click', function () {
+          const encendido = this.getAttribute('aria-pressed') === 'true';
+          const nuevo = !encendido;
+          this.setAttribute('aria-pressed', String(nuevo));
+          if (nuevo) {
+            this.classList.add('btn-primary');
+            this.classList.remove('btn-outline', 'border-base-300', 'text-base-content/70');
+          } else {
+            this.classList.remove('btn-primary');
+            this.classList.add('btn-outline', 'border-base-300', 'text-base-content/70');
+          }
+        });
+      });
+
+      // Submit Form
+      $('#form-config')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        aviso('Configuración guardada para Programación · 5.º A.');
+      });
+    })();
+  </script>
+</Layout>
