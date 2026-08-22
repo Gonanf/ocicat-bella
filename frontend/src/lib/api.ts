@@ -24,7 +24,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     credentials: 'include',
     ...init,
     headers: {
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      // multipart (FormData): el browser pone su propio Content-Type con boundary
+      ...(init?.body && !(init.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
       ...init?.headers,
     },
   });
@@ -182,4 +183,174 @@ export async function deleteSession(id: string): Promise<void> {
 
 export async function closeOthers(): Promise<void> {
   await request('/api/v1/sessions/close-others', { method: 'POST' });
+}
+
+// --- Aulas (§3) y Materiales (§6) — Fase 3 ---
+
+export interface Classroom {
+  id: string;
+  name: string;
+  course?: string;
+  shift?: string;
+  join_code?: string;
+  /** Scope director: docente de cada aula. */
+  teacher_name?: string;
+  /** Stats scope docente. */
+  students_count?: number;
+  active_assignments?: number;
+  running_sandboxes?: number;
+  /** Scope alumno: consignas pendientes, o up_to_date=true. */
+  pending_assignments?: number | null;
+  up_to_date?: boolean;
+}
+
+export type MaterialType = 'pdf' | 'video' | 'image' | 'office' | 'other';
+export type MaterialVisibility = 'public' | 'school' | 'classroom';
+
+export interface Material {
+  id: string;
+  title: string;
+  type: MaterialType;
+  visibility: MaterialVisibility;
+  subject?: string;
+  preview_available: boolean;
+  uploaded_by: string;
+  created_at: string;
+}
+
+export interface StudentRow {
+  user_id: string;
+  name: string;
+  email: string;
+  status: 'invited' | 'active';
+  submissions_count?: number;
+}
+
+export interface SchoolInfo {
+  name: string;
+  global_code: { code: string; active: boolean };
+  stats: { teachers: number; classrooms: number; students: number; public_materials: number };
+}
+
+function qs(params: Record<string, string | undefined>): string {
+  const usp = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v) usp.set(k, v);
+  const s = usp.toString();
+  return s ? `?${s}` : '';
+}
+
+export function createClassroom(body: { name: string; course?: string; shift?: string }): Promise<Classroom> {
+  return request('/api/v1/classrooms', json(body));
+}
+
+/** GET /classrooms — scope por rol del contrato §3. */
+export function listClassrooms(): Promise<{ classrooms: Classroom[] }> {
+  return request('/api/v1/classrooms');
+}
+
+export function getClassroom(id: string): Promise<Classroom> {
+  return request(`/api/v1/classrooms/${encodeURIComponent(id)}`);
+}
+
+export function patchClassroom(id: string, patch: Partial<Pick<Classroom, 'name' | 'course' | 'shift'>>): Promise<Classroom> {
+  return request(`/api/v1/classrooms/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(patch) });
+}
+
+/** DELETE = archivar (entregas conservadas). 204. */
+export async function deleteClassroom(id: string): Promise<void> {
+  await request(`/api/v1/classrooms/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export function getJoinCode(id: string): Promise<{ code: string }> {
+  return request(`/api/v1/classrooms/${encodeURIComponent(id)}/join_code`);
+}
+
+/** El código anterior deja de funcionar al instante (§3). */
+export function rotateJoinCode(id: string): Promise<{ code: string }> {
+  return request(`/api/v1/classrooms/${encodeURIComponent(id)}/join_code/rotate`, { method: 'POST' });
+}
+
+/** POST /classrooms/join — 404 invalid_code, 409 already_member. */
+export function joinClassroom(code: string): Promise<{ classroom: Classroom }> {
+  return request('/api/v1/classrooms/join', json({ code }));
+}
+
+/** Abandonar aula: entregas quedan archivadas. 204. */
+export async function leaveClassroom(id: string): Promise<void> {
+  await request(`/api/v1/classrooms/${encodeURIComponent(id)}/membership/me`, { method: 'DELETE' });
+}
+
+export async function listStudents(classroomId: string): Promise<StudentRow[]> {
+  const data = await request<StudentRow[] | { students: StudentRow[] }>(
+    `/api/v1/classrooms/${encodeURIComponent(classroomId)}/students`,
+  );
+  return Array.isArray(data) ? data : data.students;
+}
+
+/** Baja de alumno: entregas archivadas, cuenta intacta. 204. */
+export async function removeStudent(classroomId: string, userId: string): Promise<void> {
+  await request(
+    `/api/v1/classrooms/${encodeURIComponent(classroomId)}/students/${encodeURIComponent(userId)}`,
+    { method: 'DELETE' },
+  );
+}
+
+/** GET /materials?scope=public|mine|classroom:{id}&subject=... — filtra según quien pregunta. */
+export function listMaterials(opts?: { scope?: string; subject?: string }): Promise<{ materials: Material[] }> {
+  return request(`/api/v1/materials${qs({ scope: opts?.scope, subject: opts?.subject })}`);
+}
+
+/** POST /classrooms/{id}/materials — multipart file/title/visibility/subject. */
+export function uploadMaterial(
+  classroomId: string,
+  input: { file: File; title: string; visibility: MaterialVisibility; subject?: string },
+): Promise<Material> {
+  const fd = new FormData();
+  fd.set('file', input.file);
+  fd.set('title', input.title);
+  fd.set('visibility', input.visibility);
+  if (input.subject) fd.set('subject', input.subject);
+  return request(`/api/v1/classrooms/${encodeURIComponent(classroomId)}/materials`, { method: 'POST', body: fd });
+}
+
+export function getMaterial(id: string): Promise<Material> {
+  return request(`/api/v1/materials/${encodeURIComponent(id)}`);
+}
+
+/** Stream con Range; download fuerza Content-Disposition: attachment (§6). */
+export function materialFileUrl(id: string, download = false): string {
+  return `${BASE}/api/v1/materials/${encodeURIComponent(id)}/file${download ? '?download=1' : ''}`;
+}
+
+export function patchMaterial(id: string, patch: Partial<Pick<Material, 'title' | 'visibility' | 'subject'>>): Promise<Material> {
+  return request(`/api/v1/materials/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(patch) });
+}
+
+export async function deleteMaterial(id: string): Promise<void> {
+  await request(`/api/v1/materials/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+// --- Escuela e invitados (§9.1, §10) ---
+
+export function getSchool(): Promise<SchoolInfo> {
+  return request('/api/v1/school');
+}
+
+/** El código anterior muere al instante (§9.1). Solo director. */
+export function regenerateGlobalCode(): Promise<{ code: string }> {
+  return request('/api/v1/school/global-code/regenerate', { method: 'POST' });
+}
+
+export async function disableGlobalCode(): Promise<void> {
+  await request('/api/v1/school/global-code', { method: 'DELETE' });
+}
+
+/** POST /guest/sessions — pública; 201 abre sesión invitado read-only. */
+export function guestSession(code: string): Promise<{ school_name: string }> {
+  return request('/api/v1/guest/sessions', json({ code }));
+}
+
+/** GET /school/public → { name } para la vista pública de escuela (§10). */
+export function schoolPublic(): Promise<{ name: string }> {
+  return request('/api/v1/school/public');
 }
