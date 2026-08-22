@@ -3,29 +3,44 @@ package store
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/Gonanf/ocicat-bella/backend/internal/model"
 )
 
-// Common store errors
+// Store sentinel errors for magic-token consumption (§2.2).
 var (
-	ErrNotFound = fmt.Errorf("resource not found")
+	ErrNotFound     = fmt.Errorf("resource not found")
+	ErrTokenExpired = fmt.Errorf("token expired")
+	ErrTokenUsed    = fmt.Errorf("token already used")
 )
 
 // Store defines the storage operations required by the backend.
-// In PR1 this is backed by an in-memory stub; Turso SQL implementation will be added in PR2.
+// Backed by MemStore (tests/dev) or TursoStore (Turso HTTP API v2, see turso.go).
 type Store interface {
 	// Sessions
 	GetSession(ctx context.Context, sessionID string) (*model.Session, *model.User, error)
 	CreateSession(ctx context.Context, session *model.Session) error
 	TouchSession(ctx context.Context, sessionID string, now time.Time) error
 	DeleteSession(ctx context.Context, sessionID string) error
+	ListSessionsByUser(ctx context.Context, userID string) ([]model.Session, error)
 
 	// Users
 	GetUser(ctx context.Context, userID string) (*model.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*model.User, error)
 	CreateUser(ctx context.Context, user *model.User) error
+
+	// Magic link tokens (single-use atómico: consume marca used_at y valida TTL en una operación)
+	CreateMagicToken(ctx context.Context, token *model.MagicToken) error
+	ConsumeMagicToken(ctx context.Context, token string, now time.Time) (*model.MagicToken, error)
+
+	// Setup wizard (§1): una única escuela por instancia
+	IsConfigured(ctx context.Context) (bool, error)
+	CreateSchool(ctx context.Context, school *model.School) error
+	GetSchool(ctx context.Context) (*model.School, error)
 }
 
 // MemStore is a thread-safe in-memory implementation of Store for development and testing.
@@ -33,6 +48,8 @@ type MemStore struct {
 	mu       sync.RWMutex
 	users    map[string]*model.User
 	sessions map[string]*model.Session
+	tokens   map[string]*model.MagicToken
+	school   *model.School
 }
 
 // NewMemStore creates an initialized MemStore.
@@ -40,6 +57,7 @@ func NewMemStore() *MemStore {
 	return &MemStore{
 		users:    make(map[string]*model.User),
 		sessions: make(map[string]*model.Session),
+		tokens:   make(map[string]*model.MagicToken),
 	}
 }
 
@@ -119,4 +137,102 @@ func (m *MemStore) CreateUser(ctx context.Context, user *model.User) error {
 	uCopy := *user
 	m.users[user.ID] = &uCopy
 	return nil
+}
+
+// GetUserByEmail retrieves a user by email address.
+func (m *MemStore) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, u := range m.users {
+		if strings.EqualFold(u.Email, email) {
+			uCopy := *u
+			return &uCopy, nil
+		}
+	}
+	return nil, ErrNotFound
+}
+
+// ListSessionsByUser returns all sessions of a user, newest first.
+func (m *MemStore) ListSessionsByUser(ctx context.Context, userID string) ([]model.Session, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	var out []model.Session
+	for _, s := range m.sessions {
+		if s.UserID == userID {
+			out = append(out, *s)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.After(out[j].CreatedAt) })
+	return out, nil
+}
+
+// CreateMagicToken stores a magic link token.
+func (m *MemStore) CreateMagicToken(ctx context.Context, token *model.MagicToken) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	tCopy := *token
+	m.tokens[token.Token] = &tCopy
+	return nil
+}
+
+// ConsumeMagicToken atomically validates TTL + single-use and marks the token used.
+func (m *MemStore) ConsumeMagicToken(ctx context.Context, token string, now time.Time) (*model.MagicToken, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	t, ok := m.tokens[token]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if !t.UsedAt.IsZero() {
+		return nil, ErrTokenUsed
+	}
+	if now.After(t.ExpiresAt) {
+		return nil, ErrTokenExpired
+	}
+	t.UsedAt = now
+
+	tCopy := *t
+	return &tCopy, nil
+}
+
+// IsConfigured reports whether the setup wizard has completed (a director exists).
+func (m *MemStore) IsConfigured(ctx context.Context) (bool, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, u := range m.users {
+		if u.Role == model.RoleDirector {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// CreateSchool stores the school instance; errors if one already exists.
+func (m *MemStore) CreateSchool(ctx context.Context, school *model.School) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.school != nil {
+		return fmt.Errorf("school already exists")
+	}
+	sCopy := *school
+	m.school = &sCopy
+	return nil
+}
+
+// GetSchool returns the school instance.
+func (m *MemStore) GetSchool(ctx context.Context) (*model.School, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	if m.school == nil {
+		return nil, ErrNotFound
+	}
+	sCopy := *m.school
+	return &sCopy, nil
 }

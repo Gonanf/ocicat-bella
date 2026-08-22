@@ -30,12 +30,48 @@ const (
 
 // User represents an authenticated user in the system.
 type User struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email,omitempty"`
-	Role     Role   `json:"role"`
-	Disabled bool   `json:"disabled"`
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Email        string `json:"email,omitempty"`
+	Role         Role   `json:"role"`
+	Disabled     bool   `json:"disabled"`
+	PasswordHash string `json:"-"` // bcrypt; vacío para alumnos (solo magic link)
 }
+
+// School is the single school instance created by the setup wizard (§1).
+type School struct {
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	GlobalCode string    `json:"global_code"`
+	CreatedAt  time.Time `json:"-"`
+}
+
+// MagicContext is the request context of a magic link (§2.2).
+type MagicContext string
+
+const (
+	// MagicContextPairingPWA pairs a student phone; única vía a sesión pwa persistente ([C2]).
+	MagicContextPairingPWA MagicContext = "pairing_pwa"
+	// MagicContextLoginPC abre una sesión pc_temporal en la PC que consume.
+	MagicContextLoginPC MagicContext = "login_pc"
+)
+
+// MagicToken is a single-use short-lived token delivered by email (§2.2).
+type MagicToken struct {
+	Token     string
+	UserID    string
+	Context   MagicContext
+	CreatedAt time.Time
+	ExpiresAt time.Time
+	UsedAt    time.Time // zero = sin consumir
+}
+
+const (
+	// MagicLinkTTL is the maximum lifetime of a magic link token (≤10 min, §2.2).
+	MagicLinkTTL = 10 * time.Minute
+	// MaxPWADevices is the device pairing limit per student ([C5], ~3 dispositivos).
+	MaxPWADevices = 3
+)
 
 // Session represents an active user session.
 type Session struct {
