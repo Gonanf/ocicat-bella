@@ -14,6 +14,9 @@ type Config struct {
 	CookieDomain     string
 	RateLimitRPH     int
 	Env              string
+	// OfficialDomain: dominio oficial de la instancia (§0.2 CSRF, §2.3 [C3] anti-quishing).
+	// Vacío (dev): se acepta Origin igual al Host de la request.
+	OfficialDomain string
 }
 
 // Load loads configuration from environment variables with sensible defaults for dev.
@@ -26,6 +29,7 @@ func Load() *Config {
 		CookieDomain:     getEnv("COOKIE_DOMAIN", ""),
 		RateLimitRPH:     getEnvInt("RATE_LIMIT_RPH", 60),
 		Env:              getEnv("ENV", "development"),
+		OfficialDomain:   getEnv("OFFICIAL_DOMAIN", ""),
 	}
 }
 
