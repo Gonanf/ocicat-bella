@@ -1,10 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { salas, perfilMock } from '../data/mock';
-
-// Salas activas del alumno (PROG5A, BASE5B, REDE6B)
-const misSalas = salas.filter((s) => s.id !== 'robotica');
-const totalPendientes = misSalas.reduce((acc, s) => acc + (s.pendientes || 0), 0);
 ---
 
 <Layout titulo="Mis Aulas" active="aulas" navRole="alumno">
@@ -13,141 +8,20 @@ const totalPendientes = misSalas.reduce((acc, s) => acc + (s.pendientes || 0), 0
     <!-- Hero -->
     <section class="flex flex-col gap-1.5 pb-2">
       <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">
-        Hola, {perfilMock.nombre.split(' ')[0]}
+        Hola, <span id="saludo-nombre">…</span>
       </p>
       <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content" id="titulo-mis-salas">
         Mis Aulas
       </h1>
-      <p class="text-sm text-base-content/70" id="resumen-salas">
-        {misSalas.length} {misSalas.length === 1 ? 'aula' : 'aulas'} · {totalPendientes} {totalPendientes === 1 ? 'consigna pendiente' : 'consignas pendientes'} en total.
-      </p>
+      <p class="text-sm text-base-content/70" id="resumen-salas">Cargando aulas…</p>
     </section>
 
     <div class="divider my-0 border-base-300"></div>
 
     <!-- Grid de Aulas -->
-    <section aria-labelledby="titulo-mis-salas" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" id="grid-salas">
-      {misSalas.map((sala) => (
-        <article
-          class="card bg-base-100 border border-base-300 shadow-xs hover:shadow-md hover:border-primary/40 transition-all mi-sala-card"
-          data-nombre={`${sala.nombre} · ${sala.curso}`}
-          data-pendientes={sala.pendientes || 0}
-          data-id={sala.id}
-        >
-          <div class="card-body p-5 md:p-6 gap-4 flex flex-col justify-between">
+    <section aria-labelledby="titulo-mis-salas" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" id="grid-salas"></section>
 
-            <!-- Head: Código + Rol + Menú 3 puntos -->
-            <div class="flex items-center justify-between gap-3">
-              <span class="badge badge-lg bg-primary/10 border border-primary/20 text-primary font-mono font-bold tracking-wider rounded-lg px-3 py-1 text-sm">
-                {sala.codigo}
-              </span>
-
-              <div class="flex items-center gap-2">
-                <span class="badge badge-sm badge-outline text-base-content/70 font-semibold tracking-wide uppercase text-[10px]">
-                  Alumno
-                </span>
-
-                <!-- Dropdown 3 puntos -->
-                <div class="dropdown dropdown-end sala-menu">
-                  <button
-                    type="button"
-                    tabindex="0"
-                    class="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-base-content btn-menu"
-                    aria-haspopup="menu"
-                    aria-expanded="false"
-                    aria-label={`Opciones de ${sala.nombre}`}
-                  >
-                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="5" r="1.9"></circle>
-                      <circle cx="12" cy="12" r="1.9"></circle>
-                      <circle cx="12" cy="19" r="1.9"></circle>
-                    </svg>
-                  </button>
-                  <ul
-                    tabindex="0"
-                    class="dropdown-content menu z-20 mt-1 w-44 rounded-xl bg-base-100 border border-base-300 shadow-xl p-1.5"
-                  >
-                    <li>
-                      <button
-                        type="button"
-                        class="text-error font-semibold hover:bg-error/10 rounded-lg text-xs"
-                        data-abandonar
-                      >
-                        Abandonar aula
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- Info del aula -->
-            <div class="flex flex-col gap-1">
-              <h2 class="font-display font-normal text-2xl tracking-tight text-base-content">
-                {sala.nombre}
-              </h2>
-              <p class="text-xs text-base-content/60">
-                {sala.curso} · {sala.turno} · docente {sala.docente}
-              </p>
-            </div>
-
-            <!-- Fila de Pendientes -->
-            <div class="pt-3 border-t border-base-200 flex items-center justify-between text-sm">
-              <span class="text-base-content/65 text-xs font-medium">Consignas pendientes</span>
-              <div>
-                {(sala.pendientes ?? 0) > 0 ? (
-                  <span class="font-mono font-bold text-warning text-sm">
-                    {sala.pendientes}
-                  </span>
-                ) : (
-                  <span class="inline-flex items-center gap-1 text-primary font-semibold text-xs bg-primary/10 px-2 py-0.5 rounded-full">
-                    <svg class="size-3 stroke-[2.5]" viewBox="0 0 14 14" fill="none" stroke="currentColor">
-                      <path d="M2.5 7.5 5.5 10.5 11.5 3.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                    Al día
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <!-- Acciones -->
-            <div class="acciones-card mt-1">
-              <a
-                href={`/consignas/?sala=${sala.codigo.toLowerCase()}`}
-                class="btn btn-outline btn-primary rounded-xl w-full font-semibold btn-sm md:btn-md"
-              >
-                Entrar al aula
-              </a>
-            </div>
-
-            <!-- Panel Confirmar Abandono (oculto por defecto) -->
-            <div class="confirmar-abandono hidden mt-2 p-3.5 rounded-xl bg-warning/10 border border-warning/25 text-xs flex flex-col gap-3" data-abandono-panel>
-              <div class="flex items-start gap-2.5">
-                <svg class="size-4 text-warning shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 3 2.5 20h19L12 3Z"></path>
-                  <path d="M12 10v4"></path>
-                  <path d="M12 17h.01"></path>
-                </svg>
-                <p class="leading-relaxed text-base-content">
-                  <strong class="font-bold">¿Seguro que querés salir?</strong> Tus entregas quedan archivadas: el docente todavía puede verlas, pero el aula desaparecerá de tu lista.
-                </p>
-              </div>
-              <div class="flex justify-end gap-2">
-                <button type="button" class="btn btn-ghost btn-xs rounded-lg font-medium" data-cancelar>
-                  No, quedarme
-                </button>
-                <button type="button" class="btn btn-error btn-xs rounded-lg font-bold text-error-content" data-confirmar>
-                  Sí, abandonar
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </article>
-      ))}
-    </section>
-
-    <!-- Estado vacío (si abandona todas) -->
+    <!-- Estado vacío (si no pertenece a ninguna / abandona todas) -->
     <div id="sin-salas" class="hidden card bg-base-100 border border-base-300 p-8 text-center">
       <h2 class="font-display font-normal text-2xl text-base-content">No pertenecés a ninguna aula</h2>
       <p class="text-sm text-base-content/60 mt-1 mb-4">Ingresá el código provisto por tu docente para unirte a una clase.</p>
@@ -164,85 +38,220 @@ const totalPendientes = misSalas.reduce((acc, s) => acc + (s.pendientes || 0), 0
     </div>
   </div>
 
-  <script is:inline>
+  <script>
+    import { ApiError, leaveClassroom, listClassrooms, me, type Classroom } from '../lib/api';
+
     (() => {
-      const $ = (sel) => document.querySelector(sel);
+      const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
       const grid = $('#grid-salas');
       const resumen = $('#resumen-salas');
       const sinSalas = $('#sin-salas');
+      const saludo = $('#saludo-nombre');
 
-      // Toast feedback
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
         }, 2800);
       }
 
-      function refrescarResumen() {
-        const cards = document.querySelectorAll('.mi-sala-card');
-        const n = cards.length;
-        if (n === 0) {
-          resumen.textContent = 'No pertenecés a ninguna sala.';
-          if (sinSalas) sinSalas.classList.remove('hidden');
-          return;
-        }
-        let pendientes = 0;
-        cards.forEach((c) => {
-          pendientes += parseInt(c.dataset.pendientes || '0', 10);
-        });
-        resumen.textContent = `${n} ${n === 1 ? 'sala' : 'salas'} · ${pendientes} ${pendientes === 1 ? 'consigna pendiente en total.' : 'consignas pendientes en total.'}`;
+      function escapeHtml(s: string): string {
+        return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
       }
 
-      // Delegación de eventos para abandonar sala
-      if (grid) {
-        grid.addEventListener('click', (e) => {
-          const card = e.target.closest('.mi-sala-card');
-          if (!card) return;
+      // Fila de estado según scope: alumno → pendientes/al día; docente → stats.
+      function filaEstado(a: Classroom, esAlumno: boolean): string {
+        if (esAlumno) {
+          if (a.up_to_date || !a.pending_assignments) {
+            return `
+              <div class="pt-3 border-t border-base-200 flex items-center justify-between text-sm">
+                <span class="text-base-content/65 text-xs font-medium">Consignas pendientes</span>
+                <span class="inline-flex items-center gap-1 text-primary font-semibold text-xs bg-primary/10 px-2 py-0.5 rounded-full">
+                  <svg class="size-3 stroke-[2.5]" viewBox="0 0 14 14" fill="none" stroke="currentColor"><path d="M2.5 7.5 5.5 10.5 11.5 3.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  Al día
+                </span>
+              </div>`;
+          }
+          return `
+            <div class="pt-3 border-t border-base-200 flex items-center justify-between text-sm">
+              <span class="text-base-content/65 text-xs font-medium">Consignas pendientes</span>
+              <span class="font-mono font-bold text-warning text-sm">${a.pending_assignments}</span>
+            </div>`;
+        }
+        return `
+          <div class="pt-3 border-t border-base-200 grid grid-cols-3 gap-2 text-center text-sm">
+            <div><b>${a.students_count ?? 0}</b><span class="block text-[10px] uppercase tracking-wider text-base-content/50">alumnos</span></div>
+            <div><b>${a.active_assignments ?? 0}</b><span class="block text-[10px] uppercase tracking-wider text-base-content/50">consignas</span></div>
+            <div class="flex flex-col items-center">
+              <b class="flex items-center gap-1.5">
+                <span class="size-2 rounded-full ${((a.running_sandboxes ?? 0) > 0) ? 'bg-success animate-pulse' : 'bg-base-300'}"></span>${a.running_sandboxes ?? 0}
+              </b>
+              <span class="text-[10px] uppercase tracking-wider text-base-content/50">prendidos</span>
+            </div>
+          </div>`;
+      }
 
-          const panelAbandono = card.querySelector('[data-abandono-panel]');
-          const nombre = card.dataset.nombre || 'la sala';
+      function cardAula(a: Classroom, esAlumno: boolean, esDirector: boolean): string {
+        const sub = [
+          a.course,
+          a.shift,
+          esAlumno ? `docente ${a.teacher_name ?? ''}` : '',
+          esDirector && a.teacher_name ? `docente ${escapeHtml(a.teacher_name)}` : '',
+        ].filter(Boolean).map(escapeHtml).join(' · ');
+        return `
+        <article class="card bg-base-100 border border-base-300 shadow-xs hover:shadow-md hover:border-primary/40 transition-all mi-sala-card" data-id="${escapeHtml(a.id)}" data-nombre="${escapeHtml(a.name)}">
+          <div class="card-body p-5 md:p-6 gap-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between gap-3">
+              <span class="badge badge-lg bg-primary/10 border border-primary/20 text-primary font-mono font-bold tracking-wider rounded-lg px-3 py-1 text-sm">
+                ${escapeHtml(a.join_code ?? a.id.slice(0, 7))}
+              </span>
+              <div class="flex items-center gap-2">
+                <span class="badge badge-sm badge-outline text-base-content/70 font-semibold tracking-wide uppercase text-[10px]">
+                  ${esAlumno ? 'Alumno' : esDirector ? 'Dirección' : 'Docente'}
+                </span>
+                ${esAlumno ? `
+                <div class="dropdown dropdown-end sala-menu">
+                  <button type="button" tabindex="0" class="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-base-content btn-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Opciones de ${escapeHtml(a.name)}">
+                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"></circle><circle cx="12" cy="12" r="1.9"></circle><circle cx="12" cy="19" r="1.9"></circle></svg>
+                  </button>
+                  <ul tabindex="0" class="dropdown-content menu z-20 mt-1 w-44 rounded-xl bg-base-100 border border-base-300 shadow-xl p-1.5">
+                    <li><button type="button" class="text-error font-semibold hover:bg-error/10 rounded-lg text-xs" data-abandonar>Abandonar aula</button></li>
+                  </ul>
+                </div>` : ''}
+              </div>
+            </div>
 
-          // Botón Abandonar en menú dropdown
-          if (e.target.closest('[data-abandonar]')) {
-            // Cerrar dropdown
-            if (document.activeElement instanceof HTMLElement) {
-              document.activeElement.blur();
-            }
-            if (panelAbandono) {
-              panelAbandono.classList.remove('hidden');
-              panelAbandono.querySelector('[data-confirmar]')?.focus();
-            }
+            <div class="flex flex-col gap-1">
+              <h2 class="font-display font-normal text-2xl tracking-tight text-base-content">${escapeHtml(a.name)}</h2>
+              ${sub ? `<p class="text-xs text-base-content/60">${sub}</p>` : ''}
+            </div>
+
+            ${filaEstado(a, esAlumno)}
+
+            <div class="acciones-card mt-1">
+              <a
+                href=${esAlumno ? `/consignas/?sala=${encodeURIComponent((a.join_code ?? '').toLowerCase())}` : `/alumnos/?classroom=${encodeURIComponent(a.id)}`}
+                class="btn btn-outline btn-primary rounded-xl w-full font-semibold btn-sm md:btn-md"
+              >
+                ${esAlumno ? 'Entrar al aula' : 'Ver alumnos'}
+              </a>
+            </div>
+
+            <div class="confirmar-abandono hidden mt-2 p-3.5 rounded-xl bg-warning/10 border border-warning/25 text-xs flex-col gap-3" data-abandono-panel>
+              <div class="flex items-start gap-2.5">
+                <svg class="size-4 text-warning shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2.5 20h19L12 3Z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg>
+                <p class="leading-relaxed text-base-content">
+                  <strong class="font-bold">¿Seguro que querés salir?</strong> Tus entregas quedan archivadas: el docente todavía puede verlas, pero el aula desaparecerá de tu lista.
+                </p>
+              </div>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-ghost btn-xs rounded-lg font-medium" data-cancelar>No, quedarme</button>
+                <button type="button" class="btn btn-error btn-xs rounded-lg font-bold text-error-content" data-confirmar>Sí, abandonar</button>
+              </div>
+            </div>
+          </div>
+        </article>`;
+      }
+
+      function refrescarResumen(total: number, pendientes: number) {
+        if (!resumen) return;
+        if (total === 0) {
+          resumen.textContent = 'No pertenecés a ninguna aula.';
+          sinSalas?.classList.remove('hidden');
+          return;
+        }
+        resumen.textContent = `${total} ${total === 1 ? 'aula' : 'aulas'}${pendientes > 0 ? ` · ${pendientes} ${pendientes === 1 ? 'consigna pendiente' : 'consignas pendientes'} en total` : ''}.`;
+      }
+
+      async function init() {
+        let role = '';
+        try {
+          const yo = await me();
+          role = yo.role;
+          if (saludo) saludo.textContent = yo.name.split(' ')[0];
+        } catch {
+          window.location.href = '/login/';
+          return;
+        }
+
+        try {
+          const { classrooms } = await listClassrooms();
+          const esAlumno = role === 'alumno';
+          const esDirector = role === 'director';
+          if (role !== 'alumno' && role !== 'docente' && role !== 'director') {
+            window.location.href = '/login/';
             return;
           }
-
-          // Cancelar abandono
-          if (e.target.closest('[data-cancelar]')) {
-            if (panelAbandono) panelAbandono.classList.add('hidden');
+          if (grid) {
+            grid.innerHTML = classrooms.map((a) => cardAula(a, esAlumno, esDirector)).join('');
+          }
+          const pendientes = classrooms.reduce((acc, a) => acc + (esAlumno ? (a.pending_assignments ?? 0) : 0), 0);
+          refrescarResumen(classrooms.length, pendientes);
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
             return;
           }
+          if (resumen) resumen.textContent = 'No pudimos cargar tus aulas. Intentá de nuevo.';
+        }
+      }
 
-          // Confirmar abandono
-          if (e.target.closest('[data-confirmar]')) {
+      // Abandono real: DELETE /classrooms/{id}/membership/me (§3)
+      grid?.addEventListener('click', async (e) => {
+        const target = e.target as HTMLElement;
+        const card = target.closest<HTMLElement>('.mi-sala-card');
+        if (!card) return;
+
+        const panelAbandono = card.querySelector<HTMLElement>('[data-abandono-panel]');
+        const nombre = card.dataset.nombre || 'la aula';
+        const id = card.dataset.id!;
+
+        if (target.closest('[data-abandonar]')) {
+          if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+          if (panelAbandono) {
+            panelAbandono.classList.remove('hidden');
+            panelAbandono.classList.add('flex');
+            panelAbandono.querySelector<HTMLButtonElement>('[data-confirmar]')?.focus();
+          }
+          return;
+        }
+        if (target.closest('[data-cancelar]')) {
+          panelAbandono?.classList.add('hidden');
+          panelAbandono?.classList.remove('flex');
+          return;
+        }
+        if (target.closest('[data-confirmar]')) {
+          const btn = target.closest<HTMLButtonElement>('[data-confirmar]')!;
+          btn.disabled = true;
+          btn.textContent = 'Saliendo…';
+          try {
+            await leaveClassroom(id);
             card.style.opacity = '0';
             card.style.transform = 'scale(0.95)';
             card.style.transition = 'all 0.2s ease';
             setTimeout(() => {
               card.remove();
-              refrescarResumen();
+              const restantes = document.querySelectorAll('.mi-sala-card').length;
+              refrescarResumen(restantes, 0);
               aviso(`Saliste de «${nombre}». Tus entregas quedan archivadas.`);
             }, 200);
+          } catch (err) {
+            btn.disabled = false;
+            btn.textContent = 'Sí, abandonar';
+            aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos salir del aula. Intentá de nuevo.');
           }
-        });
-      }
+        }
+      });
+
+      void init();
     })();
   </script>
 </Layout>

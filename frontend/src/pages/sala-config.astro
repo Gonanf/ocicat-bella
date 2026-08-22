@@ -1,23 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { templatesEntornos, herramientasVisibles, salas } from '../data/mock';
-
-const sala = salas[0]; // Programación 5.º A
+import { templatesEntornos, herramientasVisibles } from '../data/mock';
 ---
 
-<Layout titulo={`Configuración — ${sala.nombre}`} active="aulas" navRole="docente">
+<Layout titulo="Configuración del aula" active="aulas" navRole="docente">
   <div class="py-6 sm:py-10 space-y-6">
 
     <!-- Hero Header -->
     <section class="pb-2">
       <a
-        href="/consignas/"
+        id="nav-volver"
+        href="/dashboard/"
         class="inline-flex items-center gap-1.5 text-xs text-base-content/60 hover:text-primary transition-colors font-medium mb-2.5"
       >
-        ← {sala.nombre} · {sala.curso}
+        ← <span id="h-nombre">Aulas</span>
       </a>
       <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">
-        {sala.nombre} · {sala.curso} · Código {sala.codigo}
+        <span id="h-detalle">Cargando aula…</span>
       </p>
       <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content mt-1">
         Configuración del aula
@@ -30,16 +29,18 @@ const sala = salas[0]; // Programación 5.º A
     <!-- Sub-navegación del aula -->
     <nav class="flex gap-1.5 overflow-x-auto pb-1 border-b border-base-300 text-sm font-medium" aria-label="Secciones del aula">
       <a
+        id="nav-consignas"
         href="/consignas/"
         class="px-4 py-2 rounded-xl text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
       >
-        Consignas (6)
+        Consignas
       </a>
       <a
+        id="nav-alumnos"
         href="/alumnos/"
         class="px-4 py-2 rounded-xl text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
       >
-        Alumnos (28)
+        Alumnos
       </a>
       <a
         href="/sala-config/"
@@ -193,6 +194,29 @@ const sala = salas[0]; // Programación 5.º A
   </div>
 
   <script is:inline>
+    // Wire básico del aula real; la data de sandboxes/settings llega en FE5 (§7).
+    (() => {
+      const classroomId = new URLSearchParams(window.location.search).get('classroom');
+      if (!classroomId) {
+        window.location.href = '/dashboard/';
+        return;
+      }
+      fetch('/api/v1/classrooms/' + encodeURIComponent(classroomId), { credentials: 'include' })
+        .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+        .then((aula) => {
+          const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.textContent = v; };
+          set('h-nombre', aula.name);
+          set('h-detalle', [aula.name, aula.course, aula.shift].filter(Boolean).join(' · '));
+          const navC = document.getElementById('nav-consignas');
+          const navA = document.getElementById('nav-alumnos');
+          if (navC) navC.href = '/consignas/?classroom=' + encodeURIComponent(classroomId);
+          if (navA) navA.href = '/alumnos/?classroom=' + encodeURIComponent(classroomId);
+        })
+        .catch(() => { window.location.href = '/dashboard/'; });
+    })();
+  </script>
+
+  <script is:inline>
     (() => {
       const $ = (sel) => document.querySelector(sel);
 
@@ -242,7 +266,7 @@ const sala = salas[0]; // Programación 5.º A
       // Submit Form
       $('#form-config')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        aviso('Configuración guardada para Programación · 5.º A.');
+          aviso('Configuración guardada. Se aplica a los sandboxes nuevos.');
       });
     })();
   </script>
