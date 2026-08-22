@@ -1,24 +1,22 @@
-// Datos mock del MVP — sin backend. Reemplazar por API real cuando exista.
+// Datos mock del MVP — solo fases aún sin backend (consignas FE4, sandboxes FE5).
+// Aulas/materiales/alumnos ya van contra la API real (src/lib/api.ts).
 
 export type Estado = 'running' | 'stopped' | 'historical';
 export type Tipo = 'python' | 'web' | 'arduino';
 export type Modo = 'job' | 'service';
 
-export interface Sala {
+interface Sala {
   id: string;
   nombre: string;
   codigo: string;
   curso?: string;
   turno?: string;
-  docente?: string;
-  pendientes?: number;
 }
 
+/** ponytail: consumida por consignas/entregas hasta FE4; muere con esos mocks. */
 export const salas: Sala[] = [
-  { id: 'progra', nombre: 'Programación', curso: '5.º A', turno: 'Turno tarde', docente: 'Gabriel M.', codigo: 'PROG5A', pendientes: 3 },
-  { id: 'base-datos', nombre: 'Base de Datos', curso: '5.º B', turno: 'Turno mañana', docente: 'Gabriel M.', codigo: 'BASE5B', pendientes: 0 },
-  { id: 'redes', nombre: 'Redes y Comunicaciones', curso: '6.º B', turno: 'Turno completo', docente: 'Iara S.', codigo: 'REDE6B', pendientes: 1 },
-  { id: 'robotica', nombre: 'Robótica 6°B', curso: '6.º B', turno: 'Turno mañana', docente: 'Luis P.', codigo: 'ROBO6B', pendientes: 0 },
+  { id: 'progra', nombre: 'Programación', curso: '5.º A', turno: 'Turno tarde', codigo: 'PROG5A' },
+  { id: 'robotica', nombre: 'Robótica', curso: '6.º B', turno: 'Turno mañana', codigo: 'ROBO6B' },
 ];
 
 export interface LogLine {
@@ -175,8 +173,14 @@ export const sandboxes: Sandbox[] = [
   },
 ];
 
+// ponytail: salas mínimas para los mocks de sandboxes (FE5); cuando sandboxes van contra API, esto muere.
+const salasSandbox = {
+  progra: { id: 'progra', nombre: 'Programación', codigo: 'PROG5A' },
+  robotica: { id: 'robotica', nombre: 'Robótica', codigo: 'ROBO6B' },
+} as const;
+
 export const getSandbox = (id: string) => sandboxes.find((s) => s.id === id);
-export const salaDe = (id: string) => salas.find((s) => s.id === id);
+export const salaDe = (id: string) => salasSandbox[id as keyof typeof salasSandbox];
 
 export const estadoInfo: Record<Estado, { label: string; badge: string }> = {
   running: { label: 'corriendo', badge: 'badge-success badge-soft' },
@@ -190,51 +194,7 @@ export const tipoLabel: Record<Tipo, string> = {
   arduino: 'Arduino',
 };
 
-// --- Materiales ---
-
-export interface Material {
-  id: string;
-  salaId: string;
-  etiqueta: 'PDF' | 'DOC' | 'VID' | 'PNG';
-  nombre: string;
-  tamano: string;
-  fecha: string;
-  autor: string;
-}
-
-export const materiales: Material[] = [
-  { id: 'guia-listas-bucles', salaId: 'progra', etiqueta: 'PDF', nombre: 'Guía N°3: listas y bucles.pdf', tamano: '1,2 MB', fecha: '12/08', autor: 'Profe-Caro' },
-  { id: 'video-contenedores', salaId: 'progra', etiqueta: 'VID', nombre: 'Video: ¿qué es un contenedor?.mp4', tamano: '48 MB', fecha: '10/08', autor: 'Profe-Caro' },
-  { id: 'apuntes-diccionarios', salaId: 'progra', etiqueta: 'DOC', nombre: 'Apuntes: diccionarios en Python.doc', tamano: '240 kB', fecha: '8/08', autor: 'Alumno-PROG5A-03' },
-  { id: 'tp-adivinanza', salaId: 'progra', etiqueta: 'DOC', nombre: 'Trabajo práctico: la adivinanza.doc', tamano: '96 kB', fecha: '5/08', autor: 'Profe-Caro' },
-  { id: 'guia-condicionales', salaId: 'progra', etiqueta: 'PDF', nombre: 'Guía N°2: condicionales.pdf', tamano: '1,0 MB', fecha: '29/07', autor: 'Profe-Caro' },
-  { id: 'esquema-semaforo', salaId: 'robotica', etiqueta: 'PNG', nombre: 'Robótica: esquema del semáforo.png', tamano: '310 kB', fecha: '25/07', autor: 'Profe-Luis' },
-  { id: 'manual-arduino', salaId: 'robotica', etiqueta: 'PDF', nombre: 'Manual básico de Arduino.pdf', tamano: '3,4 MB', fecha: '22/07', autor: 'Profe-Luis' },
-  { id: 'video-armado-semaforo', salaId: 'robotica', etiqueta: 'VID', nombre: 'Video: armado del semáforo.mp4', tamano: '62 MB', fecha: '20/07', autor: 'Profe-Luis' },
-];
-
-export const instaladores = [
-  { nombre: 'Python', version: '3.12.4 · Win 64-bit · 26 MB' },
-  { nombre: 'Visual Studio Code', version: '1.92 · Win 64-bit · 94 MB' },
-  { nombre: 'Arduino IDE', version: '2.3.2 · Win 64-bit · 190 MB' },
-  { nombre: 'Git', version: '2.46 · Win 64-bit · 58 MB' },
-];
-
 // --- Perfil y Sesiones del Alumno ---
-
-export interface PerfilAlumno {
-  nombre: string;
-  email: string;
-  iniciales: string;
-  escuela: string;
-}
-
-export const perfilMock: PerfilAlumno = {
-  nombre: 'Valentina Costa',
-  email: 'vcosta@alumnos.epet.edu.ar',
-  iniciales: 'VC',
-  escuela: 'E.P.E.T. N° 1',
-};
 
 // --- Consignas y Entregas ---
 
@@ -456,172 +416,6 @@ export const usuariosMock: Record<Rol, UsuarioMock> = {
 
 export const currentMockRole: Rol = 'docente';
 export const currentMockUser = usuariosMock[currentMockRole];
-
-// --- Aulas Docente (B5) ---
-
-export interface AulaDocente {
-  id: string;
-  nombre: string;
-  codigo: string;
-  curso: string;
-  turno: string;
-  especialidad: string;
-  alumnosCount: number;
-  consignasCount: number;
-  sandboxesPrendidos: number;
-}
-
-export const aulasDocente: AulaDocente[] = [
-  {
-    id: 'prog5a',
-    nombre: 'Programación',
-    codigo: 'PROG5A',
-    curso: '5.º A',
-    turno: 'Turno tarde',
-    especialidad: 'Técnica en Programación',
-    alumnosCount: 28,
-    consignasCount: 12,
-    sandboxesPrendidos: 9,
-  },
-  {
-    id: 'base5b',
-    nombre: 'Base de Datos',
-    codigo: 'BASE5B',
-    curso: '5.º B',
-    turno: 'Turno mañana',
-    especialidad: 'Técnica en Programación',
-    alumnosCount: 24,
-    consignasCount: 8,
-    sandboxesPrendidos: 4,
-  },
-  {
-    id: 'redes6b',
-    nombre: 'Redes y Comunicaciones',
-    codigo: 'REDE6B',
-    curso: '6.º B',
-    turno: 'Turno completo',
-    especialidad: 'Técnica en Computación',
-    alumnosCount: 18,
-    consignasCount: 5,
-    sandboxesPrendidos: 2,
-  },
-  {
-    id: 'robo6b',
-    nombre: 'Robótica 6°B',
-    codigo: 'ROBO6B',
-    curso: '6.º B',
-    turno: 'Turno mañana',
-    especialidad: 'Técnica Electrónica',
-    alumnosCount: 16,
-    consignasCount: 4,
-    sandboxesPrendidos: 0,
-  },
-];
-
-// --- Alumnos de un Aula (B7) ---
-
-export interface AlumnoItem {
-  id: string;
-  nombre: string;
-  email: string;
-  alias?: string;
-  ultimaActividad: string;
-  actividadReciente: boolean;
-  entregasCount: number;
-  vetado: boolean;
-  estado: 'activo' | 'invitado_pendiente' | 'vetado';
-}
-
-export const alumnosMock: AlumnoItem[] = [
-  {
-    id: 'al-1',
-    nombre: 'Valentina Costa',
-    email: 'vcosta@alumnos.epet.edu.ar',
-    alias: 'vale.c',
-    ultimaActividad: 'Hoy 10:42',
-    actividadReciente: true,
-    entregasCount: 5,
-    vetado: false,
-    estado: 'activo',
-  },
-  {
-    id: 'al-2',
-    nombre: 'Mateo González',
-    email: 'mgonzalez@alumnos.epet.edu.ar',
-    alias: 'maty_gza',
-    ultimaActividad: 'Hoy 08:15',
-    actividadReciente: true,
-    entregasCount: 4,
-    vetado: false,
-    estado: 'activo',
-  },
-  {
-    id: 'al-3',
-    nombre: 'Camila Ojeda',
-    email: 'cojeda@alumnos.epet.edu.ar',
-    alias: undefined,
-    ultimaActividad: 'Ayer 17:30',
-    actividadReciente: true,
-    entregasCount: 5,
-    vetado: false,
-    estado: 'activo',
-  },
-  {
-    id: 'al-4',
-    nombre: 'Santiago Ríos',
-    email: 'srios@alumnos.epet.edu.ar',
-    alias: 'santii',
-    ultimaActividad: 'Mié 19 · 21:04',
-    actividadReciente: true,
-    entregasCount: 3,
-    vetado: false,
-    estado: 'activo',
-  },
-  {
-    id: 'al-5',
-    nombre: 'Lucía Benítez',
-    email: 'lbenitez@alumnos.epet.edu.ar',
-    alias: undefined,
-    ultimaActividad: 'Lun 17 · 19:22',
-    actividadReciente: true,
-    entregasCount: 4,
-    vetado: false,
-    estado: 'activo',
-  },
-  {
-    id: 'al-6',
-    nombre: 'Tomás Aguirre',
-    email: 'taguirre@alumnos.epet.edu.ar',
-    alias: 'tomi_dev',
-    ultimaActividad: 'Hace 6 días',
-    actividadReciente: false,
-    entregasCount: 2,
-    vetado: false,
-    estado: 'activo',
-  },
-  {
-    id: 'al-7',
-    nombre: 'Micaela Sosa',
-    email: 'msosa@alumnos.epet.edu.ar',
-    alias: 'mica.sosa',
-    ultimaActividad: 'Hace 2 semanas',
-    actividadReciente: false,
-    entregasCount: 1,
-    vetado: false,
-    estado: 'activo',
-  },
-  {
-    id: 'al-8',
-    nombre: 'Bruno Cabral',
-    email: 'bcabral@alumnos.epet.edu.ar',
-    alias: 'brunoc',
-    ultimaActividad: 'Hace 3 semanas',
-    actividadReciente: false,
-    entregasCount: 1,
-    vetado: true,
-    estado: 'vetado',
-  },
-];
 
 // --- Configuración de Sala (B8) ---
 
