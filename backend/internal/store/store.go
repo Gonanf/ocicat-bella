@@ -55,25 +55,56 @@ type Store interface {
 	IsConfigured(ctx context.Context) (bool, error)
 	CreateSchool(ctx context.Context, school *model.School) error
 	GetSchool(ctx context.Context) (*model.School, error)
+	SetSchoolGlobalCode(ctx context.Context, code string, active bool) error
+
+	// Classrooms y membresías (§3)
+	CreateClassroom(ctx context.Context, c *model.Classroom) error
+	GetClassroom(ctx context.Context, id string) (*model.Classroom, error)
+	GetClassroomByCode(ctx context.Context, code string) (*model.Classroom, error)
+	UpdateClassroom(ctx context.Context, c *model.Classroom) error
+	ListClassrooms(ctx context.Context) ([]model.Classroom, error)
+
+	AddMember(ctx context.Context, m *model.Membership) error
+	GetMember(ctx context.Context, classroomID, userID string) (*model.Membership, error)
+	RemoveMember(ctx context.Context, classroomID, userID string) error
+	ListMembershipsByUser(ctx context.Context, userID string) ([]model.Membership, error)
+	ListClassroomStudents(ctx context.Context, classroomID string) ([]model.StudentInfo, error)
+
+	// Materials (§6): contenido en Material.Data
+	CreateMaterial(ctx context.Context, m *model.Material) error
+	GetMaterial(ctx context.Context, id string) (*model.Material, error)
+	UpdateMaterial(ctx context.Context, m *model.Material) error
+	DeleteMaterial(ctx context.Context, id string) error
+	ListMaterials(ctx context.Context) ([]model.Material, error)
+
+	// Escuela (§9.1/§10)
+	SchoolStats(ctx context.Context) (*model.SchoolStats, error)
+	RevokeGuestAccess(ctx context.Context) error
 }
 
 // MemStore is a thread-safe in-memory implementation of Store for development and testing.
 type MemStore struct {
-	mu       sync.RWMutex
-	users    map[string]*model.User
-	sessions map[string]*model.Session
-	tokens   map[string]*model.MagicToken
-	pairings map[string]*model.PairingSession // clave: PairingID
-	school   *model.School
+	mu          sync.RWMutex
+	users       map[string]*model.User
+	sessions    map[string]*model.Session
+	tokens      map[string]*model.MagicToken
+	pairings    map[string]*model.PairingSession // clave: PairingID
+	school      *model.School
+	classrooms  map[string]*model.Classroom
+	memberships map[string]*model.Membership // clave: memberKey(classroomID, userID)
+	materials   map[string]*model.Material
 }
 
 // NewMemStore creates an initialized MemStore.
 func NewMemStore() *MemStore {
 	return &MemStore{
-		users:    make(map[string]*model.User),
-		sessions: make(map[string]*model.Session),
-		tokens:   make(map[string]*model.MagicToken),
-		pairings: make(map[string]*model.PairingSession),
+		users:       make(map[string]*model.User),
+		sessions:    make(map[string]*model.Session),
+		tokens:      make(map[string]*model.MagicToken),
+		pairings:    make(map[string]*model.PairingSession),
+		classrooms:  make(map[string]*model.Classroom),
+		memberships: make(map[string]*model.Membership),
+		materials:   make(map[string]*model.Material),
 	}
 }
 

@@ -73,7 +73,46 @@ CREATE TABLE IF NOT EXISTS pairing_sessions(
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_magic_tokens_user_id ON magic_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_pairing_sessions_user_id ON pairing_sessions(user_id);
+
+CREATE TABLE IF NOT EXISTS classrooms(
+	id TEXT PRIMARY KEY,
+	teacher_id TEXT NOT NULL REFERENCES users(id),
+	name TEXT NOT NULL,
+	course TEXT NOT NULL DEFAULT '',
+	shift TEXT NOT NULL DEFAULT '',
+	join_code TEXT NOT NULL UNIQUE,
+	archived INTEGER NOT NULL DEFAULT 0,
+	created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS memberships(
+	classroom_id TEXT NOT NULL REFERENCES classrooms(id),
+	user_id TEXT NOT NULL REFERENCES users(id),
+	status TEXT NOT NULL DEFAULT 'active',
+	created_at TEXT NOT NULL,
+	PRIMARY KEY (classroom_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS materials(
+	id TEXT PRIMARY KEY,
+	classroom_id TEXT NOT NULL REFERENCES classrooms(id),
+	uploaded_by TEXT NOT NULL REFERENCES users(id),
+	title TEXT NOT NULL,
+	filename TEXT NOT NULL,
+	content_type TEXT NOT NULL,
+	size INTEGER NOT NULL,
+	visibility TEXT NOT NULL,
+	subject TEXT NOT NULL DEFAULT '',
+	data_b64 TEXT NOT NULL DEFAULT '',
+	created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_memberships_user_id ON memberships(user_id);
+CREATE INDEX IF NOT EXISTS idx_materials_classroom_id ON materials(classroom_id);
 `
+
+// alterSQL corre migraciones no-idempotentes (ALTER TABLE) tolerando el error
+// "duplicate column" de re-ejecuciones.
+var alterSQL = []string{
+	`ALTER TABLE schools ADD COLUMN global_code_active INTEGER NOT NULL DEFAULT 1`,
+}
 
 // NewTursoStore crea el store contra Turso y ejecuta el schema (idempotente).
 // dbURL acepta libsql://… o https://…
@@ -99,6 +138,11 @@ func NewTursoStore(ctx context.Context, dbURL, authToken string) (*TursoStore, e
 			continue
 		}
 		if _, err := ts.exec(ctx, stmt); err != nil {
+			return nil, fmt.Errorf("migración: %w", err)
+		}
+	}
+	for _, stmt := range alterSQL {
+		if _, err := ts.exec(ctx, stmt); err != nil && !strings.Contains(err.Error(), "duplicate column") {
 			return nil, fmt.Errorf("migración: %w", err)
 		}
 	}
@@ -465,7 +509,7 @@ func (t *TursoStore) CreateSchool(ctx context.Context, school *model.School) err
 }
 
 func (t *TursoStore) GetSchool(ctx context.Context) (*model.School, error) {
-	rows, err := t.query(ctx, `SELECT id, name, global_code, created_at FROM schools LIMIT 1`)
+	rows, err := t.query(ctx, `SELECT id, name, global_code, created_at, global_code_active FROM schools LIMIT 1`)
 	if err != nil {
 		return nil, err
 	}
@@ -476,11 +520,13 @@ func (t *TursoStore) GetSchool(ctx context.Context) (*model.School, error) {
 	if err != nil {
 		return nil, err
 	}
+	activeStr, isNull := cell(rows[0], 4)
 	return &model.School{
-		ID:         cellStr(rows[0], 0),
-		Name:       cellStr(rows[0], 1),
-		GlobalCode: cellStr(rows[0], 2),
-		CreatedAt:  createdAt,
+		ID:               cellStr(rows[0], 0),
+		Name:             cellStr(rows[0], 1),
+		GlobalCode:       cellStr(rows[0], 2),
+		CreatedAt:        createdAt,
+		GlobalCodeActive: !isNull && activeStr == "1",
 	}, nil
 }
 
