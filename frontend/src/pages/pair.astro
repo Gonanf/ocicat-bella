@@ -15,8 +15,7 @@ import Layout from '../layouts/Layout.astro';
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
             <span class="relative inline-flex rounded-full size-2.5 bg-success"></span>
           </span>
-          <span class="font-mono font-bold text-sm text-primary tracking-wide">LAB-PC07</span>
-          <span class="text-xs text-base-content/60 font-medium">· Laboratorio 1 · Fila 2</span>
+          <span class="font-mono font-bold text-sm text-primary tracking-wide" id="eq-label">Esta PC</span>
         </div>
 
         <div class="badge badge-outline font-mono text-[11px] text-base-content/70">
@@ -30,82 +29,10 @@ import Layout from '../layouts/Layout.astro';
         <div class="p-6 sm:p-8 flex flex-col items-center justify-center text-center bg-base-200/40">
           
           <div class="relative p-4 bg-white rounded-2xl border-2 border-base-300 shadow-md group transition-transform hover:scale-[1.02]" id="qr-wrapper">
-            <!-- QR Vectorial de Alta Resolución con Branding Ocicat -->
-            <svg class="size-52 sm:size-56 block text-neutral" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Código QR para inicio de sesión en LAB-PC07">
-              <rect width="220" height="220" fill="#FFFFFF"/>
-              <!-- Esquinas / Finder patterns -->
-              <path d="M14 14 H74 V74 H14 Z M26 26 V62 H62 V26 Z M38 38 H50 V50 H38 Z" fill="currentColor"/>
-              <path d="M146 14 H206 V74 H146 Z M158 26 V62 H194 V26 Z M170 38 H182 V50 H170 Z" fill="currentColor"/>
-              <path d="M14 146 H74 V206 H14 Z M26 158 V194 H62 V158 Z M38 170 H50 V182 H38 Z" fill="currentColor"/>
-              
-              <!-- Data modules -->
-              <g fill="currentColor">
-                <rect x="86" y="18" width="10" height="10"/>
-                <rect x="102" y="18" width="10" height="10"/>
-                <rect x="122" y="18" width="10" height="10"/>
-                <rect x="86" y="34" width="10" height="10"/>
-                <rect x="114" y="34" width="10" height="10"/>
-                <rect x="94" y="50" width="10" height="10"/>
-                <rect x="122" y="50" width="10" height="10"/>
-                <rect x="86" y="66" width="10" height="10"/>
-                <rect x="102" y="66" width="10" height="10"/>
-
-                <rect x="18" y="86" width="10" height="10"/>
-                <rect x="34" y="86" width="10" height="10"/>
-                <rect x="50" y="86" width="10" height="10"/>
-                <rect x="66" y="86" width="10" height="10"/>
-                <rect x="86" y="86" width="10" height="10"/>
-                <rect x="114" y="86" width="10" height="10"/>
-                <rect x="138" y="86" width="10" height="10"/>
-                <rect x="162" y="86" width="10" height="10"/>
-                <rect x="194" y="86" width="10" height="10"/>
-
-                <rect x="18" y="102" width="10" height="10"/>
-                <rect x="50" y="102" width="10" height="10"/>
-                <rect x="66" y="102" width="10" height="10"/>
-                <rect x="146" y="102" width="10" height="10"/>
-                <rect x="178" y="102" width="10" height="10"/>
-
-                <rect x="18" y="122" width="10" height="10"/>
-                <rect x="34" y="122" width="10" height="10"/>
-                <rect x="50" y="122" width="10" height="10"/>
-                <rect x="138" y="122" width="10" height="10"/>
-                <rect x="162" y="122" width="10" height="10"/>
-                <rect x="194" y="122" width="10" height="10"/>
-
-                <rect x="86" y="146" width="10" height="10"/>
-                <rect x="114" y="146" width="10" height="10"/>
-                <rect x="138" y="146" width="10" height="10"/>
-                <rect x="170" y="146" width="10" height="10"/>
-                <rect x="194" y="146" width="10" height="10"/>
-
-                <rect x="86" y="162" width="10" height="10"/>
-                <rect x="102" y="162" width="10" height="10"/>
-                <rect x="146" y="162" width="10" height="10"/>
-                <rect x="162" y="162" width="10" height="10"/>
-                <rect x="178" y="162" width="10" height="10"/>
-
-                <rect x="94" y="178" width="10" height="10"/>
-                <rect x="122" y="178" width="10" height="10"/>
-                <rect x="138" y="178" width="10" height="10"/>
-                <rect x="186" y="178" width="10" height="10"/>
-
-                <rect x="86" y="194" width="10" height="10"/>
-                <rect x="114" y="194" width="10" height="10"/>
-                <rect x="154" y="194" width="10" height="10"/>
-                <rect x="170" y="194" width="10" height="10"/>
-                <rect x="194" y="194" width="10" height="10"/>
-              </g>
-
-              <!-- Logo Ocicat Central -->
-              <rect x="88" y="88" width="44" height="44" rx="10" fill="#FAF7F2" stroke="currentColor" stroke-width="2"/>
-              <g transform="translate(94, 94)">
-                <path d="M4 14 L5.5 3 L14 9 Z" fill="currentColor"/>
-                <path d="M28 14 L26.5 3 L18 9 Z" fill="currentColor"/>
-                <rect x="2" y="8" width="28" height="20" rx="8" fill="currentColor"/>
-                <text x="16" y="23" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="14" fill="#FAF7F2">O</text>
-              </g>
-            </svg>
+            <!-- QR real renderizado en cliente desde qr_url (§2.3) -->
+            <canvas id="qr-canvas" class="size-52 sm:size-56 block" role="img" aria-label="Código QR para inicio de sesión en esta PC">
+              <p class="p-4 text-xs">Generando código QR…</p>
+            </canvas>
 
             <!-- Overlay de Estado (cuando escanea o conecta) -->
             <div class="absolute inset-0 bg-base-100/95 rounded-2xl hidden flex-col items-center justify-center p-5 text-base-content backdrop-blur-xs" id="qr-overlay">
@@ -170,7 +97,7 @@ import Layout from '../layouts/Layout.astro';
                 </span>
                 <div>
                   <strong class="font-semibold text-base-content">Confirmá la conexión</strong>
-                  <p class="text-xs text-base-content/60">Aceptá la solicitud <em>"¿Conectar con LAB-PC07?"</em> en tu pantalla.</p>
+                  <p class="text-xs text-base-content/60">Aceptá la solicitud <em>"¿Conectar con esta PC?"</em> en tu pantalla.</p>
                 </div>
               </li>
             </ol>
@@ -186,7 +113,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
 
           <div>
-            <!-- Botón simulador para abrir PWA de celular en pestaña nueva -->
+            <!-- Abrir el flujo del celular (escaneo o ingreso manual del token) -->
             <a
               href="/pwa-pair/"
               target="_blank"
@@ -196,7 +123,7 @@ import Layout from '../layouts/Layout.astro';
                 <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                 <line x1="12" y1="18" x2="12.01" y2="18"></line>
               </svg>
-              Simular escaneo desde mi celular (PWA)
+              Abrir flujo del celular (PWA)
             </a>
           </div>
         </div>
@@ -221,16 +148,6 @@ import Layout from '../layouts/Layout.astro';
 
     </div>
 
-    <!-- Barra de control para evaluación interactiva -->
-    <div class="w-full max-w-[860px] mt-4 p-3 bg-base-100/70 border border-base-300 rounded-xl flex flex-wrap justify-between items-center gap-2 text-xs">
-      <span class="font-semibold text-base-content/60">🧪 Simulador de estados QR:</span>
-      <div class="flex gap-1.5 flex-wrap">
-        <button type="button" class="btn btn-xs btn-outline rounded-lg font-mono" id="sim-wait">1. Esperando</button>
-        <button type="button" class="btn btn-xs btn-outline rounded-lg font-mono" id="sim-scan">2. Escaneado</button>
-        <button type="button" class="btn btn-xs btn-success btn-soft rounded-lg font-mono" id="sim-ok">3. Confirmado</button>
-      </div>
-    </div>
-
   </div>
 
   <!-- Toast notification -->
@@ -240,55 +157,33 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 
-  <script is:inline>
+  <script>
+    import QRCode from 'qrcode';
+    import { ApiError, qrStart, qrStatus, type Role } from '../lib/api';
+
     (() => {
-      const $ = (sel) => document.querySelector(sel);
+      const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T | null;
 
       // Toast feedback
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
         }, 2800);
       }
 
-      // Countdown Timer (60s)
-      let segRestantes = 60;
+      const POLL_MS = 3000;
+      const canvas = $('#qr-canvas') as HTMLCanvasElement | null;
       const timerEl = $('#segundos-restantes');
       const progressEl = $('#timer-progress');
-      let intervalTimer = null;
-
-      function iniciarCuentaRegresiva() {
-        segRestantes = 60;
-        if (progressEl) progressEl.style.width = '100%';
-        clearInterval(intervalTimer);
-        intervalTimer = setInterval(() => {
-          segRestantes--;
-          if (segRestantes <= 0) {
-            segRestantes = 60;
-            aviso('Código QR renovado por seguridad.');
-          }
-          if (timerEl) timerEl.textContent = String(segRestantes);
-          const pct = (segRestantes / 60) * 100;
-          if (progressEl) progressEl.style.width = `${pct}%`;
-        }, 1000);
-      }
-      iniciarCuentaRegresiva();
-
-      $('#btn-refresh-qr')?.addEventListener('click', () => {
-        iniciarCuentaRegresiva();
-        aviso('Nuevo código QR efímero generado para LAB-PC07.');
-      });
-
-      // Máquina de estados
       const statusBox = $('#status-live-box');
       const boxSpinner = $('#box-spinner');
       const boxText = $('#box-text');
@@ -296,63 +191,184 @@ import Layout from '../layouts/Layout.astro';
       const qrOverlayTitle = $('#qr-overlay-title');
       const qrOverlayDesc = $('#qr-overlay-desc');
 
-      function setEstado(estado) {
-        if (estado === 'esperando') {
+      // device_label opcional vía ?label= (hostname legible que verá el alumno en el celular)
+      const labelParam =
+        new URLSearchParams(window.location.search).get('label')?.slice(0, 64) || undefined;
+
+      let pairingId = '';
+      let refreshAfter = 60;
+      let segRestantes = 60;
+      let estado: PairingEstado = 'inicial';
+      let pollTimer: ReturnType<typeof setInterval> | null = null;
+      let tickTimer: ReturnType<typeof setInterval> | null = null;
+
+      type PairingEstado = 'inicial' | 'waiting' | 'scanned' | 'confirmed';
+
+      function parar() {
+        if (pollTimer) clearInterval(pollTimer);
+        if (tickTimer) clearInterval(tickTimer);
+        pollTimer = null;
+        tickTimer = null;
+      }
+
+      async function pintarQR(url: string) {
+        if (!canvas) return;
+        await QRCode.toCanvas(canvas, url, {
+          width: 440,
+          margin: 1,
+          color: { dark: '#111827ff', light: '#ffffffff' },
+        });
+      }
+
+      function iniciarCuenta() {
+        segRestantes = refreshAfter;
+        if (progressEl) progressEl.style.width = '100%';
+        if (timerEl) timerEl.textContent = String(segRestantes);
+        if (tickTimer) clearInterval(tickTimer);
+        tickTimer = setInterval(() => {
+          segRestantes--;
+          if (segRestantes <= 0) {
+            // [C3] regeneración ~refresh_after; solo si nadie escaneó todavía
+            if (estado === 'waiting' || estado === 'inicial') {
+              reiniciar('Código QR renovado por seguridad.');
+            }
+            return;
+          }
+          if (timerEl) timerEl.textContent = String(segRestantes);
+          if (progressEl) progressEl.style.width = `${(segRestantes / refreshAfter) * 100}%`;
+        }, 1000);
+      }
+
+      function setEstado(nuevo: PairingEstado, userName?: string) {
+        const cambio = nuevo !== estado;
+        estado = nuevo;
+        if (nuevo === 'waiting') {
           qrOverlay?.classList.add('hidden');
           qrOverlay?.classList.remove('flex');
           if (statusBox) {
-            statusBox.className = 'p-3.5 rounded-xl border border-info/30 bg-info/10 text-xs text-base-content flex items-center gap-3 transition-all';
+            statusBox.className =
+              'p-3.5 rounded-xl border border-info/30 bg-info/10 text-xs text-base-content flex items-center gap-3 transition-all';
           }
           if (boxSpinner) boxSpinner.style.display = 'block';
           if (boxText) {
-            boxText.innerHTML = '<strong class="font-semibold text-base-content">Esperando escaneo…</strong><div class="text-[11px] text-base-content/60">Apuntá con la cámara de tu celular al código QR.</div>';
+            boxText.innerHTML =
+              '<strong class="font-semibold text-base-content">Esperando escaneo…</strong><div class="text-[11px] text-base-content/60">Apuntá con la cámara de tu celular al código QR.</div>';
           }
-        } else if (estado === 'escaneado') {
+        } else if (nuevo === 'scanned') {
           qrOverlay?.classList.remove('hidden');
           qrOverlay?.classList.add('flex');
           if (qrOverlayTitle) qrOverlayTitle.textContent = 'Celular detectado';
-          if (qrOverlayDesc) qrOverlayDesc.textContent = 'Confirmá la conexión en tu teléfono.';
+          if (qrOverlayDesc) qrOverlayDesc.textContent = 'Revisá tu celular para confirmar.';
           if (statusBox) {
-            statusBox.className = 'p-3.5 rounded-xl border border-warning/40 bg-warning/10 text-xs text-base-content flex items-center gap-3 transition-all';
+            statusBox.className =
+              'p-3.5 rounded-xl border border-warning/40 bg-warning/10 text-xs text-base-content flex items-center gap-3 transition-all';
           }
           if (boxSpinner) boxSpinner.style.display = 'block';
           if (boxText) {
-            boxText.innerHTML = '<strong class="font-semibold text-warning-content font-mono">Xiaomi Redmi 10 detectado</strong><div class="text-[11px] text-base-content/70">Esperando que Tiziano confirme en la pantalla de su celular…</div>';
+            boxText.innerHTML =
+              '<strong class="font-semibold">Revisá tu celular…</strong><div class="text-[11px] text-base-content/70">Esperando que confirmes la conexión desde tu teléfono.</div>';
           }
-          aviso('¡QR escaneado! Confirmá en tu celular.');
-        } else if (estado === 'conectado') {
+          if (cambio) aviso('¡QR escaneado! Confirmá en tu celular.');
+        } else if (nuevo === 'confirmed') {
+          parar();
           qrOverlay?.classList.remove('hidden');
           qrOverlay?.classList.add('flex');
           if (qrOverlayTitle) qrOverlayTitle.textContent = '¡Sesión iniciada!';
-          if (qrOverlayDesc) qrOverlayDesc.textContent = 'Ingresando como Tiziano Maidana…';
+          if (qrOverlayDesc) qrOverlayDesc.textContent = userName ? `Ingresando como ${userName}…` : 'Ingresando…';
           if (statusBox) {
-            statusBox.className = 'p-3.5 rounded-xl border border-success/40 bg-success/15 text-xs text-base-content flex items-center gap-3 transition-all';
+            statusBox.className =
+              'p-3.5 rounded-xl border border-success/40 bg-success/15 text-xs text-base-content flex items-center gap-3 transition-all';
           }
           if (boxSpinner) boxSpinner.style.display = 'none';
           if (boxText) {
-            boxText.innerHTML = '<strong class="font-semibold text-success">✅ ¡Conectado como Tiziano Maidana (5.º 1.ª)!</strong><div class="text-[11px] text-base-content/70">Redirigiendo a tus aulas en 2 segundos…</div>';
+            boxText.innerHTML = `<strong class="font-semibold text-success">✅ ¡Conectado${userName ? ` como ${userName}` : ''}!</strong><div class="text-[11px] text-base-content/70">Redirigiendo…</div>`;
           }
           aviso('¡Conexión autorizada con éxito!');
-          setTimeout(() => {
-            window.location.href = '/mis-salas/';
-          }, 2000);
         }
       }
 
-      $('#sim-wait')?.addEventListener('click', () => setEstado('esperando'));
-      $('#sim-scan')?.addEventListener('click', () => setEstado('escaneado'));
-      $('#sim-ok')?.addEventListener('click', () => setEstado('conectado'));
+      function destinoPorRol(role: Role): string {
+        if (role === 'alumno') return '/mis-salas/';
+        if (role === 'docente' || role === 'director') return '/dashboard/';
+        return '/';
+      }
 
-      // Escucha mensajes entre ventanas (si se abre pwa-pair)
-      window.addEventListener('message', (e) => {
-        if (e.origin !== window.location.origin) return;
-
-        if (e.data === 'qr-scanned') {
-          setEstado('escaneado');
-        } else if (e.data === 'pair-confirmed') {
-          setEstado('conectado');
+      function manejarError(err: unknown) {
+        if (err instanceof ApiError && err.status === 429) {
+          parar();
+          const espera = (err.retryAfter ?? 30) * 1000;
+          aviso(`${err.message}${err.retryAfter ? ` Reintentamos en ${err.retryAfter}s.` : ''}`);
+          setTimeout(reiniciar, espera);
+          return;
         }
+        if (err instanceof ApiError && err.status === 404) {
+          reiniciar(); // pairing inexistente/vencido entre polls → uno nuevo
+          return;
+        }
+        // Red caída o backend ausente: avisar una vez y reintentar
+        if (!avisoRedHecho) {
+          avisoRedHecho = true;
+          aviso(
+            err instanceof ApiError
+              ? err.message
+              : 'Sin conexión con el servidor. Reintentando…',
+          );
+        }
+      }
+
+      let avisoRedHecho = false;
+
+      async function reiniciar(mensaje?: string) {
+        parar();
+        setEstado('waiting');
+        try {
+          const start = await qrStart(labelParam);
+          pairingId = start.pairing_id;
+          refreshAfter = Math.max(5, start.refresh_after || 60);
+          await pintarQR(start.qr_url);
+          iniciarCuenta();
+          if (pollTimer) clearInterval(pollTimer);
+          pollTimer = setInterval(consultar, POLL_MS);
+          avisoRedHecho = false;
+          if (mensaje) aviso(mensaje);
+        } catch (err) {
+          manejarError(err);
+          setTimeout(() => void reiniciar(), 5000);
+        }
+      }
+
+      async function consultar() {
+        try {
+          const st = await qrStatus(pairingId);
+          if (st.status === 'confirmed') {
+            setEstado('confirmed', st.user.name);
+            setTimeout(() => {
+              window.location.href = destinoPorRol(st.user.role);
+            }, 1800);
+          } else if (st.status === 'scanned') {
+            setEstado('scanned');
+            // Congelar regeneración: hay un scan en curso (TTL server-side lo corta)
+            if (tickTimer) clearInterval(tickTimer);
+            tickTimer = null;
+          } else if (st.status === 'expired') {
+            reiniciar();
+          } else if (st.status === 'denied') {
+            reiniciar('Conexión rechazada desde el celular. Generamos un código nuevo.');
+          }
+        } catch (err) {
+          manejarError(err);
+        }
+      }
+
+      btnRefreshEl()?.addEventListener('click', () => {
+        void reiniciar('Nuevo código QR efímero generado.');
       });
+
+      function btnRefreshEl() {
+        return document.querySelector('#btn-refresh-qr') as HTMLButtonElement | null;
+      }
+
+      void reiniciar();
     })();
   </script>
 </Layout>
