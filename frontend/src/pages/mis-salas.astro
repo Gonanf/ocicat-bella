@@ -7,156 +7,153 @@ const misSalas = salas.filter((s) => s.id !== 'robotica');
 const totalPendientes = misSalas.reduce((acc, s) => acc + (s.pendientes || 0), 0);
 ---
 
-<Layout titulo="Mis salas" active="mis-salas" navRole="alumno">
-  <div class="py-8 md:py-12">
-    <div class="flex flex-col gap-6">
+<Layout titulo="Mis Aulas" active="aulas" navRole="alumno">
+  <div class="py-6 sm:py-10 space-y-6">
 
-      <!-- Hero -->
-      <section class="flex flex-col gap-2">
-        <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">
-          Hola, {perfilMock.nombre.split(' ')[0]}
-        </p>
-        <h1 class="font-display font-normal text-4xl md:text-5xl tracking-tight text-base-content" id="titulo-mis-salas">
-          Mis salas
-        </h1>
-        <p class="text-base-content/60 text-sm md:text-base" id="resumen-salas">
-          {misSalas.length} {misSalas.length === 1 ? 'sala' : 'salas'} · {totalPendientes} {totalPendientes === 1 ? 'consigna pendiente' : 'consignas pendientes'} en total.
-        </p>
-      </section>
+    <!-- Hero -->
+    <section class="flex flex-col gap-1.5 pb-2">
+      <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">
+        Hola, {perfilMock.nombre.split(' ')[0]}
+      </p>
+      <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content" id="titulo-mis-salas">
+        Mis Aulas
+      </h1>
+      <p class="text-sm text-base-content/70" id="resumen-salas">
+        {misSalas.length} {misSalas.length === 1 ? 'aula' : 'aulas'} · {totalPendientes} {totalPendientes === 1 ? 'consigna pendiente' : 'consignas pendientes'} en total.
+      </p>
+    </section>
 
-      <div class="divider my-0 border-base-300"></div>
+    <div class="divider my-0 border-base-300"></div>
 
-      <!-- Grid de Salas -->
-      <section aria-labelledby="titulo-mis-salas" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" id="grid-salas">
-        {misSalas.map((sala) => (
-          <article
-            class="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-primary/40 transition-all mi-sala-card"
-            data-nombre={`${sala.nombre} · ${sala.curso}`}
-            data-pendientes={sala.pendientes || 0}
-            data-id={sala.id}
-          >
-            <div class="card-body p-5 md:p-6 gap-4 flex flex-col justify-between">
+    <!-- Grid de Aulas -->
+    <section aria-labelledby="titulo-mis-salas" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" id="grid-salas">
+      {misSalas.map((sala) => (
+        <article
+          class="card bg-base-100 border border-base-300 shadow-xs hover:shadow-md hover:border-primary/40 transition-all mi-sala-card"
+          data-nombre={`${sala.nombre} · ${sala.curso}`}
+          data-pendientes={sala.pendientes || 0}
+          data-id={sala.id}
+        >
+          <div class="card-body p-5 md:p-6 gap-4 flex flex-col justify-between">
 
-              <!-- Head: Código + Rol + Menú 3 puntos -->
-              <div class="flex items-center justify-between gap-3">
-                <span class="badge badge-lg bg-primary/10 border border-primary/20 text-primary font-mono font-bold tracking-wider rounded-lg px-3 py-1 text-sm">
-                  {sala.codigo}
+            <!-- Head: Código + Rol + Menú 3 puntos -->
+            <div class="flex items-center justify-between gap-3">
+              <span class="badge badge-lg bg-primary/10 border border-primary/20 text-primary font-mono font-bold tracking-wider rounded-lg px-3 py-1 text-sm">
+                {sala.codigo}
+              </span>
+
+              <div class="flex items-center gap-2">
+                <span class="badge badge-sm badge-outline text-base-content/70 font-semibold tracking-wide uppercase text-[10px]">
+                  Alumno
                 </span>
 
-                <div class="flex items-center gap-2">
-                  <span class="badge badge-sm badge-outline text-base-content/70 font-semibold tracking-wide uppercase text-[10px]">
-                    Alumno
-                  </span>
-
-                  <!-- Dropdown 3 puntos -->
-                  <div class="dropdown dropdown-end sala-menu">
-                    <button
-                      type="button"
-                      tabindex="0"
-                      class="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-base-content btn-menu"
-                      aria-haspopup="menu"
-                      aria-expanded="false"
-                      aria-label={`Opciones de ${sala.nombre}`}
-                    >
-                      <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
-                        <circle cx="12" cy="5" r="1.9"></circle>
-                        <circle cx="12" cy="12" r="1.9"></circle>
-                        <circle cx="12" cy="19" r="1.9"></circle>
-                      </svg>
-                    </button>
-                    <ul
-                      tabindex="0"
-                      class="dropdown-content menu z-20 mt-1 w-44 rounded-xl bg-base-100 border border-base-300 shadow-xl p-1.5"
-                    >
-                      <li>
-                        <button
-                          type="button"
-                          class="text-error font-semibold hover:bg-error/10 rounded-lg text-xs"
-                          data-abandonar
-                        >
-                          Abandonar sala
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
+                <!-- Dropdown 3 puntos -->
+                <div class="dropdown dropdown-end sala-menu">
+                  <button
+                    type="button"
+                    tabindex="0"
+                    class="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-base-content btn-menu"
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                    aria-label={`Opciones de ${sala.nombre}`}
+                  >
+                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="1.9"></circle>
+                      <circle cx="12" cy="12" r="1.9"></circle>
+                      <circle cx="12" cy="19" r="1.9"></circle>
+                    </svg>
+                  </button>
+                  <ul
+                    tabindex="0"
+                    class="dropdown-content menu z-20 mt-1 w-44 rounded-xl bg-base-100 border border-base-300 shadow-xl p-1.5"
+                  >
+                    <li>
+                      <button
+                        type="button"
+                        class="text-error font-semibold hover:bg-error/10 rounded-lg text-xs"
+                        data-abandonar
+                      >
+                        Abandonar aula
+                      </button>
+                    </li>
+                  </ul>
                 </div>
               </div>
+            </div>
 
-              <!-- Info de la sala -->
-              <div class="flex flex-col gap-1">
-                <h2 class="font-display font-normal text-2xl tracking-tight text-base-content">
-                  {sala.nombre}
-                </h2>
-                <p class="text-xs text-base-content/60">
-                  {sala.curso} · {sala.turno} · docente {sala.docente}
+            <!-- Info del aula -->
+            <div class="flex flex-col gap-1">
+              <h2 class="font-display font-normal text-2xl tracking-tight text-base-content">
+                {sala.nombre}
+              </h2>
+              <p class="text-xs text-base-content/60">
+                {sala.curso} · {sala.turno} · docente {sala.docente}
+              </p>
+            </div>
+
+            <!-- Fila de Pendientes -->
+            <div class="pt-3 border-t border-base-200 flex items-center justify-between text-sm">
+              <span class="text-base-content/65 text-xs font-medium">Consignas pendientes</span>
+              <div>
+                {(sala.pendientes ?? 0) > 0 ? (
+                  <span class="font-mono font-bold text-warning text-sm">
+                    {sala.pendientes}
+                  </span>
+                ) : (
+                  <span class="inline-flex items-center gap-1 text-primary font-semibold text-xs bg-primary/10 px-2 py-0.5 rounded-full">
+                    <svg class="size-3 stroke-[2.5]" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                      <path d="M2.5 7.5 5.5 10.5 11.5 3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    Al día
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="acciones-card mt-1">
+              <a
+                href={`/consignas/?sala=${sala.codigo.toLowerCase()}`}
+                class="btn btn-outline btn-primary rounded-xl w-full font-semibold btn-sm md:btn-md"
+              >
+                Entrar al aula
+              </a>
+            </div>
+
+            <!-- Panel Confirmar Abandono (oculto por defecto) -->
+            <div class="confirmar-abandono hidden mt-2 p-3.5 rounded-xl bg-warning/10 border border-warning/25 text-xs flex flex-col gap-3" data-abandono-panel>
+              <div class="flex items-start gap-2.5">
+                <svg class="size-4 text-warning shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 3 2.5 20h19L12 3Z"></path>
+                  <path d="M12 10v4"></path>
+                  <path d="M12 17h.01"></path>
+                </svg>
+                <p class="leading-relaxed text-base-content">
+                  <strong class="font-bold">¿Seguro que querés salir?</strong> Tus entregas quedan archivadas: el docente todavía puede verlas, pero el aula desaparecerá de tu lista.
                 </p>
               </div>
-
-              <!-- Fila de Pendientes -->
-              <div class="pt-3 border-t border-base-200 flex items-center justify-between text-sm">
-                <span class="text-base-content/65 text-xs font-medium">Consignas pendientes</span>
-                <div>
-                  {(sala.pendientes ?? 0) > 0 ? (
-                    <span class="font-mono font-bold text-warning text-sm">
-                      {sala.pendientes}
-                    </span>
-                  ) : (
-                    <span class="inline-flex items-center gap-1 text-primary font-semibold text-xs bg-primary/10 px-2 py-0.5 rounded-full">
-                      <svg class="size-3 stroke-[2.5]" viewBox="0 0 14 14" fill="none" stroke="currentColor">
-                        <path d="M2.5 7.5 5.5 10.5 11.5 3.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                      </svg>
-                      Al día
-                    </span>
-                  )}
-                </div>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-ghost btn-xs rounded-lg font-medium" data-cancelar>
+                  No, quedarme
+                </button>
+                <button type="button" class="btn btn-error btn-xs rounded-lg font-bold text-error-content" data-confirmar>
+                  Sí, abandonar
+                </button>
               </div>
-
-              <!-- Acciones -->
-              <div class="acciones-card mt-1">
-                <a
-                  href={`/consignas/?sala=${sala.codigo.toLowerCase()}`}
-                  class="btn btn-outline btn-primary rounded-xl w-full font-semibold btn-sm md:btn-md"
-                >
-                  Entrar a la sala
-                </a>
-              </div>
-
-              <!-- Panel Confirmar Abandono (oculto por defecto) -->
-              <div class="confirmar-abandono hidden mt-2 p-3.5 rounded-xl bg-warning/10 border border-warning/25 text-xs flex flex-col gap-3" data-abandono-panel>
-                <div class="flex items-start gap-2.5">
-                  <svg class="size-4 text-warning shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 3 2.5 20h19L12 3Z"></path>
-                    <path d="M12 10v4"></path>
-                    <path d="M12 17h.01"></path>
-                  </svg>
-                  <p class="leading-relaxed text-base-content">
-                    <strong class="font-bold">¿Seguro que querés salir?</strong> Tus entregas quedan archivadas: el docente todavía puede verlas, pero la sala desaparecerá de tu lista.
-                  </p>
-                </div>
-                <div class="flex justify-end gap-2">
-                  <button type="button" class="btn btn-ghost btn-xs rounded-lg font-medium" data-cancelar>
-                    No, quedarme
-                  </button>
-                  <button type="button" class="btn btn-error btn-xs rounded-lg font-bold text-white" data-confirmar>
-                    Sí, abandonar
-                  </button>
-                </div>
-              </div>
-
             </div>
-          </article>
-        ))}
-      </section>
 
-      <!-- Estado vacío (si abandona todas) -->
-      <div id="sin-salas" class="hidden card bg-base-100 border border-base-300 p-8 text-center">
-        <h2 class="font-display font-normal text-2xl text-base-content">No pertenecés a ninguna sala</h2>
-        <p class="text-sm text-base-content/60 mt-1 mb-4">Ingresá el código provisto por tu docente para unirte a una clase.</p>
-        <div>
-          <a href="/unirse/" class="btn btn-primary rounded-full px-6">Unirme con código</a>
-        </div>
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <!-- Estado vacío (si abandona todas) -->
+    <div id="sin-salas" class="hidden card bg-base-100 border border-base-300 p-8 text-center">
+      <h2 class="font-display font-normal text-2xl text-base-content">No pertenecés a ninguna aula</h2>
+      <p class="text-sm text-base-content/60 mt-1 mb-4">Ingresá el código provisto por tu docente para unirte a una clase.</p>
+      <div>
+        <a href="/unirse/" class="btn btn-primary rounded-full px-6">Unirme con código</a>
       </div>
-
     </div>
   </div>
 

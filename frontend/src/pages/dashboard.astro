@@ -1,0 +1,293 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { aulasDocente } from '../data/mock';
+---
+
+<Layout titulo="Mis Aulas" active="aulas" navRole="docente">
+  <div class="py-6 sm:py-10 space-y-6">
+
+    <!-- Hero docente -->
+    <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-2">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-widest text-primary mb-1.5">
+          Panel docente
+        </p>
+        <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content">
+          Buenas, <em class="italic text-primary font-normal">Roberto</em><span class="text-warning">.</span>
+        </h1>
+        <p class="mt-2 text-sm text-base-content/70 max-w-xl">
+          {aulasDocente.length} aulas a cargo · {aulasDocente.reduce((acc, a) => acc + a.alumnosCount, 0)} alumnos inscriptos · {aulasDocente.reduce((acc, a) => acc + a.sandboxesPrendidos, 0)} sandboxes prendidos ahora.
+        </p>
+      </div>
+
+      <div class="shrink-0">
+        <button
+          class="btn btn-primary rounded-xl font-semibold shadow-sm"
+          type="button"
+          id="btn-abrir-crear"
+        >
+          + Nueva aula
+        </button>
+      </div>
+    </section>
+
+    <hr class="border-base-300 my-2" />
+
+    <!-- Grid de Aulas -->
+    <section aria-labelledby="titulo-aulas">
+      <h2 class="sr-only" id="titulo-aulas">Mis aulas</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="grid-aulas">
+        {aulasDocente.map((aula) => (
+          <article
+            class="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-base-content/30 transition-all p-5 flex flex-col justify-between gap-4"
+            data-id={aula.id}
+          >
+            <div class="space-y-3">
+              <span class="inline-block font-mono font-bold text-lg tracking-wider text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-xl">
+                {aula.codigo}
+              </span>
+
+              <div>
+                <h3 class="font-display font-normal text-2xl text-base-content tracking-tight">
+                  {aula.nombre}
+                </h3>
+                <p class="text-xs text-base-content/60 mt-0.5">
+                  {aula.curso} · {aula.turno} · {aula.especialidad}
+                </p>
+              </div>
+            </div>
+
+            <div class="space-y-3 pt-2">
+              <div class="grid grid-cols-3 gap-2 border-t border-base-200 pt-3 text-center">
+                <div class="flex flex-col">
+                  <b class="text-base font-bold text-base-content">{aula.alumnosCount}</b>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">alumnos</span>
+                </div>
+                <div class="flex flex-col">
+                  <b class="text-base font-bold text-base-content">{aula.consignasCount}</b>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">consignas</span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <b class="text-base font-bold text-base-content flex items-center gap-1.5">
+                    <span class:list={[
+                      'size-2 rounded-full',
+                      aula.sandboxesPrendidos > 0 ? 'bg-success animate-pulse' : 'bg-base-300'
+                    ]}></span>
+                    {aula.sandboxesPrendidos}
+                  </b>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">prendidos</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <a
+                  href="/consignas/"
+                  class="btn btn-outline btn-primary btn-sm flex-1 rounded-xl font-semibold"
+                >
+                  Entrar
+                </a>
+                <button
+                  class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-3 text-xs"
+                  type="button"
+                  data-copy={aula.codigo}
+                  aria-label={`Copiar código ${aula.codigo}`}
+                >
+                  Código
+                </button>
+                <a
+                  href="/sala-config/"
+                  class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-3 text-xs"
+                  aria-label={`Configuración de ${aula.nombre}`}
+                >
+                  Config
+                </a>
+              </div>
+            </div>
+          </article>
+        ))}
+
+        <!-- Card para crear aula (Dashed) -->
+        <button
+          type="button"
+          class="card bg-base-100/40 hover:bg-primary/5 border-2 border-dashed border-base-300 hover:border-primary transition-all p-6 flex flex-col items-center justify-center text-center gap-2 min-h-[260px] cursor-pointer group"
+          id="card-crear-trigger"
+        >
+          <span class="font-display font-light text-5xl text-primary leading-none group-hover:scale-110 transition-transform">
+            +
+          </span>
+          <span class="font-display text-xl text-base-content">Crear nueva aula</span>
+          <p class="text-xs text-base-content/60 max-w-[24ch]">
+            Generá un código para que tus alumnos se sumen al instante.
+          </p>
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal Crear Aula -->
+  <dialog id="modal-crear-aula" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-md shadow-2xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
+      </form>
+
+      <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Nueva aula</h3>
+      <p class="text-xs text-base-content/70 mt-1">
+        Definí la materia y el curso. Se generará un código de acceso para tus estudiantes.
+      </p>
+
+      <form id="form-nueva-aula" class="mt-5 space-y-4">
+        <div class="form-control flex flex-col gap-1">
+          <label for="f-nombre" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Nombre de la materia
+          </label>
+          <input
+            id="f-nombre"
+            type="text"
+            required
+            placeholder="ej. Sistemas Operativos"
+            class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-control flex flex-col gap-1">
+            <label for="f-curso" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Curso / Año
+            </label>
+            <input
+              id="f-curso"
+              type="text"
+              required
+              placeholder="ej. 6.º A"
+              class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+            />
+          </div>
+
+          <div class="form-control flex flex-col gap-1">
+            <label for="f-turno" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Turno
+            </label>
+            <select
+              id="f-turno"
+              class="select select-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+            >
+              <option value="Turno tarde">Turno tarde</option>
+              <option value="Turno mañana">Turno mañana</option>
+              <option value="Turno completo">Turno completo</option>
+              <option value="Turno noche">Turno noche</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Código autogenerado con preview -->
+        <div class="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between gap-3">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/60 block">Código sugerido</span>
+            <span class="font-mono font-bold text-xl text-primary tracking-widest" id="codigo-preview">SIST6A</span>
+          </div>
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs text-xs text-primary underline"
+            id="btn-regenerar-cod"
+          >
+            Generar otro
+          </button>
+        </div>
+
+        <div class="modal-action flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm rounded-xl"
+            id="btn-cancelar-modal"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary btn-sm rounded-xl font-semibold px-4"
+          >
+            Crear aula
+          </button>
+        </div>
+      </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>cerrar</button>
+    </form>
+  </dialog>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+
+      // Toast feedback
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer = null;
+      function aviso(msg) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 2600);
+      }
+
+      // Copiar código
+      document.querySelectorAll('[data-copy]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const code = btn.getAttribute('data-copy');
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(code).then(
+              () => aviso(`Código «${code}» copiado al portapapeles`),
+              () => aviso(`El código es «${code}»`)
+            );
+          } else {
+            aviso(`El código es «${code}»`);
+          }
+        });
+      });
+
+      // Modal
+      const modal = $('#modal-crear-aula');
+      $('#btn-abrir-crear')?.addEventListener('click', () => modal?.showModal());
+      $('#card-crear-trigger')?.addEventListener('click', () => modal?.showModal());
+      $('#btn-cancelar-modal')?.addEventListener('click', () => modal?.close());
+
+      // Generación de código
+      const codigoPreview = $('#codigo-preview');
+      const letras = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+      function generarCodigo() {
+        const nom = ($('#f-nombre')?.value || 'AULA').slice(0, 4).toUpperCase().replace(/[^A-Z]/g, '') || 'AULA';
+        const sufijo = (Math.floor(Math.random() * 8) + 2) + letras[Math.floor(Math.random() * letras.length)];
+        return (nom.slice(0, 4) + sufijo).slice(0, 7);
+      }
+
+      $('#btn-regenerar-cod')?.addEventListener('click', () => {
+        if (codigoPreview) codigoPreview.textContent = generarCodigo();
+      });
+
+      $('#form-nueva-aula')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nombre = $('#f-nombre')?.value.trim();
+        const curso = $('#f-curso')?.value.trim();
+        const codigo = codigoPreview?.textContent || 'AULA1A';
+        modal?.close();
+        aviso(`¡Aula «${nombre} (${curso})» creada con código ${codigo}!`);
+      });
+    })();
+  </script>
+</Layout>

@@ -2,166 +2,236 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout titulo="Entrar" active="login">
-  <div class="py-8 md:py-12 flex justify-center">
-    <div class="w-full max-w-md flex flex-col gap-6">
+<Layout titulo="Iniciar sesión" active="login" navRole="anonimo">
+  <div class="py-6 md:py-10 flex justify-center">
+    <div class="w-full max-w-[460px] flex flex-col gap-6">
 
-      <!-- Bienvenida -->
+      <!-- Acceso Rápido PC Laboratorio (QR inverso) -->
+      <a
+        href="/pair/"
+        class="card bg-base-100 border-2 border-primary hover:border-primary/80 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 p-4 flex flex-row items-center gap-3.5 text-base-content no-underline"
+      >
+        <div class="size-11 rounded-xl bg-primary/10 text-primary grid place-items-center shrink-0">
+          <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+            <line x1="17" y1="7" x2="17.01" y2="7"></line>
+            <line x1="7" y1="17" x2="7.01" y2="17"></line>
+            <line x1="17" y1="17" x2="17.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-primary leading-tight">¿Estás en la PC del colegio?</span>
+            <span class="badge badge-primary badge-xs font-mono font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5">Rápido</span>
+          </div>
+          <p class="text-xs text-base-content/70 mt-0.5 leading-snug">
+            Iniciá sesión escaneando un código QR con tu celular. Sin contraseñas.
+          </p>
+        </div>
+        <span class="text-primary font-bold text-lg shrink-0">→</span>
+      </a>
+
+      <!-- Bienvenida / Título -->
       <div class="text-center">
-        <h1 class="font-display font-normal text-4xl md:text-5xl tracking-tight text-base-content">
-          Buenas, ¿ya sos parte?
+        <h1 class="font-display font-normal text-3xl sm:text-4xl tracking-tight text-base-content">
+          Ingresá a tu aula
         </h1>
-        <p class="mt-2 text-base-content/60 text-sm md:text-base">
-          Mirá todo como visitante o entrá con tu cuenta: acá no hay contraseñas.
+        <p class="mt-1.5 text-sm text-base-content/70">
+          Escribí tu email institucional para ingresar a tu espacio.
         </p>
       </div>
 
-      <!-- Card de acceso -->
-      <div class="card bg-base-100 border border-base-300 shadow-sm">
-        <div class="card-body p-6 sm:p-7 gap-4">
+      <!-- Auth Card Unificada -->
+      <div class="card bg-base-100 border border-base-300 shadow-sm p-6 sm:p-7">
 
-          <!-- Tabs Entrar / Crear cuenta -->
-          <div role="tablist" class="tabs tabs-box bg-base-200 p-1 rounded-xl grid grid-cols-2">
-            <button
-              type="button"
-              role="tab"
-              id="tab-entrar"
-              class="tab tab-active font-semibold transition-all"
-              aria-selected="true"
-            >
-              Entrar
-            </button>
-            <button
-              type="button"
-              role="tab"
-              id="tab-crear"
-              class="tab font-semibold transition-all text-base-content/70"
-              aria-selected="false"
-            >
-              Crear cuenta
-            </button>
-          </div>
-
-          <!-- Formulario Magic Link -->
-          <form id="form-magic" novalidate class="flex flex-col gap-3">
-            <div id="campo-nombre" class="form-control hidden flex-col gap-1.5">
-              <label for="m-nombre" class="text-xs font-bold uppercase tracking-wider text-base-content/70">
-                Nombre completo
-              </label>
-              <input
-                id="m-nombre"
-                type="text"
-                autocomplete="name"
-                placeholder="Valentina Costa"
-                class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary"
-              />
-            </div>
-
-            <div class="form-control flex flex-col gap-1.5">
-              <label for="m-email" class="text-xs font-bold uppercase tracking-wider text-base-content/70">
-                Email
-              </label>
-              <input
-                id="m-email"
-                type="email"
-                autocomplete="email"
-                placeholder="vos@alumnos.epet.edu.ar"
-                class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary"
-              />
-            </div>
-
-            <p class="text-xs text-base-content/50" id="hint-email">
-              Si ya tenés cuenta, es el mismo email de siempre.
-            </p>
-
-            <button type="submit" id="btn-submit-magic" class="btn btn-primary rounded-xl w-full mt-1 font-semibold">
-              Mandame el link de acceso
-            </button>
-
-            <!-- Nota sin password -->
-            <div class="flex items-start gap-3 mt-2 p-3.5 rounded-xl bg-primary/10 border border-primary/20 text-xs text-base-content leading-relaxed">
-              <svg class="size-4 shrink-0 text-primary mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="10" width="16" height="10" rx="2"></rect>
-                <path d="M8 10V7a4 4 0 0 1 7.5-2"></path>
-              </svg>
-              <p>
-                <strong class="font-bold text-primary">Sin contraseñas para alumnos:</strong> te mandamos un link a tu email y entrás desde ahí.
-              </p>
-            </div>
-          </form>
-
-          <!-- Estado Link Enviado -->
-          <div id="estado-enviado" hidden class="text-center py-4 flex flex-col items-center gap-3">
-            <span class="size-14 rounded-full bg-primary/15 text-primary grid place-items-center mb-1">
-              <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-                <path d="m3 7 9 6 9-6"></path>
-              </svg>
-            </span>
-            <h2 class="font-display font-normal text-3xl tracking-tight text-base-content">
-              Listo, revisá tu correo
-            </h2>
-            <p class="text-sm text-base-content/70">
-              Te mandamos un link a<br />
-              <b class="font-mono text-base text-base-content font-bold" id="mail-enviado">vos@alumnos.epet.edu.ar</b>
-            </p>
-            <p class="text-xs text-base-content/60">
-              Tocá el link del mail y entrás directo a tu cuenta.
-            </p>
-            <div class="flex gap-4 mt-2">
-              <button type="button" id="btn-reenviar" class="btn btn-ghost btn-sm text-primary underline underline-offset-4">
-                Reenviar link
-              </button>
-              <button type="button" id="btn-otro-mail" class="btn btn-ghost btn-sm text-base-content/60 hover:text-base-content">
-                Usar otro email
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Bloque código de sala -->
-      <div class="card bg-base-100 border-2 border-dashed border-base-300">
-        <div class="card-body p-6 text-center gap-3">
-          <h2 class="font-display font-normal text-2xl tracking-tight text-base-content">
-            ¿Tenés código de sala?
-          </h2>
-          <p class="text-xs text-base-content/70 leading-relaxed">
-            Como visitante podés ver todo el contenido educativo y los proyectos.
-            Para <strong>entrar a una sala</strong> necesitás tu cuenta registrada: el código te une a la clase, pero no reemplaza el registro.
-          </p>
-
-          <div class="flex gap-2 mt-2">
+        <!-- PASO 1: Ingreso de Email Único -->
+        <form id="form-email-step" novalidate class="flex flex-col gap-3">
+          <div class="form-control flex flex-col gap-1.5">
+            <label for="input-email" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Email educativo
+            </label>
             <input
-              id="f-codigo"
-              type="text"
-              maxlength="7"
-              placeholder="PROG5A"
-              autocomplete="off"
-              spellcheck="false"
-              aria-label="Código de la sala"
-              class="input input-bordered flex-1 rounded-xl text-center font-mono text-lg font-bold tracking-widest uppercase bg-base-200/60 focus:bg-base-100 focus:border-primary"
+              id="input-email"
+              type="email"
+              autocomplete="email"
+              placeholder="vos@escuela.edu.ar"
+              required
+              autofocus
+              class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-base"
             />
-            <button type="button" id="btn-unirme" class="btn btn-outline btn-primary rounded-xl px-5 font-semibold">
-              Unirme
+          </div>
+
+          <p class="text-xs text-base-content/60 leading-relaxed -mt-1 mb-1">
+            Alumnos ingresan sin contraseña por magic link. Docentes y directivos con su clave.
+          </p>
+
+          <button class="btn btn-primary rounded-xl w-full font-semibold" type="submit" id="btn-continuar-email">
+            Continuar
+          </button>
+        </form>
+
+        <!-- PASO 2A: Docente / Directivo (Paso Password) -->
+        <form id="form-password-step" hidden novalidate class="flex flex-col gap-3.5">
+          <div class="badge badge-warning badge-soft font-semibold text-xs py-2.5 px-3 rounded-lg flex items-center gap-1.5 self-start">
+            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Cuenta Docente / Directivo detectada
+          </div>
+
+          <div class="form-control flex flex-col gap-1.5">
+            <label for="docente-email-display" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Email
+            </label>
+            <input
+              id="docente-email-display"
+              type="email"
+              readonly
+              class="input input-bordered w-full rounded-xl bg-base-200/50 opacity-80 cursor-not-allowed text-sm font-mono"
+            />
+          </div>
+
+          <div class="form-control flex flex-col gap-1.5">
+            <div class="flex justify-between items-center">
+              <label for="input-password" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+                Contraseña
+              </label>
+              <button type="button" id="link-olvido-pass" class="btn btn-link btn-xs text-xs text-base-content/60 hover:text-primary no-underline p-0 h-auto">
+                ¿Olvidaste tu clave?
+              </button>
+            </div>
+            <div class="relative flex items-center">
+              <input
+                id="input-password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Tu contraseña"
+                required
+                class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary pr-11 text-base"
+              />
+              <button
+                type="button"
+                id="btn-toggle-pass"
+                class="btn btn-ghost btn-sm btn-circle absolute right-1 text-base-content/50 hover:text-base-content"
+                aria-label="Mostrar u ocultar contraseña"
+              >
+                <svg id="icon-eye" class="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary rounded-xl w-full font-semibold mt-1" type="submit" id="btn-ingresar-docente">
+            Iniciar sesión
+          </button>
+
+          <div class="flex justify-center mt-1">
+            <button class="btn btn-ghost btn-xs text-xs text-base-content/70 hover:text-base-content underline" type="button" id="btn-volver-email">
+              Usar otro email
             </button>
           </div>
-          <p class="text-[11px] text-base-content/50">
-            Primero creá tu cuenta con el link; después ingresás el código una sola vez.
+        </form>
+
+        <!-- PASO 2B: Alumno (Magic link enviado) -->
+        <div class="text-center py-2 flex flex-col items-center gap-3" id="estado-magic-enviado" hidden role="status">
+          <div class="badge badge-success badge-soft font-semibold text-xs py-2.5 px-3 rounded-lg flex items-center gap-1.5 mb-1">
+            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+            </svg>
+            Cuenta de Alumno · Sin contraseña
+          </div>
+
+          <span class="size-14 rounded-full bg-primary text-primary-content grid place-items-center shadow-md">
+            <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="m3 7 9 6 9-6"></path>
+            </svg>
+          </span>
+
+          <h2 class="font-display font-normal text-2xl sm:text-3xl tracking-tight text-base-content">
+            ¡Te enviamos tu link de acceso!
+          </h2>
+
+          <p class="text-sm text-base-content/80">
+            Revisá tu correo en <b class="badge badge-neutral font-mono text-xs px-2 py-1" id="alumno-mail-enviado">vos@alumnos.edu.ar</b>
           </p>
+
+          <p class="text-xs text-base-content/60 max-w-xs leading-relaxed">
+            Tocá el enlace del mensaje para entrar directamente a tu aula o emparejar la app en tu celular.
+          </p>
+
+          <div class="flex gap-3 mt-2">
+            <button class="btn btn-ghost btn-sm text-primary underline font-medium" type="button" id="btn-reenviar-magic">
+              Reenviar link
+            </button>
+            <button class="btn btn-ghost btn-sm text-base-content/60 hover:text-base-content" type="button" id="btn-cambiar-email-magic">
+              Usar otro email
+            </button>
+          </div>
         </div>
+
+        <!-- Info box de registro cerrado -->
+        <div class="mt-5 p-3.5 bg-base-200 border border-base-300 rounded-xl text-xs text-base-content/80 flex items-start gap-2.5">
+          <svg class="size-4.5 text-primary shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <div class="leading-relaxed">
+            <strong class="font-bold text-base-content">Registro cerrado:</strong> Las cuentas de alumnos y docentes son creadas por la escuela. Si no tenés usuario, pedile a tu docente que te sume a su aula.
+          </div>
+        </div>
+
       </div>
 
-      <!-- Link secundario: código de escuela -->
-      <div class="text-center pt-1 pb-4">
-        <a
-          href="/materiales/"
-          id="link-escuela"
-          class="text-xs text-base-content/60 hover:text-primary underline underline-offset-4 transition-colors"
-        >
-          ¿Tenés código global de escuela? Ingresá para recorrer toda la institución sin cuenta →
-        </a>
+      <!-- Bloque de Ingreso por Código (Escuela o Aula) -->
+      <div class="card bg-base-100 border-2 border-dashed border-base-300 p-5 sm:p-6 text-center gap-3">
+        <h2 class="font-display font-normal text-2xl tracking-tight text-base-content">
+          ¿Tenés código de escuela o aula?
+        </h2>
+        <p class="text-xs text-base-content/70">
+          Entrá como visitante para explorar materiales públicos o sumarte a tu aula.
+        </p>
+
+        <div class="flex gap-2 mt-1">
+          <input
+            class="input input-bordered flex-1 rounded-xl text-center font-mono font-bold text-lg tracking-widest uppercase bg-base-200/60 focus:bg-base-100 focus:border-primary"
+            id="input-codigo"
+            type="text"
+            maxlength="8"
+            placeholder="ET1-BA"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Código de la escuela o aula"
+          />
+          <button class="btn btn-outline btn-primary rounded-xl px-5 font-semibold shrink-0" type="button" id="btn-ingresar-codigo">
+            Ingresar
+          </button>
+        </div>
+        <p class="text-[11px] text-base-content/60">
+          Ejemplo: código de escuela para ver proyectos o código de curso para vincular tu cuenta.
+        </p>
+      </div>
+
+      <!-- Barra de pruebas rápidas (para testing y evaluación de UX) -->
+      <div class="card bg-base-100/60 border border-base-300 p-3.5 text-center gap-2">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-base-content/60">
+          🧪 Probar flujos en esta demo:
+        </div>
+        <div class="flex justify-center gap-1.5 flex-wrap">
+          <button type="button" class="btn btn-xs btn-outline rounded-lg font-mono" id="demo-alumno">👤 Simular Alumno</button>
+          <button type="button" class="btn btn-xs btn-outline rounded-lg font-mono" id="demo-docente">👨‍🏫 Simular Docente</button>
+          <button type="button" class="btn btn-xs btn-outline rounded-lg font-mono" id="demo-directivo">🏫 Simular Directivo</button>
+          <button type="button" class="btn btn-xs btn-primary rounded-lg font-mono" id="demo-qr">📱 Ir a Login QR (PC)</button>
+        </div>
       </div>
 
     </div>
@@ -194,109 +264,146 @@ import Layout from '../layouts/Layout.astro';
         }, 2800);
       }
 
-      // Tabs
-      const tabEntrar = $('#tab-entrar');
-      const tabCrear = $('#tab-crear');
-      const campoNombre = $('#campo-nombre');
-      const inputNombre = $('#m-nombre');
-      const inputEmail = $('#m-email');
-      const btnSubmit = $('#btn-submit-magic');
-      const hintEmail = $('#hint-email');
-      let modo = 'entrar';
+      // Referencias Formulario
+      const formEmail = $('#form-email-step');
+      const formPassword = $('#form-password-step');
+      const estadoMagic = $('#estado-magic-enviado');
+      const inputEmail = $('#input-email');
+      const docenteEmailDisplay = $('#docente-email-display');
+      const alumnoMailEnviado = $('#alumno-mail-enviado');
+      const inputPass = $('#input-password');
 
-      function setModo(m) {
-        modo = m;
-        if (modo === 'crear') {
-          tabCrear.classList.add('tab-active');
-          tabCrear.classList.remove('text-base-content/70');
-          tabCrear.setAttribute('aria-selected', 'true');
-          tabEntrar.classList.remove('tab-active');
-          tabEntrar.classList.add('text-base-content/70');
-          tabEntrar.setAttribute('aria-selected', 'false');
-
-          campoNombre.classList.remove('hidden');
-          campoNombre.classList.add('flex');
-          btnSubmit.textContent = 'Crear cuenta y recibir link';
-          hintEmail.textContent = 'Te enviaremos el magic link de confirmación para comenzar.';
-        } else {
-          tabEntrar.classList.add('tab-active');
-          tabEntrar.classList.remove('text-base-content/70');
-          tabEntrar.setAttribute('aria-selected', 'true');
-          tabCrear.classList.remove('tab-active');
-          tabCrear.classList.add('text-base-content/70');
-          tabCrear.setAttribute('aria-selected', 'false');
-
-          campoNombre.classList.add('hidden');
-          campoNombre.classList.remove('flex');
-          btnSubmit.textContent = 'Mandame el link de acceso';
-          hintEmail.textContent = 'Si ya tenés cuenta, es el mismo email de siempre.';
-        }
+      // Heurística de detección de roles
+      function esDocenteODirector(email) {
+        const e = email.toLowerCase();
+        return e.startsWith('docente') || e.startsWith('profe') || e.startsWith('director') || 
+               e.startsWith('admin') || e.includes('.docente.') || e.includes('profesor') ||
+               e.startsWith('roberto') || e.startsWith('laura');
       }
 
-      tabEntrar.addEventListener('click', () => setModo('entrar'));
-      tabCrear.addEventListener('click', () => setModo('crear'));
-
-      // Form submission
-      const form = $('#form-magic');
-      const estadoEnviado = $('#estado-enviado');
-      const mailEnviado = $('#mail-enviado');
-
-      form.addEventListener('submit', (e) => {
+      // Procesar Email
+      formEmail.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = inputEmail.value.trim();
-        const nombre = inputNombre.value.trim();
-
-        if (modo === 'crear' && !nombre) {
-          inputNombre.focus();
-          aviso('Decinos cómo te llamás para registrarte.');
-          return;
-        }
-
         if (!email || !email.includes('@')) {
           inputEmail.focus();
-          aviso('Necesitamos un email válido para mandarte el link.');
+          aviso('Por favor ingresá un correo electrónico válido.');
           return;
         }
 
-        mailEnviado.textContent = email;
-        form.hidden = true;
-        estadoEnviado.hidden = false;
-        aviso('¡Magic link enviado! Revisá tu casilla.');
+        if (esDocenteODirector(email)) {
+          // Flujo Docente/Directivo -> Paso contraseña
+          formEmail.hidden = true;
+          formPassword.hidden = false;
+          estadoMagic.hidden = true;
+          docenteEmailDisplay.value = email;
+          inputPass.value = '';
+          inputPass.focus();
+          aviso('Cuenta docente identificada. Ingresá tu contraseña.');
+        } else {
+          // Flujo Alumno -> Magic link directo sin password
+          formEmail.hidden = true;
+          formPassword.hidden = true;
+          estadoMagic.hidden = false;
+          alumnoMailEnviado.textContent = email;
+          aviso('¡Link de acceso enviado a tu correo!');
+        }
       });
 
-      $('#btn-reenviar').addEventListener('click', () => {
-        aviso(`Te enviamos el link nuevamente a ${mailEnviado.textContent}.`);
-      });
-
-      $('#btn-otro-mail').addEventListener('click', () => {
-        estadoEnviado.hidden = true;
-        form.hidden = false;
+      // Volver desde Password a Email
+      $('#btn-volver-email').addEventListener('click', () => {
+        formPassword.hidden = true;
+        formEmail.hidden = false;
         inputEmail.focus();
       });
 
-      // Código de sala
-      const fCodigo = $('#f-codigo');
-      fCodigo.addEventListener('input', function () {
-        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      // Volver desde Magic Link a Email
+      $('#btn-cambiar-email-magic').addEventListener('click', () => {
+        estadoMagic.hidden = true;
+        formEmail.hidden = false;
+        inputEmail.focus();
       });
 
-      $('#btn-unirme').addEventListener('click', () => {
-        const cod = fCodigo.value.trim();
-        if (!cod) {
-          fCodigo.focus();
-          aviso('Escribí el código de sala que te pasó el docente.');
+      // Reenviar Magic Link
+      $('#btn-reenviar-magic').addEventListener('click', () => {
+        aviso(`Te enviamos un nuevo enlace a ${alumnoMailEnviado.textContent}`);
+      });
+
+      // Submit Docente
+      formPassword.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pass = inputPass.value;
+        if (!pass) {
+          inputPass.focus();
+          aviso('Ingresá tu contraseña.');
           return;
         }
-        if (!form.hidden) {
-          aviso('Primero creá tu cuenta con el link: el código no reemplaza el registro.');
-          inputEmail.focus();
-          return;
-        }
-        aviso(`Buscando la sala «${cod}»…`);
+        aviso('Iniciando sesión docente…');
         setTimeout(() => {
-          window.location.href = '/mis-salas/';
+          window.location.href = '/dashboard/';
         }, 800);
+      });
+
+      // Toggle Password
+      $('#btn-toggle-pass').addEventListener('click', () => {
+        const tipo = inputPass.type === 'password' ? 'text' : 'password';
+        inputPass.type = tipo;
+      });
+
+      // Olvido contraseña
+      $('#link-olvido-pass').addEventListener('click', (e) => {
+        e.preventDefault();
+        aviso('Comunicate con el administrador de la escuela para restablecer tu clave.');
+      });
+
+      // Código de Escuela o Aula
+      const inputCodigo = $('#input-codigo');
+      inputCodigo.addEventListener('input', function () {
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      });
+
+      $('#btn-ingresar-codigo').addEventListener('click', () => {
+        const cod = inputCodigo.value.trim();
+        if (!cod) {
+          inputCodigo.focus();
+          aviso('Ingresá el código de la escuela o de tu aula.');
+          return;
+        }
+        aviso(`Ingresando con código «${cod}»…`);
+        setTimeout(() => {
+          window.location.href = '/materiales/';
+        }, 700);
+      });
+
+      // Botones Demo
+      $('#demo-alumno').addEventListener('click', () => {
+        inputEmail.value = 'tiziano.maidana@alumnos.epet1.edu.ar';
+        estadoMagic.hidden = true;
+        formPassword.hidden = true;
+        formEmail.hidden = false;
+        formEmail.dispatchEvent(new Event('submit'));
+      });
+
+      $('#demo-docente').addEventListener('click', () => {
+        inputEmail.value = 'profe.garcia@epet1.edu.ar';
+        estadoMagic.hidden = true;
+        formPassword.hidden = true;
+        formEmail.hidden = false;
+        formEmail.dispatchEvent(new Event('submit'));
+      });
+
+      $('#demo-directivo').addEventListener('click', () => {
+        inputEmail.value = 'direccion@epet1.edu.ar';
+        estadoMagic.hidden = true;
+        formPassword.hidden = true;
+        formEmail.hidden = false;
+        formEmail.dispatchEvent(new Event('submit'));
+      });
+
+      $('#demo-qr').addEventListener('click', () => {
+        window.location.href = '/pair/';
       });
     })();
   </script>
 </Layout>
+

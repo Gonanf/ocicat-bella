@@ -1,0 +1,560 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { alumnosMock, salas } from '../data/mock';
+
+const sala = salas[0]; // Programación 5.º A
+---
+
+<Layout titulo={`Alumnos — ${sala.nombre}`} active="aulas" navRole="docente">
+  <div class="py-6 sm:py-10 space-y-6">
+
+    <!-- Hero Header -->
+    <section class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+      <div>
+        <a
+          href="/consignas/"
+          class="inline-flex items-center gap-1.5 text-xs text-base-content/60 hover:text-primary transition-colors font-medium mb-2.5"
+        >
+          ← {sala.nombre} · {sala.curso}
+        </a>
+        <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">
+          {sala.nombre} · {sala.curso} · {sala.turno}
+        </p>
+        <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content mt-1">
+          Alumnos
+        </h1>
+        <p class="text-sm text-base-content/70 mt-1">
+          28 inscriptos · 93 entregas recibidas en total · 1 vetado.
+        </p>
+      </div>
+
+      <div class="shrink-0">
+        <button
+          type="button"
+          class="btn btn-primary rounded-xl font-semibold shadow-xs"
+          id="btn-abrir-alta"
+        >
+          + Dar de alta alumnos
+        </button>
+      </div>
+    </section>
+
+    <!-- Sub-navegación del aula -->
+    <nav class="flex gap-1.5 overflow-x-auto pb-1 border-b border-base-300 text-sm font-medium" aria-label="Secciones del aula">
+      <a
+        href="/consignas/"
+        class="px-4 py-2 rounded-xl text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
+      >
+        Consignas (6)
+      </a>
+      <a
+        href="/alumnos/"
+        class="px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold"
+        aria-current="page"
+      >
+        Alumnos (28)
+      </a>
+      <a
+        href="/sala-config/"
+        class="px-4 py-2 rounded-xl text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
+      >
+        Configuración
+      </a>
+    </nav>
+
+    <!-- Banner de Código con Doble Confirmación de Rotación -->
+    <div class="card bg-base-100 border border-base-300 shadow-xs p-5 sm:p-6 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-4 flex-wrap">
+          <span
+            class="font-mono font-bold text-2xl sm:text-3xl tracking-widest text-primary bg-primary/10 border border-primary/20 px-4 py-2 rounded-2xl"
+            id="codigo-sala-display"
+          >
+            {sala.codigo}
+          </span>
+          <div class="text-xs text-base-content/70 max-w-sm">
+            Compartilo en <b>unirse</b>: los alumnos lo ingresan una sola vez para sumarse a esta aula.
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-4 text-xs font-semibold"
+            type="button"
+            id="btn-copiar-codigo"
+          >
+            Copiar
+          </button>
+          <button
+            class="btn btn-primary btn-outline btn-sm rounded-xl px-4 text-xs font-semibold"
+            type="button"
+            id="btn-rotar-codigo"
+          >
+            Rotar código
+          </button>
+        </div>
+      </div>
+
+      <!-- Confirmación Paso 1: Advertencia Inicial -->
+      <div
+        id="rotar-confirm-paso1"
+        hidden
+        class="p-4 rounded-xl bg-warning/15 border border-warning/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-base-content"
+      >
+        <div class="flex items-start gap-2.5">
+          <svg class="size-5 text-warning shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3 2.5 20h19L12 3Z"></path>
+            <path d="M12 10v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <p>
+            <strong>¿Rotamos el código?</strong> Se genera uno nuevo y el actual deja de funcionar al instante:
+            <strong class="text-error">esto saca el acceso de toda la clase</strong> que intente entrar con el código viejo.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+          <button type="button" class="btn btn-ghost btn-xs rounded-lg" data-cancelar-rotar>Cancelar</button>
+          <button type="button" class="btn btn-warning btn-xs rounded-lg font-semibold" id="btn-continuar-rotar">
+            Sí, continuar
+          </button>
+        </div>
+      </div>
+
+      <!-- Confirmación Paso 2: Advertencia Grave Final -->
+      <div
+        id="rotar-confirm-paso2"
+        hidden
+        class="p-4 rounded-xl bg-error/15 border border-error/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-base-content"
+      >
+        <div class="flex items-start gap-2.5">
+          <svg class="size-5 text-error shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3 2.5 20h19L12 3Z"></path>
+            <path d="M12 10v4"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <p>
+            <strong>Última confirmación:</strong> rotarlo saca el acceso de toda la clase con el código actual.
+            Los inscriptos conservan su cuenta; solo cambia el código para futuros ingresos.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+          <button type="button" class="btn btn-ghost btn-xs rounded-lg" data-cancelar-rotar>No, volver</button>
+          <button type="button" class="btn btn-error btn-xs rounded-lg font-bold text-white" id="btn-confirmar-rotar-final">
+            Rotar ahora
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Alumnos -->
+    <section aria-labelledby="titulo-tabla" class="space-y-4">
+      <h2 class="sr-only" id="titulo-tabla">Listado de alumnos</h2>
+
+      <div class="card bg-base-100 border border-base-300 overflow-x-auto shadow-xs rounded-2xl">
+        <table class="table table-zebra w-full text-xs">
+          <thead>
+            <tr class="bg-base-200/80 text-base-content/70 uppercase text-[10px] tracking-wider border-b border-base-300">
+              <th>Alumno</th>
+              <th>Alias en aula</th>
+              <th>Última actividad</th>
+              <th>Entregas</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-alumnos">
+            {alumnosMock.map((al) => (
+              <tr
+                class:list={[
+                  'hover:bg-base-200/50 transition-colors fila-alumno',
+                  al.vetado && 'opacity-60 bg-error/5 fila-vetada'
+                ]}
+                data-id={al.id}
+                data-nombre={al.nombre}
+              >
+                <!-- Nombre + Email -->
+                <td class="font-medium">
+                  <div class="flex items-center gap-2">
+                    <div>
+                      <strong class:list={[
+                        'font-bold text-sm text-base-content block celda-nombre',
+                        al.vetado && 'line-through'
+                      ]}>
+                        {al.nombre}
+                      </strong>
+                      <span class="font-mono text-[11px] text-base-content/60">{al.email}</span>
+                    </div>
+                    {al.vetado && (
+                      <span class="badge badge-error badge-xs font-bold text-white uppercase text-[9px] px-1.5 badge-vetado">
+                        Vetado
+                      </span>
+                    )}
+                  </div>
+                </td>
+
+                <!-- Alias -->
+                <td>
+                  <span class="font-mono text-base-content/80">
+                    {al.alias || <span class="text-base-content/40">—</span>}
+                  </span>
+                </td>
+
+                <!-- Última actividad -->
+                <td>
+                  <span class={al.actividadReciente ? 'font-semibold text-primary' : 'text-base-content/60'}>
+                    {al.ultimaActividad}
+                  </span>
+                </td>
+
+                <!-- Entregas -->
+                <td>
+                  <span class="font-mono font-bold text-sm text-base-content">{al.entregasCount}</span>
+                </td>
+
+                <!-- Acciones -->
+                <td class="text-right td-acciones">
+                  <div class="inline-flex items-center gap-1.5 acciones-int">
+                    {!al.vetado ? (
+                      <>
+                        <button type="button" class="btn btn-ghost btn-xs text-primary font-semibold btn-perfil">
+                          Perfil
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold btn-vetar">
+                          Vetar
+                        </button>
+                      </>
+                    ) : (
+                      <button type="button" class="btn btn-ghost btn-xs text-success hover:bg-success/10 font-semibold btn-rehab">
+                        Rehabilitar
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+            <tr>
+              <td colspan="5" class="text-center py-4 bg-base-100">
+                <button type="button" class="btn btn-ghost btn-sm text-xs text-base-content/70 hover:text-primary font-medium" id="btn-ver-mas">
+                  Ver los 20 alumnos restantes del curso
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal: Dar de alta alumnos (CU-18: CSV + Individual) -->
+  <dialog id="modal-alta-alumnos" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-lg shadow-2xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
+      </form>
+
+      <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">
+        Dar de alta alumnos
+      </h3>
+      <p class="text-xs text-base-content/70 mt-1">
+        Registro cerrado: los alumnos no se registran solos. Podés importar la lista del curso o sumar alumnos individuales.
+      </p>
+
+      <!-- Tabs de Alta: CSV vs Individual -->
+      <div role="tablist" class="tabs tabs-box bg-base-200 p-1 rounded-xl grid grid-cols-2 mt-4">
+        <button
+          type="button"
+          role="tab"
+          id="tab-csv"
+          class="tab tab-active font-semibold text-xs transition-all"
+        >
+          Importar lista CSV
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-individual"
+          class="tab font-semibold text-xs transition-all text-base-content/70"
+        >
+          Invitación individual
+        </button>
+      </div>
+
+      <!-- Tab Content: CSV -->
+      <div id="content-csv" class="space-y-4 mt-4">
+        <div class="border-2 border-dashed border-base-300 hover:border-primary bg-base-200/40 rounded-xl p-5 text-center cursor-pointer">
+          <svg class="size-6 text-primary mx-auto mb-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+          </svg>
+          <div class="text-xs font-semibold text-base-content">Subir archivo .csv con los alumnos</div>
+          <p class="text-[11px] text-base-content/60 mt-0.5">Formato: <code>Nombre, Email</code> (una fila por alumno)</p>
+        </div>
+
+        <!-- Preview de filas CSV mock -->
+        <div class="p-3 bg-base-200/70 border border-base-300 rounded-xl space-y-2">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/60 block">Vista previa detectada:</span>
+          <div class="space-y-1.5 text-xs font-mono">
+            <div class="flex items-center justify-between p-1.5 bg-base-100 rounded-lg">
+              <span>Franco Rossi &lt;frossi@alumnos...&gt;</span>
+              <span class="badge badge-success badge-xs text-[9px]">Válido</span>
+            </div>
+            <div class="flex items-center justify-between p-1.5 bg-base-100 rounded-lg">
+              <span>Julieta Perez &lt;jperez@alumnos...&gt;</span>
+              <span class="badge badge-success badge-xs text-[9px]">Válido</span>
+            </div>
+            <div class="flex items-center justify-between p-1.5 bg-base-100 rounded-lg opacity-70">
+              <span>Valentina Costa &lt;vcosta@...&gt;</span>
+              <span class="badge badge-warning badge-xs text-[9px]">Duplicado</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="button" class="btn btn-ghost btn-sm rounded-xl" data-cerrar-alta>Cancelar</button>
+          <button type="button" class="btn btn-primary btn-sm rounded-xl font-semibold" id="btn-confirmar-csv">
+            Confirmar importación (2 nuevos)
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Content: Individual -->
+      <form id="form-individual" hidden class="space-y-4 mt-4">
+        <div class="form-control flex flex-col gap-1">
+          <label for="alta-nombre" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Nombre y Apellido
+          </label>
+          <input
+            id="alta-nombre"
+            type="text"
+            required
+            placeholder="ej. Agustín Romero"
+            class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+        </div>
+
+        <div class="form-control flex flex-col gap-1">
+          <label for="alta-email" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Email educativo
+          </label>
+          <input
+            id="alta-email"
+            type="email"
+            required
+            placeholder="aromero@alumnos.epet.edu.ar"
+            class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+        </div>
+
+        <div class="p-3 bg-primary/10 border border-primary/20 rounded-xl text-xs text-base-content/80">
+          El alumno recibirá su enlace de primer acceso por correo para emparejar su app o ingresar sin contraseña.
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="button" class="btn btn-ghost btn-sm rounded-xl" data-cerrar-alta>Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold">
+            Dar de alta alumno
+          </button>
+        </div>
+      </form>
+
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>cerrar</button>
+    </form>
+  </dialog>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+
+      // Toast feedback
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer = null;
+      function aviso(msg) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 2600);
+      }
+
+      // Copiar código
+      $('#btn-copiar-codigo')?.addEventListener('click', () => {
+        const codigo = $('#codigo-sala-display')?.textContent.trim() || 'PROG5A';
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(codigo).then(
+            () => aviso(`Código «${codigo}» copiado al portapapeles`),
+            () => aviso(`El código es «${codigo}»`)
+          );
+        } else {
+          aviso(`El código es «${codigo}»`);
+        }
+      });
+
+      // Rotación con doble confirmación
+      const paso1 = $('#rotar-confirm-paso1');
+      const paso2 = $('#rotar-confirm-paso2');
+
+      function cerrarRotar() {
+        if (paso1) paso1.hidden = true;
+        if (paso2) paso2.hidden = true;
+      }
+
+      $('#btn-rotar-codigo')?.addEventListener('click', () => {
+        if (paso1) paso1.hidden = false;
+        if (paso2) paso2.hidden = true;
+      });
+
+      document.querySelectorAll('[data-cancelar-rotar]').forEach((btn) => {
+        btn.addEventListener('click', cerrarRotar);
+      });
+
+      $('#btn-continuar-rotar')?.addEventListener('click', () => {
+        if (paso1) paso1.hidden = true;
+        if (paso2) paso2.hidden = false;
+      });
+
+      $('#btn-confirmar-rotar-final')?.addEventListener('click', () => {
+        const letras = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+        const nuevo = 'PROG' + (Math.floor(Math.random() * 8) + 2) + letras[Math.floor(Math.random() * letras.length)];
+        const display = $('#codigo-sala-display');
+        if (display) display.textContent = nuevo;
+        cerrarRotar();
+        aviso(`¡Código rotado exitosamente! Nuevo código: «${nuevo}».`);
+      });
+
+      // Tabla interactiva: Perfil, Vetar y Rehabilitar
+      const tbody = $('#tbody-alumnos');
+      tbody?.addEventListener('click', (e) => {
+        const fila = e.target.closest('.fila-alumno');
+        if (!fila) return;
+        const celda = fila.querySelector('.td-acciones');
+        const nombre = fila.getAttribute('data-nombre') || 'El alumno';
+
+        if (e.target.closest('.btn-perfil')) {
+          aviso(`El perfil detallado de ${nombre} se consulta en su ficha académica.`);
+          return;
+        }
+
+        if (e.target.closest('.btn-vetar')) {
+          fila.dataset.accionesOrig = celda.innerHTML;
+          celda.innerHTML = `
+            <div class="inline-flex items-center gap-1.5 text-xs">
+              <span class="text-error font-bold">¿Vetar?</span>
+              <button class="btn btn-error btn-xs text-white btn-veto-si" type="button">Sí, vetar</button>
+              <button class="btn btn-ghost btn-xs btn-veto-no" type="button">No</button>
+            </div>
+          `;
+          return;
+        }
+
+        if (e.target.closest('.btn-veto-no')) {
+          celda.innerHTML = fila.dataset.accionesOrig || `
+            <div class="inline-flex items-center gap-1.5 acciones-int">
+              <button type="button" class="btn btn-ghost btn-xs text-primary font-semibold btn-perfil">Perfil</button>
+              <button type="button" class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold btn-vetar">Vetar</button>
+            </div>
+          `;
+          return;
+        }
+
+        if (e.target.closest('.btn-veto-si')) {
+          fila.classList.add('opacity-60', 'bg-error/5', 'fila-vetada');
+          const nombreEl = fila.querySelector('.celda-nombre');
+          if (nombreEl) nombreEl.classList.add('line-through');
+          
+          if (!fila.querySelector('.badge-vetado')) {
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-error badge-xs font-bold text-white uppercase text-[9px] px-1.5 badge-vetado ml-2';
+            badge.textContent = 'Vetado';
+            nombreEl?.parentElement?.appendChild(badge);
+          }
+
+          celda.innerHTML = `
+            <div class="inline-flex items-center gap-1.5">
+              <button class="btn btn-ghost btn-xs text-success hover:bg-success/10 font-semibold btn-rehab" type="button">Rehabilitar</button>
+            </div>
+          `;
+          aviso(`«${nombre}» fue vetado de la sala. Podés rehabilitarlo cuando quieras.`);
+          return;
+        }
+
+        if (e.target.closest('.btn-rehab')) {
+          fila.classList.remove('opacity-60', 'bg-error/5', 'fila-vetada');
+          const nombreEl = fila.querySelector('.celda-nombre');
+          if (nombreEl) nombreEl.classList.remove('line-through');
+          fila.querySelector('.badge-vetado')?.remove();
+
+          celda.innerHTML = `
+            <div class="inline-flex items-center gap-1.5 acciones-int">
+              <button type="button" class="btn btn-ghost btn-xs text-primary font-semibold btn-perfil">Perfil</button>
+              <button type="button" class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold btn-vetar">Vetar</button>
+            </div>
+          `;
+          aviso(`«${nombre}» volvió a tener acceso a la sala.`);
+        }
+      });
+
+      $('#btn-ver-mas')?.addEventListener('click', () => {
+        aviso('Mostrando la nómina completa de 28 alumnos matriculados.');
+      });
+
+      // Modal Alta Alumnos
+      const modalAlta = $('#modal-alta-alumnos');
+      $('#btn-abrir-alta')?.addEventListener('click', () => modalAlta?.showModal());
+      document.querySelectorAll('[data-cerrar-alta]').forEach((b) => {
+        b.addEventListener('click', () => modalAlta?.close());
+      });
+
+      // Tabs CSV vs Individual
+      const tabCsv = $('#tab-csv');
+      const tabInd = $('#tab-individual');
+      const contentCsv = $('#content-csv');
+      const contentInd = $('#form-individual');
+
+      tabCsv?.addEventListener('click', () => {
+        tabCsv.classList.add('tab-active');
+        tabCsv.classList.remove('text-base-content/70');
+        tabInd.classList.remove('tab-active');
+        tabInd.classList.add('text-base-content/70');
+        if (contentCsv) contentCsv.hidden = false;
+        if (contentInd) contentInd.hidden = true;
+      });
+
+      tabInd?.addEventListener('click', () => {
+        tabInd.classList.add('tab-active');
+        tabInd.classList.remove('text-base-content/70');
+        tabCsv.classList.remove('tab-active');
+        tabCsv.classList.add('text-base-content/70');
+        if (contentCsv) contentCsv.hidden = true;
+        if (contentInd) contentInd.hidden = false;
+      });
+
+      $('#btn-confirmar-csv')?.addEventListener('click', () => {
+        modalAlta?.close();
+        aviso('¡2 alumnos nuevos importados y dados de alta!');
+      });
+
+      $('#form-individual')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nom = $('#alta-nombre')?.value.trim();
+        modalAlta?.close();
+        aviso(`¡${nom} dado de alta con éxito! Se envió el magic link.`);
+      });
+    })();
+  </script>
+</Layout>

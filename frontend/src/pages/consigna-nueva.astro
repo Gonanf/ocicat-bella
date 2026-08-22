@@ -1,0 +1,362 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout titulo="Nueva consigna · Programación 5.º A" active="consignas" navRole="docente">
+  <div class="py-6 sm:py-10 space-y-6">
+
+    <!-- Hero Header -->
+    <section class="pb-2">
+      <a
+        href="/consignas/"
+        class="inline-flex items-center gap-1.5 text-xs text-base-content/60 hover:text-primary transition-colors font-medium mb-2.5"
+      >
+        ← Consignas de Programación
+      </a>
+      <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content">
+        Nueva consigna
+      </h1>
+      <p class="text-sm text-base-content/70 mt-1 max-w-xl">
+        Para Programación · 5.º A. Se publica apenas la creás y los alumnos la ven al instante.
+      </p>
+    </section>
+
+    <!-- Formulario Nueva Consigna -->
+    <div class="card bg-base-100 border border-base-300 shadow-sm max-w-3xl p-6 sm:p-8">
+      <form id="form-consigna" class="space-y-6" novalidate>
+
+        <!-- Sección: Contenido -->
+        <div class="space-y-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary">
+            Contenido
+          </p>
+
+          <div class="form-control flex flex-col gap-1.5">
+            <label for="f-titulo" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Título de la consigna
+            </label>
+            <input
+              id="f-titulo"
+              name="titulo"
+              type="text"
+              required
+              autocomplete="off"
+              placeholder="ej. TP2 — Manejo de archivos"
+              class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-base font-medium"
+            />
+          </div>
+
+          <div class="form-control flex flex-col gap-1.5">
+            <label for="f-instrucciones" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Instrucciones y Enunciado
+            </label>
+            <textarea
+              id="f-instrucciones"
+              name="instrucciones"
+              required
+              rows="5"
+              placeholder="Qué tienen que hacer, cómo se evalúa y qué archivos se espera recibir…"
+              class="textarea textarea-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm leading-relaxed"
+            ></textarea>
+          </div>
+        </div>
+
+        <hr class="border-base-200" />
+
+        <!-- Sección: Adjuntos -->
+        <div class="space-y-3">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary">
+            Adjuntos (opcional)
+          </p>
+
+          <label
+            for="f-archivos"
+            id="dropzone"
+            tabindex="0"
+            role="button"
+            aria-label="Subir archivos adjuntos para la consigna"
+            class="border-2 border-dashed border-base-300 hover:border-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-base-200/40 hover:bg-primary/5 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all gap-2"
+          >
+            <svg class="size-6 text-base-content/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 16V4M7 9l5-5 5 5"></path>
+              <path d="M4 16v3a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3"></path>
+            </svg>
+            <div class="text-sm text-base-content">
+              Arrastrá hasta acá o <strong class="text-primary underline">elegí archivos</strong>
+            </div>
+            <p class="text-xs text-base-content/50">
+              PDF, imágenes o código · máx. 10 MB por archivo
+            </p>
+          </label>
+          <input
+            id="f-archivos"
+            type="file"
+            multiple
+            class="sr-only"
+            tabindex="-1"
+            accept=".pdf,.png,.jpg,.jpeg,.zip,.py,.ino,.cpp,.html,.css,.js"
+          />
+          <ul class="space-y-2 text-xs" id="lista-archivos"></ul>
+        </div>
+
+        <hr class="border-base-200" />
+
+        <!-- Sección: Corrección Automática / Runtime -->
+        <div class="space-y-3">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary">
+            Corrección automática y Sandbox
+          </p>
+
+          <fieldset class="space-y-2">
+            <legend class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Runtime esperado
+            </legend>
+            <div class="flex flex-wrap gap-2.5" role="radiogroup" aria-label="Runtime esperado">
+              <label class="cursor-pointer">
+                <input type="radio" name="runtime" value="Python" class="peer sr-only" checked />
+                <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
+                  Python 3.11
+                </span>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="runtime" value="Web" class="peer sr-only" />
+                <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
+                  Web (HTML/Node)
+                </span>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="runtime" value="C++" class="peer sr-only" />
+                <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
+                  C++ (GCC)
+                </span>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="runtime" value="Arduino" class="peer sr-only" />
+                <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
+                  Arduino Uno (Simulación)
+                </span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <hr class="border-base-200" />
+
+        <!-- Sección: Entrega, Intentos y Tardías -->
+        <div class="space-y-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary">
+            Configuración de entrega
+          </p>
+
+          <div class="form-control flex flex-col gap-1.5">
+            <label for="f-vencimiento" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Fecha límite (opcional)
+            </label>
+            <input
+              id="f-vencimiento"
+              name="vencimiento"
+              type="date"
+              class="input input-bordered w-full max-w-xs rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+            />
+            <p class="text-xs text-base-content/50">
+              Si lo dejás vacío, la consigna queda como práctica continua sin vencimiento.
+            </p>
+          </div>
+
+          <!-- Intentos permitidos -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-base-content/80 block">
+              Intentos permitidos
+            </label>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <label class="cursor-pointer">
+                <input type="radio" name="intentos" value="ilimitados" class="peer sr-only" checked />
+                <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
+                  Ilimitados (default)
+                </span>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="intentos" value="n" class="peer sr-only" />
+                <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
+                  N intentos
+                </span>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="intentos" value="uno" class="peer sr-only" />
+                <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
+                  Uno solo
+                </span>
+              </label>
+            </div>
+
+            <!-- Campo condicional para N intentos -->
+            <div id="intentos-extra" class="hidden items-center gap-2 pt-2">
+              <label for="f-intentos-num" class="text-xs text-base-content/70 font-medium">
+                Cantidad máxima de entregas:
+              </label>
+              <input
+                id="f-intentos-num"
+                type="number"
+                min="2"
+                max="10"
+                value="3"
+                class="input input-bordered input-sm w-20 rounded-lg text-center font-mono font-bold"
+              />
+            </div>
+          </div>
+
+          <!-- Switch Entregas Tardías -->
+          <div class="p-4 rounded-xl bg-base-200/70 border border-base-300 flex items-start justify-between gap-4">
+            <div>
+              <strong class="text-xs font-bold uppercase tracking-wider text-base-content block">
+                Permitir entregas tardías
+              </strong>
+              <p class="text-xs text-base-content/65 mt-0.5 max-w-md">
+                Llegan después de la fecha límite y quedan marcadas como tardías para corregir igual.
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              id="f-tardias"
+              checked
+              class="toggle toggle-primary shrink-0"
+              aria-label="Permitir entregas tardías"
+            />
+          </div>
+
+          <!-- Nota informativa -->
+          <div class="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-2.5 text-xs text-base-content/80">
+            <svg class="size-4.5 text-primary shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M12 8h.01M12 11v5"></path>
+            </svg>
+            <p>
+              <strong class="font-bold text-primary">Esta configuración es modificable en cualquier momento,</strong> incluso con la consigna ya publicada y con entregas recibidas.
+            </p>
+          </div>
+        </div>
+
+        <!-- Acciones del Formulario -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-base-200">
+          <a href="/consignas/" class="btn btn-ghost btn-sm rounded-xl">
+            Cancelar
+          </a>
+          <button type="submit" class="btn btn-primary btn-sm md:btn-md rounded-xl font-semibold px-6">
+            Crear consigna
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+
+      // Toast feedback
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer = null;
+      function aviso(msg) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 2600);
+      }
+
+      // Dropzone
+      const dropzone = $('#dropzone');
+      const inputArchivos = $('#f-archivos');
+      const listaArchivos = $('#lista-archivos');
+
+      function pesoLegible(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+      }
+
+      function pintarArchivos(files) {
+        if (!listaArchivos) return;
+        listaArchivos.innerHTML = '';
+        Array.from(files).forEach((file) => {
+          const li = document.createElement('li');
+          li.className = 'p-2.5 rounded-xl bg-base-200 border border-base-300 flex items-center justify-between gap-2';
+          li.innerHTML = `
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-medium text-base-content truncate">${file.name}</span>
+              <span class="badge badge-ghost font-mono text-[10px]">${pesoLegible(file.size)}</span>
+            </div>
+            <button type="button" class="btn btn-ghost btn-xs text-error font-medium">Quitar</button>
+          `;
+          li.querySelector('button')?.addEventListener('click', () => {
+            li.remove();
+          });
+          listaArchivos.appendChild(li);
+        });
+      }
+
+      inputArchivos?.addEventListener('change', () => {
+        if (inputArchivos.files) pintarArchivos(inputArchivos.files);
+      });
+
+      // Manejo accesible por teclado en dropzone
+      dropzone?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          inputArchivos?.click();
+        }
+      });
+
+      // Intentos toggle
+      const radiosIntentos = document.querySelectorAll('input[name="intentos"]');
+      const extra = $('#intentos-extra');
+      radiosIntentos.forEach((r) => {
+        r.addEventListener('change', (e) => {
+          const val = e.target.value;
+          if (val === 'n') {
+            extra?.classList.remove('hidden');
+            extra?.classList.add('flex');
+          } else {
+            extra?.classList.add('hidden');
+            extra?.classList.remove('flex');
+          }
+        });
+      });
+
+      // Form submit
+      $('#form-consigna')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const titulo = $('#f-titulo')?.value.trim();
+        const instrucciones = $('#f-instrucciones')?.value.trim();
+        if (!titulo) {
+          $('#f-titulo')?.focus();
+          aviso('Ponéle un título a la consigna.');
+          return;
+        }
+        if (!instrucciones) {
+          $('#f-instrucciones')?.focus();
+          aviso('Completá las instrucciones para los alumnos.');
+          return;
+        }
+        aviso(`¡Consigna «${titulo}» creada y publicada con éxito!`);
+        setTimeout(() => {
+          window.location.href = '/consignas/';
+        }, 1200);
+      });
+    })();
+  </script>
+</Layout>

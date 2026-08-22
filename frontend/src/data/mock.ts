@@ -408,3 +408,341 @@ export const consignas: Consigna[] = [
 
 export const getConsigna = (id: string) => consignas.find((c) => c.id === id);
 
+// --- Roles y Usuarios (B1, B2) ---
+
+export type Rol = 'anonimo' | 'invitado' | 'alumno' | 'docente' | 'director';
+
+export interface UsuarioMock {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  iniciales: string;
+  subtitulo: string;
+  notificacionesCount: number;
+}
+
+export const usuariosMock: Record<Rol, UsuarioMock> = {
+  anonimo: {
+    id: 'u-anon',
+    nombre: 'Visitante',
+    email: '',
+    rol: 'anonimo',
+    iniciales: 'V',
+    subtitulo: 'Sin cuenta',
+    notificacionesCount: 0,
+  },
+  invitado: {
+    id: 'u-guest',
+    nombre: 'Invitado Escuela',
+    email: '',
+    rol: 'invitado',
+    iniciales: 'IE',
+    subtitulo: 'E.E.S.T. N° 1',
+    notificacionesCount: 0,
+  },
+  alumno: {
+    id: 'u-alumno',
+    nombre: 'Tiziano Maidana',
+    email: 'tiziano.maidana@alumnos.epet1.edu.ar',
+    rol: 'alumno',
+    iniciales: 'TM',
+    subtitulo: '5° 1° Computación',
+    notificacionesCount: 3,
+  },
+  docente: {
+    id: 'u-docente',
+    nombre: 'Prof. Roberto García',
+    email: 'profe.garcia@epet1.edu.ar',
+    rol: 'docente',
+    iniciales: 'RG',
+    subtitulo: '4 Aulas activas',
+    notificacionesCount: 5,
+  },
+  director: {
+    id: 'u-director',
+    nombre: 'Dirección E.T. N°1',
+    email: 'direccion@epet1.edu.ar',
+    rol: 'director',
+    iniciales: 'DIR',
+    subtitulo: 'Administrador',
+    notificacionesCount: 1,
+  },
+};
+
+export const currentMockRole: Rol = 'docente';
+export const currentMockUser = usuariosMock[currentMockRole];
+
+// --- Aulas Docente (B5) ---
+
+export interface AulaDocente {
+  id: string;
+  nombre: string;
+  codigo: string;
+  curso: string;
+  turno: string;
+  especialidad: string;
+  alumnosCount: number;
+  consignasCount: number;
+  sandboxesPrendidos: number;
+}
+
+export const aulasDocente: AulaDocente[] = [
+  {
+    id: 'prog5a',
+    nombre: 'Programación',
+    codigo: 'PROG5A',
+    curso: '5.º A',
+    turno: 'Turno tarde',
+    especialidad: 'Técnica en Programación',
+    alumnosCount: 28,
+    consignasCount: 12,
+    sandboxesPrendidos: 9,
+  },
+  {
+    id: 'base5b',
+    nombre: 'Base de Datos',
+    codigo: 'BASE5B',
+    curso: '5.º B',
+    turno: 'Turno mañana',
+    especialidad: 'Técnica en Programación',
+    alumnosCount: 24,
+    consignasCount: 8,
+    sandboxesPrendidos: 4,
+  },
+  {
+    id: 'redes6b',
+    nombre: 'Redes y Comunicaciones',
+    codigo: 'REDE6B',
+    curso: '6.º B',
+    turno: 'Turno completo',
+    especialidad: 'Técnica en Computación',
+    alumnosCount: 18,
+    consignasCount: 5,
+    sandboxesPrendidos: 2,
+  },
+  {
+    id: 'robo6b',
+    nombre: 'Robótica 6°B',
+    codigo: 'ROBO6B',
+    curso: '6.º B',
+    turno: 'Turno mañana',
+    especialidad: 'Técnica Electrónica',
+    alumnosCount: 16,
+    consignasCount: 4,
+    sandboxesPrendidos: 0,
+  },
+];
+
+// --- Alumnos de un Aula (B7) ---
+
+export interface AlumnoItem {
+  id: string;
+  nombre: string;
+  email: string;
+  alias?: string;
+  ultimaActividad: string;
+  actividadReciente: boolean;
+  entregasCount: number;
+  vetado: boolean;
+  estado: 'activo' | 'invitado_pendiente' | 'vetado';
+}
+
+export const alumnosMock: AlumnoItem[] = [
+  {
+    id: 'al-1',
+    nombre: 'Valentina Costa',
+    email: 'vcosta@alumnos.epet.edu.ar',
+    alias: 'vale.c',
+    ultimaActividad: 'Hoy 10:42',
+    actividadReciente: true,
+    entregasCount: 5,
+    vetado: false,
+    estado: 'activo',
+  },
+  {
+    id: 'al-2',
+    nombre: 'Mateo González',
+    email: 'mgonzalez@alumnos.epet.edu.ar',
+    alias: 'maty_gza',
+    ultimaActividad: 'Hoy 08:15',
+    actividadReciente: true,
+    entregasCount: 4,
+    vetado: false,
+    estado: 'activo',
+  },
+  {
+    id: 'al-3',
+    nombre: 'Camila Ojeda',
+    email: 'cojeda@alumnos.epet.edu.ar',
+    alias: undefined,
+    ultimaActividad: 'Ayer 17:30',
+    actividadReciente: true,
+    entregasCount: 5,
+    vetado: false,
+    estado: 'activo',
+  },
+  {
+    id: 'al-4',
+    nombre: 'Santiago Ríos',
+    email: 'srios@alumnos.epet.edu.ar',
+    alias: 'santii',
+    ultimaActividad: 'Mié 19 · 21:04',
+    actividadReciente: true,
+    entregasCount: 3,
+    vetado: false,
+    estado: 'activo',
+  },
+  {
+    id: 'al-5',
+    nombre: 'Lucía Benítez',
+    email: 'lbenitez@alumnos.epet.edu.ar',
+    alias: undefined,
+    ultimaActividad: 'Lun 17 · 19:22',
+    actividadReciente: true,
+    entregasCount: 4,
+    vetado: false,
+    estado: 'activo',
+  },
+  {
+    id: 'al-6',
+    nombre: 'Tomás Aguirre',
+    email: 'taguirre@alumnos.epet.edu.ar',
+    alias: 'tomi_dev',
+    ultimaActividad: 'Hace 6 días',
+    actividadReciente: false,
+    entregasCount: 2,
+    vetado: false,
+    estado: 'activo',
+  },
+  {
+    id: 'al-7',
+    nombre: 'Micaela Sosa',
+    email: 'msosa@alumnos.epet.edu.ar',
+    alias: 'mica.sosa',
+    ultimaActividad: 'Hace 2 semanas',
+    actividadReciente: false,
+    entregasCount: 1,
+    vetado: false,
+    estado: 'activo',
+  },
+  {
+    id: 'al-8',
+    nombre: 'Bruno Cabral',
+    email: 'bcabral@alumnos.epet.edu.ar',
+    alias: 'brunoc',
+    ultimaActividad: 'Hace 3 semanas',
+    actividadReciente: false,
+    entregasCount: 1,
+    vetado: true,
+    estado: 'vetado',
+  },
+];
+
+// --- Configuración de Sala (B8) ---
+
+export interface TemplateEntorno {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  habilitado: boolean;
+}
+
+export const templatesEntornos: TemplateEntorno[] = [
+  {
+    id: 'python-numpy',
+    nombre: 'python/numpy',
+    descripcion: 'Python 3.12 con NumPy y Matplotlib precargados',
+    habilitado: true,
+  },
+  {
+    id: 'cpp-sqlite',
+    nombre: 'c++/sqlite',
+    descripcion: 'GCC 13 con SQLite3 para bases embebidas',
+    habilitado: false,
+  },
+  {
+    id: 'bun-react',
+    nombre: 'bun/react',
+    descripcion: 'Bun 1.1 con React + Vite listos para SPA',
+    habilitado: false,
+  },
+  {
+    id: 'node-express',
+    nombre: 'node/express',
+    descripcion: 'Node 22 con Express para APIs REST',
+    habilitado: false,
+  },
+  {
+    id: 'wordpress',
+    nombre: 'wordpress',
+    descripcion: 'PHP 8.3 con WordPress + MariaDB',
+    habilitado: false,
+  },
+  {
+    id: 'java-maven',
+    nombre: 'java/maven',
+    descripcion: 'OpenJDK 21 con Maven y JUnit',
+    habilitado: false,
+  },
+];
+
+export interface HerramientaVisible {
+  id: string;
+  nombre: string;
+  icono: string;
+  activa: boolean;
+}
+
+export const herramientasVisibles: HerramientaVisible[] = [
+  { id: 'vscode', nombre: 'VS Code', icono: '</>', activa: true },
+  { id: 'terminal', nombre: 'Terminal', icono: '>_', activa: true },
+  { id: 'git', nombre: 'Git', icono: 'G', activa: true },
+  { id: 'navegador', nombre: 'Navegador', icono: 'N', activa: false },
+  { id: 'docs', nombre: 'Docs', icono: 'D', activa: false },
+  { id: 'asistente-ia', nombre: 'Asistente IA', icono: 'IA', activa: false },
+];
+
+// --- Dispositivos PWA (B4) ---
+
+export interface DispositivoVinculado {
+  id: string;
+  nombre: string;
+  tipo: 'mobile' | 'pc';
+  ubicacion?: string;
+  estado: string;
+  esActual?: boolean;
+  desvinculable: boolean;
+  expiraEn?: string;
+}
+
+export const dispositivosMock: DispositivoVinculado[] = [
+  {
+    id: 'dev-1',
+    nombre: 'Xiaomi Redmi 10 (Este celu)',
+    tipo: 'mobile',
+    estado: 'Dispositivo principal · Emparejado',
+    esActual: true,
+    desvinculable: false,
+  },
+  {
+    id: 'dev-2',
+    nombre: 'LAB-PC07',
+    tipo: 'pc',
+    ubicacion: 'Laboratorio 1 · Fila 2',
+    estado: 'Conectada ahora · Temporal',
+    esActual: false,
+    desvinculable: true,
+    expiraEn: '60 min',
+  },
+  {
+    id: 'dev-3',
+    nombre: 'PC-Biblioteca-02',
+    tipo: 'pc',
+    ubicacion: 'Biblioteca',
+    estado: 'Último acceso ayer',
+    esActual: false,
+    desvinculable: true,
+  },
+];
+

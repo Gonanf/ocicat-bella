@@ -20,7 +20,7 @@ const features = [
 ];
 ---
 
-<Layout titulo="Materiales y sandboxes para escuelas" active="inicio">
+<Layout titulo="Materiales y sandboxes para escuelas" active="inicio" navRole="anonimo">
   <section class="py-12 md:py-16">
     <div class="flex flex-wrap gap-2 mb-6">
       {['FOSS', 'Auto-hospedado', 'Ligero'].map((b) => (
@@ -35,10 +35,12 @@ const features = [
       El lugar del curso: la biblioteca de la materia y los proyectos corriendo en el server de la escuela. Los chicos
       entran con un código y listo.
     </p>
-    <div class="mt-8 flex gap-3 flex-wrap">
-      <a href="/materiales/" class="btn btn-primary btn-lg rounded-full">Crear sala</a>
+    <div class="mt-8 flex gap-3 flex-wrap items-center">
+      <a href="/login/" class="btn btn-primary btn-lg rounded-full">
+        Ingresar a mi aula
+      </a>
       <a href="/unirse/" class="btn btn-lg rounded-full bg-base-100 border border-base-300 hover:border-base-content">
-        Unirse con código
+        Ingresar con código
       </a>
     </div>
   </section>

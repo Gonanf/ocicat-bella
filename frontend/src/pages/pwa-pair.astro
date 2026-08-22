@@ -1,0 +1,344 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { dispositivosMock } from '../data/mock';
+---
+
+<Layout titulo="Vincular PC · Ocicat Móvil (PWA)" hideNav={true} navRole="alumno">
+  <div class="min-h-dvh flex justify-center py-0 sm:py-6 bg-base-200">
+    
+    <!-- Shell Móvil (<420px) -->
+    <div class="w-full max-w-[420px] min-h-dvh sm:min-h-[780px] bg-base-100 sm:border sm:border-base-300 sm:rounded-3xl shadow-xl flex flex-col overflow-hidden">
+      
+      <!-- PWA Status Bar Mock -->
+      <div class="flex justify-between items-center px-5 pt-3 pb-1 text-[11px] font-mono font-semibold text-base-content/60 bg-base-200/50">
+        <span>14:35</span>
+        <div class="flex items-center gap-1.5">
+          <span>4G</span>
+          <span>🔋 88%</span>
+        </div>
+      </div>
+
+      <!-- PWA Header -->
+      <header class="flex items-center justify-between px-5 py-3 border-b border-base-300 bg-base-100">
+        <a href="/mis-salas/" class="flex items-center gap-2 text-base-content no-underline">
+          <span class="grid place-items-center size-7 rounded-lg bg-primary text-primary-content shadow-xs">
+            <svg width="18" height="18" viewBox="0 0 36 36" aria-hidden="true" class="fill-current">
+              <path d="M8 15 9.2 4.5 15.5 10Z" opacity=".8" />
+              <path d="M28 15 26.8 4.5 20.5 10Z" opacity=".8" />
+              <circle cx="18" cy="21" r="11.5" fill="var(--color-base-100)" />
+              <circle cx="11" cy="17.5" r="1.7" fill="var(--color-primary)" opacity=".85" />
+              <circle cx="24" cy="24" r="2" fill="var(--color-primary)" opacity=".85" />
+              <circle cx="19.5" cy="29" r="1.3" fill="var(--color-primary)" opacity=".7" />
+              <circle cx="14" cy="19.5" r="1.7" fill="var(--color-base-100)" />
+              <circle cx="22" cy="19.5" r="1.7" fill="var(--color-base-100)" />
+              <path d="M16.7 23.6h2.6L18 25.6Z" fill="var(--color-primary)" />
+            </svg>
+          </span>
+          <span class="font-display text-base tracking-tight font-normal">
+            Ocicat <em class="italic text-primary">móvil</em>
+          </span>
+        </a>
+
+        <label class="swap swap-rotate btn btn-ghost btn-xs btn-circle" aria-label="Cambiar tema">
+          <input type="checkbox" class="theme-controller" value="ocicat-dark" />
+          <svg class="swap-off size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/></svg>
+          <svg class="swap-on size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </label>
+      </header>
+
+      <!-- Barra de Usuario Logueado en Celular -->
+      <div class="flex items-center justify-between px-5 py-3 bg-base-200/60 border-b border-base-300">
+        <div class="flex items-center gap-2.5">
+          <div class="avatar placeholder">
+            <div class="bg-primary text-primary-content rounded-full w-8 font-bold text-xs">
+              <span>TM</span>
+            </div>
+          </div>
+          <div class="text-left leading-tight">
+            <strong class="text-xs font-bold text-base-content block">Tiziano Maidana</strong>
+            <span class="text-[10px] text-base-content/60">5° 1° · E.E.S.T. N° 1</span>
+          </div>
+        </div>
+        <span class="badge badge-primary badge-soft font-mono text-[10px] font-bold px-2 py-0.5">
+          PWA Alumno
+        </span>
+      </div>
+
+      <!-- Contenido Principal PWA -->
+      <div class="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
+
+        <!-- Card de Confirmación QR -->
+        <div class="card bg-base-100 border-2 border-primary shadow-md p-4 flex flex-col gap-3 relative" id="card-confirmacion">
+          <div class="flex items-center gap-2 text-sm font-bold text-base-content">
+            <svg class="size-4.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>¿Conectar con LAB-PC07?</span>
+          </div>
+
+          <p class="text-xs text-base-content/70">
+            Se detectó una solicitud de inicio de sesión desde un equipo del aula.
+          </p>
+
+          <!-- Metadatos del equipo -->
+          <div class="bg-base-200 rounded-xl p-3 flex flex-col gap-1.5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-base-content/60">Equipo:</span>
+              <span class="font-mono font-bold text-base-content">LAB-PC07</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-base-content/60">Ubicación:</span>
+              <span class="text-base-content/80 font-medium">Laboratorio 1 · Fila 2</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-base-content/60">Sesión:</span>
+              <span class="font-semibold text-primary">Temporal (60 min)</span>
+            </div>
+          </div>
+
+          <!-- Botones de Acción Inmediata -->
+          <div class="flex flex-col gap-2 mt-1">
+            <button
+              class="btn btn-primary rounded-xl w-full text-xs font-semibold"
+              type="button"
+              id="btn-confirmar-pair"
+            >
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Sí, conectar ahora en la PC
+            </button>
+
+            <button
+              class="btn btn-ghost btn-xs text-error font-medium hover:bg-error/10 py-2 h-auto"
+              type="button"
+              id="btn-rechazar-pair"
+            >
+              No soy yo / Rechazar
+            </button>
+          </div>
+        </div>
+
+        <!-- Botón para Escanear Otro QR -->
+        <button
+          class="btn btn-outline btn-sm rounded-xl w-full text-xs font-medium gap-2"
+          type="button"
+          id="btn-abrir-scanner"
+        >
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Escanear otro código QR
+        </button>
+
+        <!-- Lista de Dispositivos Vinculados (§13.9.5 Límite ~3 dispositivos) -->
+        <div class="card bg-base-100 border border-base-300 p-3.5 flex flex-col gap-2.5">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-xs text-base-content">Mis dispositivos activos</span>
+            <span class="badge badge-neutral badge-xs font-mono text-[10px]" id="dev-count">
+              2 de 3 autorizados
+            </span>
+          </div>
+
+          <ul class="space-y-2 text-xs" id="lista-dispositivos">
+            <!-- Dispositivo Celular Actual -->
+            <li class="p-2.5 rounded-xl border border-primary/40 bg-primary/5 flex items-center justify-between">
+              <div class="flex items-center gap-2 min-w-0">
+                <svg class="size-4 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+                <div class="min-w-0">
+                  <strong class="font-semibold text-base-content block truncate">Xiaomi Redmi 10 (Este celu)</strong>
+                  <span class="text-[10px] text-base-content/60">Dispositivo principal · Emparejado</span>
+                </div>
+              </div>
+            </li>
+
+            <!-- PC LAB activa -->
+            <li class="p-2.5 rounded-xl border border-base-300 bg-base-200/50 flex items-center justify-between" id="item-lab-pc">
+              <div class="flex items-center gap-2 min-w-0">
+                <svg class="size-4 text-base-content/70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                <div class="min-w-0">
+                  <strong class="font-semibold text-base-content block truncate">LAB-PC07</strong>
+                  <span class="text-[10px] text-primary font-medium">Conectada ahora</span>
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-xs text-error font-medium underline text-[11px] p-1 h-auto" type="button" id="btn-cerrar-lab">
+                Cerrar sesión
+              </button>
+            </li>
+
+            <!-- PC Biblioteca previa -->
+            <li class="p-2.5 rounded-xl border border-base-300 bg-base-200/50 flex items-center justify-between" id="item-biblio-pc">
+              <div class="flex items-center gap-2 min-w-0">
+                <svg class="size-4 text-base-content/70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                <div class="min-w-0">
+                  <strong class="font-semibold text-base-content block truncate">PC-Biblioteca-02</strong>
+                  <span class="text-[10px] text-base-content/60">Último acceso ayer</span>
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-xs text-base-content/60 hover:text-error underline text-[11px] p-1 h-auto" type="button" id="btn-desvincular-biblio">
+                Desvincular
+              </button>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Modal Visor Scanner Simulado -->
+      <div
+        class="fixed inset-0 bg-black/85 z-50 hidden flex-col items-center justify-center p-6 text-white"
+        id="scanner-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scanner-modal-title"
+      >
+        <div id="scanner-modal-title" class="text-sm font-bold mb-3">Escanear código en la PC</div>
+        <div class="relative size-56 border-2 border-white rounded-2xl overflow-hidden mb-4 shadow-2xl">
+          <div class="absolute left-0 right-0 h-0.5 bg-success shadow-[0_0_12px_var(--color-success)] animate-pulse" style="top: 45%;"></div>
+        </div>
+        <p class="text-xs text-center text-white/80 max-w-xs mb-5 leading-relaxed">
+          Apuntá tu cámara al código QR que muestra la pantalla de la computadora.
+        </p>
+        <div class="flex flex-col gap-2 w-full max-w-xs">
+          <button class="btn btn-primary btn-sm rounded-xl text-xs" type="button" id="btn-simular-captura">
+            Simular captura LAB-PC07
+          </button>
+          <button class="btn btn-ghost btn-sm rounded-xl text-xs text-white/70" type="button" id="btn-cerrar-scanner">
+            Cerrar
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Navegación Inferior PWA -->
+      <nav class="flex justify-around items-center px-2 py-2 border-t border-base-300 bg-base-100 mt-auto">
+        <a href="/mis-salas/" class="flex flex-col items-center gap-0.5 text-[10px] font-medium text-base-content/60 hover:text-primary">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span>Aulas</span>
+        </a>
+        <a href="/materiales/" class="flex flex-col items-center gap-0.5 text-[10px] font-medium text-base-content/60 hover:text-primary">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span>Materiales</span>
+        </a>
+        <a href="/pwa-pair/" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-primary">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <span>Escanear PC</span>
+        </a>
+        <a href="/perfil/" class="flex flex-col items-center gap-0.5 text-[10px] font-medium text-base-content/60 hover:text-primary">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Mi Perfil</span>
+        </a>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-4 py-2 text-xs font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+
+      // Toast feedback
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer = null;
+      function aviso(msg) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 2600);
+      }
+
+      // Notificar a ventana principal si está abierta
+      function avisarVentanaPrincipal(mensaje) {
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage(mensaje, window.location.origin);
+        }
+      }
+
+      // Notificar al abrir que se leyó el QR
+      avisarVentanaPrincipal('qr-scanned');
+
+      // Confirmar Conexión
+      const cardConfirm = $('#card-confirmacion');
+      $('#btn-confirmar-pair')?.addEventListener('click', () => {
+        avisarVentanaPrincipal('pair-confirmed');
+        aviso('✅ ¡Conexión con LAB-PC07 confirmada con éxito!');
+        if (cardConfirm) {
+          cardConfirm.className = 'card bg-success/10 border-2 border-success p-4 flex flex-col gap-2 text-center';
+          cardConfirm.innerHTML = `
+            <div class="text-2xl mb-0.5">✨</div>
+            <strong class="text-sm font-bold text-success">¡Sesión iniciada en LAB-PC07!</strong>
+            <p class="text-xs text-base-content/70">Ya podés usar la computadora del aula con tu usuario. Esta sesión expira automáticamente en 60 minutos.</p>
+          `;
+        }
+      });
+
+      // Rechazar Conexión
+      $('#btn-rechazar-pair')?.addEventListener('click', () => {
+        if (cardConfirm) cardConfirm.style.display = 'none';
+        aviso('Conexión rechazada. La PC seguirá esperando.');
+      });
+
+      // Scanner Visor
+      const scannerModal = $('#scanner-modal');
+      $('#btn-abrir-scanner')?.addEventListener('click', () => {
+        scannerModal?.classList.remove('hidden');
+        scannerModal?.classList.add('flex');
+      });
+      $('#btn-cerrar-scanner')?.addEventListener('click', () => {
+        scannerModal?.classList.add('hidden');
+        scannerModal?.classList.remove('flex');
+      });
+      $('#btn-simular-captura')?.addEventListener('click', () => {
+        scannerModal?.classList.add('hidden');
+        scannerModal?.classList.remove('flex');
+        if (cardConfirm) cardConfirm.style.display = 'flex';
+        avisarVentanaPrincipal('qr-scanned');
+        aviso('Código QR de LAB-PC07 capturado.');
+      });
+
+      // Cerrar sesión remota PC
+      $('#btn-cerrar-lab')?.addEventListener('click', () => {
+        $('#item-lab-pc')?.remove();
+        const devCount = $('#dev-count');
+        if (devCount) devCount.textContent = '1 de 3 autorizados';
+        aviso('Sesión en LAB-PC07 cerrada de forma remota.');
+      });
+
+      // Desvincular PC
+      $('#btn-desvincular-biblio')?.addEventListener('click', () => {
+        $('#item-biblio-pc')?.remove();
+        const devCount = $('#dev-count');
+        if (devCount) devCount.textContent = '1 de 3 autorizados';
+        aviso('PC-Biblioteca-02 desvinculada.');
+      });
+    })();
+  </script>
+</Layout>

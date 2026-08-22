@@ -1,32 +1,67 @@
 ---
 import '../styles/global.css';
-import { salas } from '../data/mock';
+import { usuariosMock, currentMockRole, type Rol } from '../data/mock';
 
 interface Props {
   titulo: string;
-  active?: 'inicio' | 'materiales' | 'sandboxes' | 'mis-salas' | 'perfil' | 'consignas' | 'login' | 'entregas' | string;
-  navRole?: 'public' | 'alumno';
+  active?: 'inicio' | 'materiales' | 'sandboxes' | 'aulas' | 'mis-aulas' | 'consignas' | 'perfil' | 'login' | 'entregas' | 'admin' | 'setup' | string;
+  navRole?: Rol | 'public';
   hideNav?: boolean;
+  badgeCount?: number;
 }
 
-const { titulo, active = '', navRole = 'public', hideNav = false } = Astro.props;
+const {
+  titulo,
+  active = '',
+  navRole = currentMockRole,
+  hideNav = false,
+  badgeCount,
+} = Astro.props;
 
-const publicLinks = [
-  { href: '/', label: 'Inicio', key: 'inicio' },
-  { href: '/materiales/', label: 'Materiales', key: 'materiales' },
-  { href: '/sandboxes/', label: 'Sandboxes', key: 'sandboxes' },
-  { href: '/mis-salas/', label: 'Mis salas', key: 'mis-salas' },
-];
+const effectiveRole: Rol = navRole === 'public' ? 'anonimo' : navRole;
+const user = usuariosMock[effectiveRole] || usuariosMock.docente;
+const notifications = badgeCount !== undefined ? badgeCount : user.notificacionesCount;
 
-const alumnoLinks = [
-  { href: '/mis-salas/', label: 'Mis salas', key: 'mis-salas' },
-  { href: '/consignas/', label: 'Consignas', key: 'consignas' },
-  { href: '/materiales/', label: 'Materiales', key: 'materiales' },
-  { href: '/sandboxes/', label: 'Sandboxes', key: 'sandboxes' },
-  { href: '/perfil/', label: 'Perfil', key: 'perfil' },
-];
+// Definición de enlaces por rol según CASOS-USO.md y nav-estados.html
+interface NavLinkItem {
+  href: string;
+  label: string;
+  key: string;
+}
 
-const links = navRole === 'alumno' ? alumnoLinks : publicLinks;
+let navLinks: NavLinkItem[] = [];
+
+if (effectiveRole === 'anonimo') {
+  navLinks = [
+    { href: '/materiales/', label: 'Materiales públicos', key: 'materiales' },
+    { href: '/sandboxes/', label: 'Proyectos', key: 'sandboxes' },
+  ];
+} else if (effectiveRole === 'invitado') {
+  navLinks = [
+    { href: '/materiales/', label: 'Materiales', key: 'materiales' },
+    { href: '/sandboxes/', label: 'Proyectos', key: 'sandboxes' },
+  ];
+} else if (effectiveRole === 'alumno') {
+  navLinks = [
+    { href: '/mis-salas/', label: 'Mis Aulas', key: 'aulas' },
+    { href: '/consignas/', label: 'Mis Entregas', key: 'consignas' },
+    { href: '/materiales/', label: 'Materiales', key: 'materiales' },
+    { href: '/sandboxes/', label: 'Proyectos', key: 'sandboxes' },
+  ];
+} else if (effectiveRole === 'docente') {
+  navLinks = [
+    { href: '/dashboard/', label: 'Aulas', key: 'aulas' },
+    { href: '/consignas/', label: 'Consignas', key: 'consignas' },
+    { href: '/materiales/', label: 'Materiales', key: 'materiales' },
+    { href: '/sandboxes/', label: 'Proyectos', key: 'sandboxes' },
+  ];
+} else if (effectiveRole === 'director') {
+  navLinks = [
+    { href: '/dashboard/', label: 'Gestión Escolar', key: 'admin' },
+    { href: '/materiales/', label: 'Materiales', key: 'materiales' },
+    { href: '/sala-config/', label: 'Configuración', key: 'setup' },
+  ];
+}
 ---
 
 <!doctype html>
@@ -44,24 +79,58 @@ const links = navRole === 'alumno' ? alumnoLinks : publicLinks;
     />
   </head>
   <body class="min-h-dvh flex flex-col font-sans text-base-content antialiased bg-base-200">
+    <a href="#contenido" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 btn btn-primary btn-sm">
+      Ir al contenido
+    </a>
+
     <header class="sticky top-0 z-50 bg-base-100/90 backdrop-blur-md border-b border-base-300">
       <div class="navbar h-16 max-w-[1180px] mx-auto px-4 sm:px-7">
-        <div class="navbar-start gap-2">
+        <!-- Izquierda: Mobile toggle + Brand + Badges -->
+        <div class="navbar-start gap-2 max-w-[65%] sm:max-w-none">
           {!hideNav && (
             <div class="dropdown md:hidden">
-              <div tabindex="0" role="button" class="btn btn-ghost btn-square btn-sm" aria-label="Abrir menú">☰</div>
-              <ul tabindex="0" class="dropdown-content menu z-50 mt-2 w-52 rounded-box bg-base-100 border border-base-300 shadow-lg p-2">
-                {links.map((l) => (
-                  <li><a href={l.href} class={active === l.key ? 'active font-semibold' : ''} aria-current={active === l.key ? 'page' : undefined}>{l.label}</a></li>
+              <div tabindex="0" role="button" class="btn btn-ghost btn-square btn-sm" aria-label="Abrir menú">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              </div>
+              <ul tabindex="0" class="dropdown-content menu z-50 mt-2 w-60 rounded-box bg-base-100 border border-base-300 shadow-xl p-2">
+                <li class="menu-title text-xs text-base-content/60 uppercase">Navegación ({effectiveRole})</li>
+                {navLinks.map((l) => (
+                  <li>
+                    <a
+                      href={l.href}
+                      class={active === l.key ? 'active font-semibold' : ''}
+                      aria-current={active === l.key ? 'page' : undefined}
+                    >
+                      {l.label}
+                    </a>
+                  </li>
                 ))}
-                <li><a href="/unirse/">Unirse con código</a></li>
-                <li><a href="/login/">Acceso / Login</a></li>
+                <li class="divider my-1"></li>
+                {effectiveRole === 'anonimo' && (
+                  <>
+                    <li><a href="/unirse/">Ingresar con código</a></li>
+                    <li><a href="/login/" class="font-medium text-primary">Iniciar sesión</a></li>
+                  </>
+                )}
+                {effectiveRole === 'invitado' && (
+                  <li><a href="/login/">Tengo cuenta / Iniciar sesión</a></li>
+                )}
+                {(effectiveRole === 'alumno' || effectiveRole === 'docente' || effectiveRole === 'director') && (
+                  <>
+                    <li><a href="/perfil/">Mi Perfil ({user.nombre})</a></li>
+                    <li><a href="/pair/">Conectar PC por QR</a></li>
+                    <li><a href="/login/" class="text-error">Cerrar sesión</a></li>
+                  </>
+                )}
               </ul>
             </div>
           )}
-          <a href="/" class="flex items-center gap-3 min-w-0" aria-label="Ocicat Bella — Inicio">
-            <span class="grid place-items-center size-9 rounded-[10px] bg-primary shrink-0 text-primary-content">
-              <svg width="24" height="24" viewBox="0 0 36 36" aria-hidden="true" class="fill-current">
+
+          <a href="/" class="flex items-center gap-2.5 min-w-0" aria-label="Ocicat Bella — Inicio">
+            <span class="grid place-items-center size-9 rounded-[10px] bg-primary shrink-0 text-primary-content shadow-sm">
+              <svg width="22" height="22" viewBox="0 0 36 36" aria-hidden="true" class="fill-current">
                 <path d="M8 15 9.2 4.5 15.5 10Z" opacity=".8" />
                 <path d="M28 15 26.8 4.5 20.5 10Z" opacity=".8" />
                 <circle cx="18" cy="21" r="11.5" fill="var(--color-base-100)" />
@@ -74,24 +143,31 @@ const links = navRole === 'alumno' ? alumnoLinks : publicLinks;
               </svg>
             </span>
             <span class="font-display text-lg leading-tight tracking-tight whitespace-nowrap">
-              Ocicat <em class="italic text-primary">Bella</em>
+              Ocicat <em class="italic text-primary font-normal">bella</em>
             </span>
           </a>
+
+          {effectiveRole === 'invitado' && (
+            <span class="hidden sm:inline-flex badge badge-warning badge-soft font-mono text-xs font-semibold px-2.5 py-1 rounded-full">
+              Invitado · E.E.S.T. N° 1
+            </span>
+          )}
         </div>
 
+        <!-- Centro: Enlaces principales desktop -->
         {!hideNav && (
           <div class="navbar-center hidden md:flex">
             <ul class="menu menu-horizontal gap-1 px-1">
-              {links.map((l) => (
+              {navLinks.map((l) => (
                 <li>
                   <a
                     href={l.href}
                     aria-current={active === l.key ? 'page' : undefined}
                     class:list={[
-                      'rounded-full text-sm font-medium transition-colors',
+                      'rounded-full text-sm font-medium transition-colors px-3.5 py-1.5',
                       active === l.key
-                        ? 'bg-neutral text-neutral-content'
-                        : 'text-base-content/70 hover:bg-base-300 hover:text-base-content',
+                        ? 'bg-neutral text-neutral-content font-semibold'
+                        : 'text-base-content/75 hover:bg-base-300 hover:text-base-content',
                     ]}
                   >
                     {l.label}
@@ -102,31 +178,151 @@ const links = navRole === 'alumno' ? alumnoLinks : publicLinks;
           </div>
         )}
 
-        <div class="navbar-end gap-2">
-          <label class="swap swap-rotate btn btn-ghost btn-sm md:btn-md btn-circle" aria-label="Cambiar tema">
+        <!-- Derecha: Acciones por rol, notificaciones, perfil y tema -->
+        <div class="navbar-end gap-2 shrink-0">
+          <!-- Toggle Tema Claro/Oscuro -->
+          <label class="swap swap-rotate btn btn-ghost btn-sm md:btn-md btn-circle" aria-label="Cambiar tema claro u oscuro">
             <input type="checkbox" class="theme-controller" value="ocicat-dark" />
-            <svg class="swap-off size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-14a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1Zm8-8a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1ZM7 12a1 1 0 0 1-1 1H4a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1Zm10.657-5.657a1 1 0 0 1 0 1.414l-1.414 1.415a1 1 0 1 1-1.415-1.415l1.415-1.414a1 1 0 0 1 1.414 0ZM9.172 14.828a1 1 0 0 1 0 1.415L7.757 17.66a1 1 0 0 1-1.414-1.415l1.414-1.414a1 1 0 0 1 1.415 0Z"/></svg>
-            <svg class="swap-on size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+            <svg class="swap-off size-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/></svg>
+            <svg class="swap-on size-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </label>
-          <a href="/unirse/" class="btn btn-outline btn-primary btn-sm md:btn-md rounded-full">
-            <span class="md:hidden">Unirse</span>
-            <span class="hidden md:inline">Unirse con código</span>
-          </a>
-          <a href="/login/" class="btn btn-primary btn-sm md:btn-md rounded-full">
-            Entrar
-          </a>
+
+          {effectiveRole === 'anonimo' && (
+            <div class="flex items-center gap-2">
+              <a href="/unirse/" class="btn btn-outline btn-primary btn-sm md:btn-md rounded-full font-medium">
+                <span class="md:hidden">Código</span>
+                <span class="hidden md:inline">Ingresar con código</span>
+              </a>
+              <a href="/login/" class="btn btn-primary btn-sm md:btn-md rounded-full font-medium">
+                Iniciar sesión
+              </a>
+            </div>
+          )}
+
+          {effectiveRole === 'invitado' && (
+            <a href="/login/" class="btn btn-outline btn-sm md:btn-md rounded-full font-medium text-xs md:text-sm">
+              <span class="sm:hidden">Acceso</span>
+              <span class="hidden sm:inline">Tengo cuenta / Iniciar sesión</span>
+            </a>
+          )}
+
+          {(effectiveRole === 'alumno' || effectiveRole === 'docente' || effectiveRole === 'director') && (
+            <div class="flex items-center gap-2">
+              {/* Badge servidor si es director */}
+              {effectiveRole === 'director' && (
+                <span class="hidden lg:inline-flex badge badge-success badge-soft font-mono text-xs font-semibold py-1">
+                  ● Servidor OK
+                </span>
+              )}
+
+              <!-- Campana de notificaciones con badge interactivo -->
+              <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-sm md:btn-md relative" aria-label={`Ver ${notifications} notificaciones`}>
+                  <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  </svg>
+                  {notifications > 0 && (
+                    <span class="badge badge-xs badge-error absolute top-1 right-1 text-[10px] font-bold text-error-content px-1">
+                      {notifications}
+                    </span>
+                  )}
+                </div>
+                <div tabindex="0" class="dropdown-content z-50 card card-compact w-72 p-3 shadow-xl bg-base-100 border border-base-300">
+                  <div class="card-body">
+                    <div class="flex justify-between items-center border-b border-base-200 pb-2">
+                      <span class="font-bold text-sm">Notificaciones</span>
+                      <span class="badge badge-sm badge-primary">{notifications} nuevas</span>
+                    </div>
+                    <ul class="space-y-2 text-xs py-1">
+                      {effectiveRole === 'alumno' ? (
+                        <>
+                          <li class="p-1.5 rounded-lg bg-base-200/60">
+                            <strong>TP2 Manejo de archivos</strong>
+                            <p class="text-base-content/70">Vence este viernes 28 de agosto</p>
+                          </li>
+                          <li class="p-1.5 rounded-lg bg-base-200/60">
+                            <strong>Kata de funciones</strong>
+                            <p class="text-base-content/70">Devolución: ¡Aprobado con observaciones!</p>
+                          </li>
+                        </>
+                      ) : effectiveRole === 'docente' ? (
+                        <>
+                          <li class="p-1.5 rounded-lg bg-base-200/60">
+                            <strong>5 nuevas entregas</strong>
+                            <p class="text-base-content/70">Programación 5.º A · TP2</p>
+                          </li>
+                          <li class="p-1.5 rounded-lg bg-base-200/60">
+                            <strong>2 consultas en Base de Datos</strong>
+                            <p class="text-base-content/70">Mateo G. y Valentina C.</p>
+                          </li>
+                        </>
+                      ) : (
+                        <li class="p-1.5 rounded-lg bg-base-200/60">
+                          <strong>Backup semanal completado</strong>
+                          <p class="text-base-content/70">Servidor escolar en óptimo estado</p>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Menú de Usuario / Perfil -->
+              <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost p-1 sm:px-2.5 h-auto flex items-center gap-2 rounded-xl border border-base-300 hover:border-primary/40 bg-base-100">
+                  <div class="avatar placeholder">
+                    <div class="bg-primary text-primary-content rounded-full w-7 sm:w-8 font-bold text-xs">
+                      <span>{user.iniciales}</span>
+                    </div>
+                  </div>
+                  <div class="hidden sm:flex flex-col text-left leading-tight">
+                    <span class="text-xs font-semibold">{user.nombre.split(' ')[0]} {user.nombre.split(' ')[1]?.[0]}.</span>
+                    <span class="text-[10px] text-base-content/60 font-mono">{user.subtitulo}</span>
+                  </div>
+                </div>
+                <ul tabindex="0" class="dropdown-content menu z-50 mt-2 w-56 rounded-box bg-base-100 border border-base-300 shadow-xl p-2">
+                  <li class="menu-title px-2 py-1 text-xs">
+                    <span class="font-bold text-base-content">{user.nombre}</span>
+                    <span class="text-[11px] text-base-content/60 font-normal">{user.email || user.subtitulo}</span>
+                  </li>
+                  <li class="divider my-1"></li>
+                  <li><a href="/perfil/">Mi Perfil y Sesiones</a></li>
+                  <li><a href="/pair/">Conectar PC de laboratorio</a></li>
+                  {effectiveRole === 'docente' && (
+                    <li><a href="/dashboard/">Mis Aulas ({user.subtitulo})</a></li>
+                  )}
+                  {effectiveRole === 'director' && (
+                    <li><a href="/dashboard/">Gestión de la Escuela</a></li>
+                  )}
+                  <li class="divider my-1"></li>
+                  <li><a href="/login/" class="text-error font-medium">Cerrar sesión</a></li>
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
 
-    <main class="flex-1 w-full max-w-[1180px] mx-auto px-4 sm:px-7">
+    <main id="contenido" class="flex-1 w-full max-w-[1180px] mx-auto px-4 sm:px-7">
       <slot />
     </main>
 
-    <footer class="mt-16 border-t border-base-300 bg-base-300">
-      <div class="max-w-[1180px] mx-auto px-4 sm:px-7 py-8 flex flex-wrap justify-between gap-4 text-sm text-base-content/60">
-        <span>Ocicat Bella es software libre (FOSS), hecho para escuelas.</span>
-        <span>v0.1 · prototipo</span>
+    <footer class="mt-16 border-t border-base-300 bg-base-100">
+      <div class="max-w-[1180px] mx-auto px-4 sm:px-7 py-8 flex flex-wrap justify-between items-center gap-4 text-sm text-base-content/70">
+        <div class="flex items-center gap-3">
+          <span class="font-semibold text-base-content">Ocicat Bella</span>
+          <span>·</span>
+          <span>Software libre (FOSS) para escuelas</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-mono">
+          <a href="/pair/" class="hover:underline text-primary font-medium">Login QR PC</a>
+          <span>·</span>
+          <a href="/login/" class="hover:underline">Acceso</a>
+          <span>·</span>
+          <span>v0.2-mvp</span>
+        </div>
       </div>
     </footer>
   </body>
@@ -137,7 +333,6 @@ const links = navRole === 'alumno' ? alumnoLinks : publicLinks;
       if (saved) document.documentElement.dataset.theme = saved;
       const isDark = () => (document.documentElement.dataset.theme || '') === 'ocicat-dark'
         || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
-      // sincronizar todos los toggles con el tema EFECTIVO (guardado o del SO)
       const sync = () => document.querySelectorAll('.theme-controller').forEach((el) => { el.checked = isDark(); });
       sync();
       document.querySelectorAll('.theme-controller').forEach((el) => {
