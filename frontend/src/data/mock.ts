@@ -222,22 +222,11 @@ export const instaladores = [
 
 // --- Perfil y Sesiones del Alumno ---
 
-export interface Sesion {
-  id: string;
-  os: string;
-  osBadge: string;
-  navegador: string;
-  ubicacion: string;
-  actividad: string;
-  actual?: boolean;
-}
-
 export interface PerfilAlumno {
   nombre: string;
   email: string;
   iniciales: string;
   escuela: string;
-  sesiones: Sesion[];
 }
 
 export const perfilMock: PerfilAlumno = {
@@ -245,11 +234,6 @@ export const perfilMock: PerfilAlumno = {
   email: 'vcosta@alumnos.epet.edu.ar',
   iniciales: 'VC',
   escuela: 'E.P.E.T. N° 1',
-  sesiones: [
-    { id: 's-1', os: 'Linux', osBadge: 'LIN', navegador: 'Chrome en Linux', ubicacion: 'Buenos Aires', actividad: 'activa ahora', actual: true },
-    { id: 's-2', os: 'Android', osBadge: 'AND', navegador: 'Firefox en Android', ubicacion: 'Buenos Aires', actividad: 'hace 3 días' },
-    { id: 's-3', os: 'Windows', osBadge: 'WIN', navegador: 'Edge en Windows', ubicacion: 'La Plata', actividad: 'hace 2 semanas' },
-  ],
 };
 
 // --- Consignas y Entregas ---
@@ -701,48 +685,5 @@ export const herramientasVisibles: HerramientaVisible[] = [
   { id: 'navegador', nombre: 'Navegador', icono: 'N', activa: false },
   { id: 'docs', nombre: 'Docs', icono: 'D', activa: false },
   { id: 'asistente-ia', nombre: 'Asistente IA', icono: 'IA', activa: false },
-];
-
-// --- Dispositivos PWA (B4) ---
-
-export interface DispositivoVinculado {
-  id: string;
-  nombre: string;
-  tipo: 'mobile' | 'pc';
-  ubicacion?: string;
-  estado: string;
-  esActual?: boolean;
-  desvinculable: boolean;
-  expiraEn?: string;
-}
-
-export const dispositivosMock: DispositivoVinculado[] = [
-  {
-    id: 'dev-1',
-    nombre: 'Xiaomi Redmi 10 (Este celu)',
-    tipo: 'mobile',
-    estado: 'Dispositivo principal · Emparejado',
-    esActual: true,
-    desvinculable: false,
-  },
-  {
-    id: 'dev-2',
-    nombre: 'LAB-PC07',
-    tipo: 'pc',
-    ubicacion: 'Laboratorio 1 · Fila 2',
-    estado: 'Conectada ahora · Temporal',
-    esActual: false,
-    desvinculable: true,
-    expiraEn: '60 min',
-  },
-  {
-    id: 'dev-3',
-    nombre: 'PC-Biblioteca-02',
-    tipo: 'pc',
-    ubicacion: 'Biblioteca',
-    estado: 'Último acceso ayer',
-    esActual: false,
-    desvinculable: true,
-  },
 ];
 
