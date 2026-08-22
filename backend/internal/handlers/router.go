@@ -21,6 +21,7 @@ type Handler struct {
 	loginEmailRL  *middleware.IPRateLimiter // 10/h por IP (§0.3)
 	magicIPRL     *middleware.IPRateLimiter // 10/h por IP (§0.3)
 	magicEmailRL  *middleware.IPRateLimiter // 3/h por email (§0.3)
+	qrStartRL     *middleware.IPRateLimiter // 60/h por IP (§0.3)
 	loginFailRL   *middleware.FailLimiter   // 5 fallos/15min por email+IP (§0.3)
 	sendMagicLink func(email, link string)  // seam de envío de email; inyectable en tests
 }
@@ -45,6 +46,7 @@ func NewRouter(cfg *config.Config, s store.Store) *Handler {
 		loginEmailRL: middleware.NewIPRateLimiter(10, 10),
 		magicIPRL:    middleware.NewIPRateLimiter(10, 10),
 		magicEmailRL: middleware.NewIPRateLimiter(3, 3),
+		qrStartRL:    middleware.NewIPRateLimiter(60, 20),
 		loginFailRL:  middleware.NewFailLimiter(5, 15*60*time.Second),
 	}
 	// DEV: sin SMTP configurado, el link queda en el log del servidor
@@ -55,8 +57,9 @@ func NewRouter(cfg *config.Config, s store.Store) *Handler {
 	h.registerRoutes()
 
 	// Build global middleware chain:
-	// RateLimiting -> SessionMiddleware -> ServeMux
+	// RateLimiting -> SessionMiddleware -> OriginCheck -> ServeMux
 	var handler http.Handler = h.mux
+	handler = middleware.OriginMiddleware(cfg.OfficialDomain)(handler)
 	handler = middleware.SessionMiddleware(s)(handler)
 	handler = middleware.RateLimitMiddleware(h.rateLimiter)(handler)
 
@@ -79,4 +82,16 @@ func (h *Handler) registerRoutes() {
 	h.mux.HandleFunc("GET /auth/consume", h.ConsumeMagicLink)
 	h.mux.Handle("GET /auth/me", middleware.RequireAuth(http.HandlerFunc(h.Me)))
 	h.mux.Handle("DELETE /sessions/current", middleware.RequireAuth(http.HandlerFunc(h.Logout)))
+
+	// QR inverso CU-16 (§2.3)
+	h.mux.HandleFunc("POST /auth/qr/start", h.QRStart)
+	h.mux.HandleFunc("GET /auth/qr/{pairing_id}/status", h.QRStatus)
+	h.mux.Handle("POST /auth/qr/scan", requirePWAAlumno(http.HandlerFunc(h.QRScan)))
+	h.mux.Handle("POST /auth/qr/{pairing_id}/confirm", requirePWAAlumno(http.HandlerFunc(h.QRConfirm)))
+	h.mux.Handle("POST /auth/qr/{pairing_id}/deny", requirePWAAlumno(http.HandlerFunc(h.QRDeny)))
+
+	// Sesiones y dispositivos (§2.4)
+	h.mux.Handle("GET /sessions", middleware.RequireAuth(http.HandlerFunc(h.ListSessions)))
+	h.mux.Handle("DELETE /sessions/{id}", middleware.RequireAuth(http.HandlerFunc(h.DeleteSession)))
+	h.mux.Handle("POST /sessions/close-others", middleware.RequireAuth(http.HandlerFunc(h.CloseOthers)))
 }
