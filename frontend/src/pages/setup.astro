@@ -1,0 +1,460 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout titulo="Instalación inicial" active="" navRole="anonimo">
+  <main class="min-h-[75vh] flex justify-center items-center py-8 sm:py-12 px-4" id="contenido">
+    <div class="w-full max-w-xl space-y-6">
+
+      <!-- Stepper de 4 pasos -->
+      <div class="stepper-wrap" data-od-id="stepper-setup">
+        <ol class="flex items-center justify-between gap-2" id="stepper" aria-label="Pasos de la instalación">
+          <!-- Paso 1 -->
+          <li class="flex items-center gap-2 step-item step-current" data-step-num="1" aria-current="step">
+            <span class="size-8 rounded-full flex items-center justify-center font-mono font-bold text-xs border-2 border-primary bg-primary text-primary-content shrink-0 step-badge">
+              1
+            </span>
+            <span class="text-xs font-semibold text-base-content hidden sm:inline step-label">Bienvenida</span>
+          </li>
+          <div class="h-0.5 flex-1 bg-base-300 step-line"></div>
+
+          <!-- Paso 2 -->
+          <li class="flex items-center gap-2 step-item" data-step-num="2">
+            <span class="size-8 rounded-full flex items-center justify-center font-mono font-bold text-xs border-2 border-base-300 text-base-content/60 shrink-0 step-badge">
+              2
+            </span>
+            <span class="text-xs font-medium text-base-content/60 hidden sm:inline step-label">Escuela</span>
+          </li>
+          <div class="h-0.5 flex-1 bg-base-300 step-line"></div>
+
+          <!-- Paso 3 -->
+          <li class="flex items-center gap-2 step-item" data-step-num="3">
+            <span class="size-8 rounded-full flex items-center justify-center font-mono font-bold text-xs border-2 border-base-300 text-base-content/60 shrink-0 step-badge">
+              3
+            </span>
+            <span class="text-xs font-medium text-base-content/60 hidden sm:inline step-label">Director</span>
+          </li>
+          <div class="h-0.5 flex-1 bg-base-300 step-line"></div>
+
+          <!-- Paso 4 -->
+          <li class="flex items-center gap-2 step-item" data-step-num="4">
+            <span class="size-8 rounded-full flex items-center justify-center font-mono font-bold text-xs border-2 border-base-300 text-base-content/60 shrink-0 step-badge">
+              4
+            </span>
+            <span class="text-xs font-medium text-base-content/60 hidden sm:inline step-label">Código global</span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Tarjeta Principal del Wizard -->
+      <div class="card bg-base-100 border border-base-300 shadow-xl rounded-2xl p-6 sm:p-9">
+
+        <!-- PASO 1 · Bienvenida -->
+        <section id="paso-1" class="text-center space-y-6" data-od-id="paso-bienvenida">
+          <div class="space-y-3">
+            <div class="size-16 mx-auto rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-serif italic text-3xl">
+              O
+            </div>
+            <h1 class="font-display font-normal text-3xl sm:text-4xl tracking-tight text-base-content" id="titulo-bienvenida">
+              Bienvenido a Ocicat Bella
+            </h1>
+            <p class="text-sm text-base-content/70 max-w-md mx-auto leading-relaxed">
+              Estás instalando <strong>una instancia propia para tu escuela</strong>: un lugar privado
+              para las aulas, las consignas y los proyectos del curso.
+              Esta configuración se realiza una sola vez.
+            </p>
+          </div>
+
+          <div class="pt-2">
+            <button type="button" class="btn btn-primary btn-lg rounded-2xl font-semibold px-8 shadow-xs" id="btn-comenzar" data-od-id="btn-comenzar">
+              Comenzar
+            </button>
+          </div>
+        </section>
+
+        <!-- PASO 2 · Escuela -->
+        <section id="paso-2" hidden class="space-y-6" data-od-id="paso-escuela">
+          <div>
+            <h1 class="font-display font-normal text-3xl sm:text-4xl tracking-tight text-base-content" id="titulo-escuela">
+              ¿Qué escuela es?
+            </h1>
+            <p class="text-xs sm:text-sm text-base-content/70 mt-1">
+              Va a aparecer en el panel y en los documentos que comparta la escuela.
+            </p>
+          </div>
+
+          <form id="form-escuela" class="space-y-4" novalidate>
+            <div class="form-control flex flex-col gap-1">
+              <label for="f-escuela" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+                Nombre de la escuela <span class="text-error">*</span>
+              </label>
+              <input
+                id="f-escuela"
+                type="text"
+                required
+                autocomplete="organization"
+                placeholder="ej. EEST N.º 5 Lanús"
+                class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+                data-od-id="input-nombre-escuela"
+              />
+            </div>
+
+            <div id="error-escuela" hidden class="p-3 rounded-xl bg-error/10 border border-error/25 text-xs text-error font-medium"></div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-base-200">
+              <button type="button" class="btn btn-ghost btn-sm rounded-xl" data-volver="1">
+                ← Volver
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold px-5" id="btn-continuar-escuela" data-od-id="btn-continuar-escuela">
+                Continuar
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- PASO 3 · Director -->
+        <section id="paso-3" hidden class="space-y-6" data-od-id="paso-director">
+          <div>
+            <h1 class="font-display font-normal text-3xl sm:text-4xl tracking-tight text-base-content" id="titulo-director">
+              La cuenta del director
+            </h1>
+            <p class="text-xs sm:text-sm text-base-content/70 mt-1">
+              Esta cuenta administra la instancia: crea docentes y gestiona el código global.
+            </p>
+          </div>
+
+          <form id="form-director" class="space-y-4" novalidate>
+            <div class="form-control flex flex-col gap-1">
+              <label for="f-nombre-dir" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+                Nombre completo <span class="text-error">*</span>
+              </label>
+              <input
+                id="f-nombre-dir"
+                type="text"
+                required
+                autocomplete="name"
+                placeholder="ej. Marcela Duarte"
+                class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+                data-od-id="input-nombre-director"
+              />
+            </div>
+
+            <div class="form-control flex flex-col gap-1">
+              <label for="f-email-dir" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+                Email institucional <span class="text-error">*</span>
+              </label>
+              <input
+                id="f-email-dir"
+                type="email"
+                required
+                autocomplete="email"
+                placeholder="direccion@escuela.edu.ar"
+                class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+                data-od-id="input-email-director"
+              />
+            </div>
+
+            <div class="form-control flex flex-col gap-1">
+              <label for="f-pass-dir" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+                Contraseña <span class="text-error">*</span>
+              </label>
+              <input
+                id="f-pass-dir"
+                type="password"
+                required
+                minlength="8"
+                autocomplete="new-password"
+                placeholder="Mínimo 8 caracteres"
+                class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+                data-od-id="input-password-director"
+              />
+              <span class="text-[11px] text-base-content/60 mt-0.5">Usá al menos 8 caracteres.</span>
+            </div>
+
+            <div class="p-3 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-2.5 text-xs text-base-content/80">
+              <svg class="size-4 text-primary shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+              </svg>
+              <p>
+                <strong>Vos entrás con contraseña;</strong> los alumnos no: ellos reciben enlaces de acceso por email o código de aula y jamás eligen una.
+              </p>
+            </div>
+
+            <div id="error-director" hidden class="p-3 rounded-xl bg-error/10 border border-error/25 text-xs text-error font-medium"></div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-base-200">
+              <button type="button" class="btn btn-ghost btn-sm rounded-xl" data-volver="2">
+                ← Volver
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold px-5" id="btn-crear-director" data-od-id="btn-continuar-director">
+                Crear cuenta y finalizar
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- PASO 4 · Código global -->
+        <section id="paso-4" hidden class="space-y-6" data-od-id="paso-codigo-global">
+          <div class="text-center space-y-2">
+            <h1 class="font-display font-normal text-3xl sm:text-4xl tracking-tight text-base-content" id="titulo-codigo">
+              ¡Instalación completada!
+            </h1>
+            <p class="text-xs sm:text-sm text-base-content/70">
+              Este es el código global de tu escuela.
+            </p>
+          </div>
+
+          <div class="text-center py-3 space-y-2">
+            <span
+              class="inline-block font-mono font-bold text-2xl sm:text-3xl tracking-widest text-primary bg-primary/10 border border-primary/20 px-6 py-3 rounded-2xl select-all"
+              id="chip-codigo-global"
+              data-od-id="chip-codigo-global"
+            >
+              ESCUELA-XXXX
+            </span>
+            <p class="text-xs text-base-content/60">
+              Pegalo en el cartel del aula de informática.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-warning/15 border border-warning/30 space-y-2 text-xs text-base-content/85">
+            <div class="flex items-center gap-2 font-bold text-warning">
+              <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 3 2.5 20h19L12 3Z"></path>
+                <path d="M12 10v4"></path>
+                <path d="M12 17h.01"></path>
+              </svg>
+              <span>Qué permite este código:</span>
+            </div>
+            <p>
+              Quien lo ingresa entra como <strong>visitante</strong> y puede <strong>ver proyectos y materiales públicos de toda la escuela</strong>.
+            </p>
+            <ul class="list-disc list-inside space-y-0.5 text-base-content/70 pl-1">
+              <li>Nunca da acceso a consignas ni entregas (eso queda dentro de cada aula).</li>
+              <li>No permite publicar ni subir nada (solo lectura).</li>
+            </ul>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button type="button" class="btn btn-outline btn-sm rounded-xl w-full sm:w-auto" id="btn-copiar-setup-codigo">
+              Copiar código
+            </button>
+            <a href="/escuela/" class="btn btn-primary btn-sm rounded-xl font-bold w-full sm:w-auto px-6">
+              Ir al panel del director →
+            </a>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import {
+    ApiError,
+    getSetupStatus,
+    setupAdmin,
+    setupSchool,
+  } from '../lib/api';
+
+  (() => {
+    const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
+    const toast = $('#toast');
+    const toastMsg = $('#toast-msg');
+    let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function aviso(msg: string) {
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer ?? undefined);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+      }, 3000);
+    }
+
+    function mostrarPaso(num: number) {
+      for (let i = 1; i <= 4; i++) {
+        const sec = $(`#paso-${i}`);
+        if (sec) sec.hidden = i !== num;
+
+        const stepEl = $(`[data-step-num="${i}"]`);
+        const badge = stepEl?.querySelector('.step-badge');
+        const label = stepEl?.querySelector('.step-label');
+
+        if (i < num) {
+          // Done
+          badge?.classList.remove('bg-primary', 'text-primary-content', 'border-primary', 'border-base-300', 'text-base-content/60');
+          badge?.classList.add('bg-success', 'text-white', 'border-success');
+          if (badge) badge.innerHTML = '✓';
+          label?.classList.remove('text-primary', 'text-base-content/60');
+          label?.classList.add('text-base-content');
+        } else if (i === num) {
+          // Current
+          badge?.classList.remove('bg-success', 'text-white', 'border-success', 'border-base-300', 'text-base-content/60');
+          badge?.classList.add('bg-primary', 'text-primary-content', 'border-primary');
+          if (badge) badge.textContent = String(i);
+          label?.classList.remove('text-base-content/60');
+          label?.classList.add('text-primary');
+        } else {
+          // Pending
+          badge?.classList.remove('bg-primary', 'text-primary-content', 'border-primary', 'bg-success', 'text-white', 'border-success');
+          badge?.classList.add('border-base-300', 'text-base-content/60');
+          if (badge) badge.textContent = String(i);
+          label?.classList.remove('text-primary', 'text-base-content');
+          label?.classList.add('text-base-content/60');
+        }
+      }
+    }
+
+    async function init() {
+      try {
+        const status = await getSetupStatus();
+        if (status.configured) {
+          // Ya configurada -> derivar a login
+          window.location.href = '/login/';
+          return;
+        }
+
+        if (status.school_created) {
+          // La escuela ya fue creada, falta el admin
+          mostrarPaso(3);
+        } else {
+          mostrarPaso(1);
+        }
+      } catch {
+        // En caso de error de conexión, mostrar paso 1
+        mostrarPaso(1);
+      }
+    }
+
+    // Paso 1 -> 2
+    $('#btn-comenzar')?.addEventListener('click', () => {
+      mostrarPaso(2);
+    });
+
+    // Botones volver
+    document.querySelectorAll('[data-volver]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const v = parseInt(b.getAttribute('data-volver') || '1', 10);
+        mostrarPaso(v);
+      });
+    });
+
+    // Paso 2: Escuela Submit
+    $('#form-escuela')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombreInput = $('#f-escuela') as HTMLInputElement;
+      const nombre = nombreInput.value.trim();
+      const errorDiv = $('#error-escuela')!;
+      const btn = $('#btn-continuar-escuela') as HTMLButtonElement;
+
+      errorDiv.hidden = true;
+      if (!nombre) {
+        errorDiv.textContent = 'Ingresá el nombre de la escuela.';
+        errorDiv.hidden = false;
+        nombreInput.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Guardando…';
+
+      try {
+        await setupSchool(nombre);
+        mostrarPaso(3);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.code === 'setup_already_done' || err.status === 409) {
+            window.location.href = '/login/';
+            return;
+          }
+          errorDiv.textContent = err.message || 'Error al guardar la escuela.';
+        } else {
+          errorDiv.textContent = 'No pudimos conectar con el servidor.';
+        }
+        errorDiv.hidden = false;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Continuar';
+      }
+    });
+
+    // Paso 3: Director Submit
+    $('#form-director')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = ($('#f-nombre-dir') as HTMLInputElement).value.trim();
+      const email = ($('#f-email-dir') as HTMLInputElement).value.trim();
+      const password = ($('#f-pass-dir') as HTMLInputElement).value;
+      const errorDiv = $('#error-director')!;
+      const btn = $('#btn-crear-director') as HTMLButtonElement;
+
+      errorDiv.hidden = true;
+
+      if (!nombre || !email || !password) {
+        errorDiv.textContent = 'Completá todos los campos.';
+        errorDiv.hidden = false;
+        return;
+      }
+
+      if (password.length < 8) {
+        errorDiv.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+        errorDiv.hidden = false;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creando cuenta…';
+
+      try {
+        const res = await setupAdmin({ name: nombre, email, password });
+        const chip = $('#chip-codigo-global');
+        if (chip && res.global_code) {
+          chip.textContent = res.global_code;
+        }
+        mostrarPaso(4);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.code === 'setup_already_done' || err.status === 409) {
+            window.location.href = '/login/';
+            return;
+          }
+          errorDiv.textContent = err.message || 'Error al crear la cuenta del director.';
+        } else {
+          errorDiv.textContent = 'No pudimos conectar con el servidor.';
+        }
+        errorDiv.hidden = false;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Crear cuenta y finalizar';
+      }
+    });
+
+    // Copiar código final
+    $('#btn-copiar-setup-codigo')?.addEventListener('click', () => {
+      const code = $('#chip-codigo-global')?.textContent.trim() || '';
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(code).then(
+          () => aviso(`Código «${code}» copiado`),
+          () => aviso(`El código es «${code}»`),
+        );
+      } else {
+        aviso(`El código es «${code}»`);
+      }
+    });
+
+    void init();
+  })();
+</script>

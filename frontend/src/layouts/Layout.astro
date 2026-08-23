@@ -57,9 +57,11 @@ if (effectiveRole === 'anonimo') {
   ];
 } else if (effectiveRole === 'director') {
   navLinks = [
-    { href: '/dashboard/', label: 'Gestión Escolar', key: 'admin' },
+    { href: '/escuela/', label: 'Gestión Escolar', key: 'escuela' },
+    { href: '/dashboard/', label: 'Aulas', key: 'aulas' },
+    { href: '/consignas/', label: 'Consignas', key: 'consignas' },
     { href: '/materiales/', label: 'Materiales', key: 'materiales' },
-    { href: '/sala-config/', label: 'Configuración', key: 'setup' },
+    { href: '/sandboxes/', label: 'Proyectos', key: 'sandboxes' },
   ];
 }
 ---
@@ -293,7 +295,10 @@ if (effectiveRole === 'anonimo') {
                     <li><a href="/dashboard/">Mis Aulas ({user.subtitulo})</a></li>
                   )}
                   {effectiveRole === 'director' && (
-                    <li><a href="/dashboard/">Gestión de la Escuela</a></li>
+                    <>
+                      <li><a href="/escuela/">Gestión de la Escuela</a></li>
+                      <li><a href="/dashboard/">Todas las Aulas</a></li>
+                    </>
                   )}
                   <li class="divider my-1"></li>
                   <li><a href="/login/" class="text-error font-medium">Cerrar sesión</a></li>
@@ -304,6 +309,30 @@ if (effectiveRole === 'anonimo') {
         </div>
       </div>
     </header>
+
+    <!-- Banner de Impersonación Administrativa (§9.5) -->
+    <div
+      id="banner-impersonacion"
+      hidden
+      class="sticky top-0 z-[60] bg-warning text-warning-content px-4 py-2 text-xs sm:text-sm font-medium border-b border-warning-content/20 shadow-md"
+      role="alert"
+    >
+      <div class="max-w-[1180px] mx-auto flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="badge badge-sm badge-neutral font-mono font-bold">ADMIN</span>
+          <span>
+            Estás viendo la plataforma como <strong id="imp-usuario-nombre">…</strong> (<span id="imp-usuario-rol">…</span>) · <em class="not-italic opacity-80">Sesión impersonada</em>
+          </span>
+        </div>
+        <button
+          type="button"
+          id="btn-salir-impersonacion"
+          class="btn btn-neutral btn-xs rounded-lg font-bold shadow-xs hover:bg-neutral-focus"
+        >
+          Volver a mi sesión de director
+        </button>
+      </div>
+    </div>
 
     <main id="contenido" class="flex-1 w-full max-w-[1180px] mx-auto px-4 sm:px-7">
       <slot />
@@ -342,6 +371,39 @@ if (effectiveRole === 'anonimo') {
           localStorage.setItem('ocicat-theme', t);
         });
       });
+    })();
+  </script>
+  <script>
+    import { me, stopImpersonation } from '../lib/api';
+
+    (async () => {
+      try {
+        const yo = await me();
+        if (yo.impersonated_by) {
+          const banner = document.getElementById('banner-impersonacion');
+          const nombre = document.getElementById('imp-usuario-nombre');
+          const rol = document.getElementById('imp-usuario-rol');
+          if (nombre) nombre.textContent = yo.name;
+          if (rol) rol.textContent = yo.role;
+          if (banner) banner.hidden = false;
+
+          document.getElementById('btn-salir-impersonacion')?.addEventListener('click', async () => {
+            const btn = document.getElementById('btn-salir-impersonacion') as HTMLButtonElement | null;
+            if (btn) {
+              btn.disabled = true;
+              btn.textContent = 'Volviendo…';
+            }
+            try {
+              await stopImpersonation();
+              window.location.href = '/escuela/';
+            } catch {
+              window.location.reload();
+            }
+          });
+        }
+      } catch {
+        // no logueado o error de red
+      }
     })();
   </script>
 </html>

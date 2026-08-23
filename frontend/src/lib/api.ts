@@ -75,10 +75,11 @@ export interface User {
   role: Role;
 }
 
-/** GET /me (§11): campos extra sobre User. */
+/** GET /me (§11): campos extra sobre User + impersonated_by si aplica (§9.5). */
 export interface MeUser extends User {
   school_name?: string;
   devices_paired?: number;
+  impersonated_by?: string;
 }
 
 export type MagicLinkContext = 'login_pc' | 'pairing_pwa';
@@ -108,9 +109,20 @@ export function consumeToken(token: string): Promise<{ user: User; session_kind:
   return request(`/api/v1/auth/consume?token=${encodeURIComponent(token)}`);
 }
 
-/** GET /me (§11). */
-export function me(): Promise<MeUser> {
-  return request('/api/v1/me');
+/** GET /auth/me o /me (§11, §9.5). */
+export async function me(): Promise<MeUser> {
+  try {
+    const data = await request<MeUser | { user: MeUser; impersonated_by?: string }>('/api/v1/auth/me');
+    if (data && typeof data === 'object' && 'user' in data && data.user) {
+      return { ...data.user, impersonated_by: data.impersonated_by };
+    }
+    return data as MeUser;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      return request<MeUser>('/api/v1/me');
+    }
+    throw err;
+  }
 }
 
 /** DELETE /sessions/current — logout (§2.4). 204. */
@@ -226,10 +238,54 @@ export interface StudentRow {
   submissions_count?: number;
 }
 
-export interface SchoolInfo {
+export interface School {
   name: string;
   global_code: { code: string; active: boolean };
-  stats: { teachers: number; classrooms: number; students: number; public_materials: number };
+  stats: {
+    teachers: number;
+    classrooms: number;
+    students: number;
+    public_materials: number;
+  };
+}
+
+export type SchoolInfo = School;
+
+export interface Teacher {
+  id: string;
+  name: string;
+  email: string;
+  status: 'active' | 'disabled' | 'invited';
+  classrooms_count?: number;
+  total_submissions?: number;
+  created_at?: string;
+}
+
+export type TeacherCredential =
+  | { type: 'password'; password: string }
+  | { type: 'magic_link' };
+
+export interface CreateTeacherPayload {
+  name: string;
+  email: string;
+  credential?: TeacherCredential;
+}
+
+export interface ImportRow {
+  line: number;
+  name: string;
+  email: string;
+  status: 'ok' | 'duplicate' | 'invalid_email' | 'exists' | string;
+  reason?: string;
+}
+
+export interface ImportResult {
+  import_token?: string;
+  rows?: ImportRow[];
+  summary?: { ok: number; rejected: number };
+  created?: number;
+  omitted?: number;
+  warnings?: string[];
 }
 
 function qs(params: Record<string, string | undefined>): string {
@@ -332,7 +388,7 @@ export async function deleteMaterial(id: string): Promise<void> {
 
 // --- Escuela e invitados (§9.1, §10) ---
 
-export function getSchool(): Promise<SchoolInfo> {
+export function getSchool(): Promise<School> {
   return request('/api/v1/school');
 }
 
@@ -341,9 +397,11 @@ export function regenerateGlobalCode(): Promise<{ code: string }> {
   return request('/api/v1/school/global-code/regenerate', { method: 'POST' });
 }
 
-export async function disableGlobalCode(): Promise<void> {
+export async function deactivateGlobalCode(): Promise<void> {
   await request('/api/v1/school/global-code', { method: 'DELETE' });
 }
+
+export const disableGlobalCode = deactivateGlobalCode;
 
 /** POST /guest/sessions — pública; 201 abre sesión invitado read-only. */
 export function guestSession(code: string): Promise<{ school_name: string }> {
@@ -353,6 +411,108 @@ export function guestSession(code: string): Promise<{ school_name: string }> {
 /** GET /school/public → { name } para la vista pública de escuela (§10). */
 export function schoolPublic(): Promise<{ name: string }> {
   return request('/api/v1/school/public');
+}
+
+// --- Docentes (§9.2, CU-15) — Director ---
+
+export async function listTeachers(): Promise<Teacher[]> {
+  const data = await request<Teacher[] | { teachers: Teacher[] }>('/api/v1/school/teachers');
+  return Array.isArray(data) ? data : data.teachers;
+}
+
+export async function createTeacher(payload: CreateTeacherPayload): Promise<Teacher> {
+  const data = await request<Teacher | { teacher: Teacher }>('/api/v1/school/teachers', json(payload));
+  return 'teacher' in data && data.teacher ? data.teacher : (data as Teacher);
+}
+
+export async function resetTeacherCredential(
+  id: string,
+  credential: TeacherCredential,
+): Promise<Teacher> {
+  const data = await request<Teacher | { teacher: Teacher }>(
+    `/api/v1/school/teachers/${encodeURIComponent(id)}/reset-credential`,
+    json({ credential }),
+  );
+  return 'teacher' in data && data.teacher ? data.teacher : (data as Teacher);
+}
+
+export async function disableTeacher(id: string): Promise<Teacher> {
+  const data = await request<Teacher | { teacher: Teacher }>(
+    `/api/v1/school/teachers/${encodeURIComponent(id)}/disable`,
+    { method: 'POST' },
+  );
+  return 'teacher' in data && data.teacher ? data.teacher : (data as Teacher);
+}
+
+export async function enableTeacher(id: string): Promise<Teacher> {
+  const data = await request<Teacher | { teacher: Teacher }>(
+    `/api/v1/school/teachers/${encodeURIComponent(id)}/enable`,
+    { method: 'POST' },
+  );
+  return 'teacher' in data && data.teacher ? data.teacher : (data as Teacher);
+}
+
+// --- Alta de alumnos y Magic Link (§9.3, CU-18) ---
+
+export function importStudentsCsv(
+  classroomId: string,
+  file: File,
+  dryRun = false,
+  importToken?: string,
+): Promise<ImportResult> {
+  const fd = new FormData();
+  fd.set('csv', file);
+  fd.set('dry_run', String(dryRun));
+  if (importToken) fd.set('import_token', importToken);
+  return request(`/api/v1/classrooms/${encodeURIComponent(classroomId)}/students/import`, {
+    method: 'POST',
+    body: fd,
+  });
+}
+
+export function inviteStudent(
+  classroomId: string,
+  payload: { name: string; email: string; send_invite?: boolean },
+): Promise<{ student: { id?: string; name: string; email: string }; first_magic_link_sent: boolean }> {
+  return request(`/api/v1/classrooms/${encodeURIComponent(classroomId)}/students/invite`, json(payload));
+}
+
+/** Reenviar magic link: 202 genérico anti-enumeración (§9.3). */
+export function resendMagicLink(userId: string): Promise<{ sent: boolean; message: string }> {
+  return request(`/api/v1/students/${encodeURIComponent(userId)}/resend-magic-link`, { method: 'POST' });
+}
+
+// --- Impersonación administrativa (§9.5) — Director ---
+
+/** POST /admin/impersonations — 201 + sesión de impersonación (reason obligatorio). */
+export function impersonate(
+  userId: string,
+  reason: string,
+): Promise<{ user: User; impersonated_by: string }> {
+  return request('/api/v1/admin/impersonations', json({ user_id: userId, reason }));
+}
+
+/** DELETE /admin/impersonations/current — 204 vuelve a sesión director. */
+export async function stopImpersonation(): Promise<void> {
+  await request('/api/v1/admin/impersonations/current', { method: 'DELETE' });
+}
+
+// --- Setup Wizard (§1, CU-12) ---
+
+export function getSetupStatus(): Promise<{ configured: boolean }> {
+  return request('/api/v1/setup/status');
+}
+
+export function setupSchool(name: string): Promise<{ school_id: string; name: string }> {
+  return request('/api/v1/setup/school', json({ name }));
+}
+
+export function setupAdmin(payload: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<{ user: User; school: { global_code: string } }> {
+  return request('/api/v1/setup/admin', json(payload));
 }
 
 // --- Consignas (§4) y Entregas (§5) — Fase 4 ---

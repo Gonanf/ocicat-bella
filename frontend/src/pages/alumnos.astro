@@ -166,19 +166,175 @@ import Layout from '../layouts/Layout.astro';
 
   </div>
 
-  <!-- Modal alta (CU-18 CSV/individual: llega con fase de gestión escolar) -->
+  <!-- Modal alta (CU-18 CSV 2 pasos / individual) -->
   <dialog id="modal-alta-alumnos" class="modal modal-bottom sm:modal-middle">
-    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-lg shadow-2xl">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-xl shadow-2xl">
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
       </form>
       <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Dar de alta alumnos</h3>
       <p class="text-xs text-base-content/70 mt-1">
-        Registro cerrado: los alumnos no se registran solos. Importá la lista del curso o sumalos uno a uno.
+        Registro cerrado: los alumnos no se registran solos. Importá la lista del curso o sumalos individualmente.
       </p>
-      <p class="mt-6 p-4 rounded-xl bg-info/10 border border-info/25 text-sm">
-        La importación CSV y la invitación individual llegan con la fase de gestión escolar (CU-18).
+
+      <!-- Tabs modo -->
+      <div class="tabs tabs-boxed bg-base-200/70 p-1 rounded-xl mt-4">
+        <button type="button" class="tab tab-active text-xs font-semibold" id="tab-csv">Importar archivo CSV</button>
+        <button type="button" class="tab text-xs font-semibold" id="tab-individual">Invitación individual</button>
+      </div>
+
+      <!-- PANEL 1: CSV IMPORT (2 PASOS CU-18) -->
+      <div id="panel-csv" class="mt-4 space-y-4">
+        <form id="form-csv-preview" class="space-y-3">
+          <div class="form-control flex flex-col gap-1">
+            <label for="f-csv-file" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Archivo CSV (nombre y email por fila, máx 200 filas)
+            </label>
+            <input
+              id="f-csv-file"
+              type="file"
+              accept=".csv,text/csv"
+              required
+              class="file-input file-input-bordered file-input-primary file-input-sm w-full rounded-xl"
+            />
+            <span class="text-[11px] text-base-content/60">Ejemplo: <code>Juan López, juan@escuela.edu.ar</code></span>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold" id="btn-analizar-csv">
+              Previsualizar CSV
+            </button>
+          </div>
+        </form>
+
+        <!-- Preview Result Section -->
+        <div id="csv-preview-wrap" hidden class="space-y-3 border-t border-base-200 pt-3">
+          <div class="flex items-center justify-between gap-2">
+            <h4 class="font-bold text-xs uppercase tracking-wider text-base-content/80">Vista previa del archivo</h4>
+            <span id="csv-summary-badge" class="badge badge-sm badge-info font-mono"></span>
+          </div>
+
+          <div id="csv-warnings" hidden class="p-2.5 rounded-xl bg-warning/15 border border-warning/30 text-xs text-base-content"></div>
+
+          <div class="max-h-48 overflow-y-auto rounded-xl border border-base-300">
+            <table class="table table-xs w-full">
+              <thead>
+                <tr class="bg-base-200 text-[10px] uppercase">
+                  <th>Fila</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Estado</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-csv-preview"></tbody>
+            </table>
+          </div>
+
+          <div id="csv-commit-action" class="flex justify-end gap-2 pt-2">
+            <button type="button" class="btn btn-ghost btn-sm rounded-xl" id="btn-cancelar-csv-preview">
+              Descartar
+            </button>
+            <button type="button" class="btn btn-success btn-sm text-white font-bold rounded-xl" id="btn-confirmar-commit-csv">
+              Confirmar e importar
+            </button>
+          </div>
+        </div>
+
+        <div id="csv-result-alert" hidden class="p-3 rounded-xl bg-success/15 border border-success/30 text-xs text-base-content font-medium"></div>
+      </div>
+
+      <!-- PANEL 2: INVITACIÓN INDIVIDUAL -->
+      <div id="panel-individual" hidden class="mt-4 space-y-4">
+        <form id="form-invitar-individual" class="space-y-3" novalidate>
+          <div class="form-control flex flex-col gap-1">
+            <label for="f-inv-nombre" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Nombre completo
+            </label>
+            <input
+              id="f-inv-nombre"
+              type="text"
+              required
+              placeholder="ej. Lucía Fernández"
+              class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+            />
+          </div>
+
+          <div class="form-control flex flex-col gap-1">
+            <label for="f-inv-email" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+              Email del alumno
+            </label>
+            <input
+              id="f-inv-email"
+              type="email"
+              required
+              placeholder="lucia@escuela.edu.ar"
+              class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-2.5 py-1">
+              <input type="checkbox" id="f-inv-send" checked class="checkbox checkbox-primary checkbox-sm" />
+              <span class="text-xs text-base-content/80 font-medium">Enviar magic link de primer acceso al email</span>
+            </label>
+          </div>
+
+          <div id="error-inv-individual" hidden class="p-3 rounded-xl bg-error/10 border border-error/25 text-xs text-error font-medium"></div>
+
+          <div class="modal-action flex justify-end gap-2 pt-2 border-t border-base-200">
+            <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold px-4" id="btn-submit-individual">
+              Sumar alumno
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>cerrar</button>
+    </form>
+  </dialog>
+
+  <!-- MODAL: Iniciar Impersonación (§9.5) -->
+  <dialog id="modal-impersonar-alumno" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-md shadow-2xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
+      </form>
+      <div class="flex items-center gap-2">
+        <span class="badge badge-warning font-mono font-bold text-[10px]">AUDITADO</span>
+        <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Impersonar alumno</h3>
+      </div>
+      <p class="text-xs text-base-content/70 mt-1">
+        Vas a ver y actuar en la plataforma como <strong id="imp-alumno-nombre">…</strong>.
       </p>
+
+      <form id="form-impersonar-alumno" class="mt-4 space-y-4" novalidate>
+        <input type="hidden" id="imp-alumno-id" />
+
+        <div class="form-control flex flex-col gap-1">
+          <label for="imp-alumno-reason" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Motivo de la impersonación <span class="text-error">*</span>
+          </label>
+          <textarea
+            id="imp-alumno-reason"
+            required
+            rows="2"
+            placeholder="ej. Verificar vista de entrega del alumno"
+            class="textarea textarea-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-xs"
+          ></textarea>
+        </div>
+
+        <div class="modal-action flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="button" class="btn btn-ghost btn-sm rounded-xl" id="btn-cancelar-imp-alumno">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-warning btn-sm rounded-xl font-bold px-4" id="btn-submit-imp-alumno">
+            Iniciar impersonación
+          </button>
+        </div>
+      </form>
     </div>
     <form method="dialog" class="modal-backdrop">
       <button>cerrar</button>
@@ -194,13 +350,29 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { ApiError, getClassroom, getJoinCode, listStudents, removeStudent, rotateJoinCode, type StudentRow } from '../lib/api';
+  import {
+    ApiError,
+    getClassroom,
+    getJoinCode,
+    impersonate,
+    importStudentsCsv,
+    inviteStudent,
+    listStudents,
+    me,
+    removeStudent,
+    resendMagicLink,
+    rotateJoinCode,
+    type ImportResult,
+    type StudentRow,
+  } from '../lib/api';
 
   (() => {
     const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
     const toast = $('#toast');
     const toastMsg = $('#toast-msg');
     let toastTimer: ReturnType<typeof setTimeout> | null = null;
+    let currentUserRole = '';
+
     function aviso(msg: string) {
       if (!toast || !toastMsg) return;
       toastMsg.textContent = msg;
@@ -210,7 +382,7 @@ import Layout from '../layouts/Layout.astro';
       toastTimer = setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
         toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
-      }, 2600);
+      }, 3000);
     }
 
     function escapeHtml(s: string): string {
@@ -223,6 +395,9 @@ import Layout from '../layouts/Layout.astro';
       const estado = al.status === 'active'
         ? '<span class="badge badge-success badge-soft badge-sm font-semibold">Activo</span>'
         : '<span class="badge badge-warning badge-soft badge-sm font-semibold">Invitado</span>';
+
+      const esDirector = currentUserRole === 'director';
+
       return `
       <tr class="hover:bg-base-200/50 transition-colors fila-alumno" data-id="${escapeHtml(al.user_id)}" data-nombre="${escapeHtml(al.name)}">
         <td class="font-medium">
@@ -232,7 +407,11 @@ import Layout from '../layouts/Layout.astro';
         <td>${estado}</td>
         <td><span class="font-mono font-bold text-sm text-base-content">${al.submissions_count ?? 0}</span></td>
         <td class="text-right td-acciones">
-          <button type="button" class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold btn-baja">Dar de baja</button>
+          <div class="inline-flex items-center gap-1.5 flex-wrap justify-end">
+            ${esDirector ? '<button type="button" class="btn btn-ghost btn-xs text-warning hover:bg-warning/10 font-semibold btn-imp" title="Impersonar alumno">Impersonar</button>' : ''}
+            <button type="button" class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 font-semibold btn-resend-magic" title="Reenviar magic link">Reenviar link</button>
+            <button type="button" class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold btn-baja">Dar de baja</button>
+          </div>
         </td>
       </tr>`;
     }
@@ -242,6 +421,14 @@ import Layout from '../layouts/Layout.astro';
         window.location.href = '/dashboard/';
         return;
       }
+      try {
+        const yo = await me();
+        currentUserRole = yo.role;
+      } catch {
+        window.location.href = '/login/';
+        return;
+      }
+
       try {
         const [aula, code, students] = await Promise.all([
           getClassroom(classroomId),
@@ -262,7 +449,7 @@ import Layout from '../layouts/Layout.astro';
         const tbody = $('#tbody-alumnos')!;
         tbody.innerHTML = students.length
           ? students.map(fila).join('')
-          : '<tr><td colspan="4" class="text-center py-6 text-base-content/60">Todavía no hay alumnos inscriptos. Compartí el código del aula.</td></tr>';
+          : '<tr><td colspan="4" class="text-center py-6 text-base-content/60">Todavía no hay alumnos inscriptos. Importá el CSV del curso o compartí el código.</td></tr>';
       } catch (err) {
         if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
           window.location.href = err.status === 401 ? '/login/' : '/dashboard/';
@@ -326,47 +513,279 @@ import Layout from '../layouts/Layout.astro';
       }
     });
 
-    // Baja de alumno → DELETE /classrooms/{id}/students/{uid} (§3): entregas archivadas, cuenta NO se borra.
+    // Acciones de la tabla de alumnos (delegadas)
     $('#tbody-alumnos')?.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement;
       const filaEl = target.closest<HTMLTableRowElement>('.fila-alumno');
-      if (!filaEl || !target.closest('.btn-baja')) return;
-
-      const celda = filaEl.querySelector<HTMLElement>('.td-acciones')!;
+      if (!filaEl) return;
+      const uid = filaEl.dataset.id!;
       const nombre = filaEl.dataset.nombre || 'el alumno';
-      celda.innerHTML = `
-        <div class="inline-flex items-center gap-1.5 text-xs">
-          <span class="text-error font-bold">¿Dar de baja? Sus entregas quedan archivadas.</span>
-          <button class="btn btn-error btn-xs text-error-content btn-baja-si" type="button">Sí, dar de baja</button>
-          <button class="btn btn-ghost btn-xs btn-baja-no" type="button">No</button>
-        </div>`;
-      celda.querySelector('.btn-baja-no')?.addEventListener('click', () => init());
-      celda.querySelector('.btn-baja-si')?.addEventListener('click', async (ev) => {
-        const btnSi = ev.currentTarget as HTMLButtonElement;
-        btnSi.disabled = true;
-        btnSi.textContent = 'Dando de baja…';
+
+      // 1. Reenviar magic link (§9.3, CU-18)
+      if (target.closest('.btn-resend-magic')) {
+        const btn = target.closest('.btn-resend-magic') as HTMLButtonElement;
+        btn.disabled = true;
         try {
-          await removeStudent(classroomId, filaEl.dataset.id!);
-          filaEl.style.opacity = '0';
-          setTimeout(() => {
-            filaEl.remove();
-            const restantes = document.querySelectorAll('.fila-alumno').length;
-            const count = $('#nav-alumnos-count');
-            if (count) count.textContent = ` (${restantes})`;
-            const resumen = $('#h-resumen');
-            if (resumen && restantes === 0) resumen.textContent = '0 inscriptos.';
-          }, 200);
-          aviso(`«${nombre}» fue dado de baja. Su cuenta sigue existiendo y sus entregas quedan archivadas.`);
+          await resendMagicLink(uid);
+          // Respuesta genérica anti-enumeración [C2]
+          aviso(`Si la cuenta de «${nombre}» está activa, se envió un nuevo enlace de acceso.`);
         } catch (err) {
-          aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos darlo de baja.');
-          void init();
+          aviso('Si la cuenta está activa, se envió un nuevo enlace de acceso.');
+        } finally {
+          btn.disabled = false;
         }
-      });
+        return;
+      }
+
+      // 2. Impersonar alumno (§9.5)
+      if (target.closest('.btn-imp')) {
+        const modalImp = $('#modal-impersonar-alumno') as HTMLDialogElement | null;
+        $('#imp-alumno-id')!.setAttribute('value', uid);
+        $('#imp-alumno-nombre')!.textContent = nombre;
+        ($('#imp-alumno-reason') as HTMLTextAreaElement).value = '';
+        modalImp?.showModal();
+        return;
+      }
+
+      // 3. Baja de alumno (§3)
+      if (target.closest('.btn-baja')) {
+        const celda = filaEl.querySelector<HTMLElement>('.td-acciones')!;
+        celda.innerHTML = `
+          <div class="inline-flex items-center gap-1.5 text-xs">
+            <span class="text-error font-bold">¿Dar de baja? Sus entregas quedan archivadas.</span>
+            <button class="btn btn-error btn-xs text-error-content btn-baja-si" type="button">Sí, dar de baja</button>
+            <button class="btn btn-ghost btn-xs btn-baja-no" type="button">No</button>
+          </div>`;
+        celda.querySelector('.btn-baja-no')?.addEventListener('click', () => init());
+        celda.querySelector('.btn-baja-si')?.addEventListener('click', async (ev) => {
+          const btnSi = ev.currentTarget as HTMLButtonElement;
+          btnSi.disabled = true;
+          btnSi.textContent = 'Dando de baja…';
+          try {
+            await removeStudent(classroomId, uid);
+            filaEl.style.opacity = '0';
+            setTimeout(() => {
+              filaEl.remove();
+              const restantes = document.querySelectorAll('.fila-alumno').length;
+              const count = $('#nav-alumnos-count');
+              if (count) count.textContent = ` (${restantes})`;
+              const resumen = $('#h-resumen');
+              if (resumen && restantes === 0) resumen.textContent = '0 inscriptos.';
+            }, 200);
+            aviso(`«${nombre}» fue dado de baja. Su cuenta sigue existiendo y sus entregas quedan archivadas.`);
+          } catch (err) {
+            aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos darlo de baja.');
+            void init();
+          }
+        });
+      }
     });
 
-    // Modal alta (placeholder hasta fase CU-18)
-    const modalAlta = $('#modal-alta-alumnos');
-    $('#btn-abrir-alta')?.addEventListener('click', () => modalAlta?.showModal());
+    // Modal Alta Alumnos (CU-18)
+    const modalAlta = $('#modal-alta-alumnos') as HTMLDialogElement | null;
+    $('#btn-abrir-alta')?.addEventListener('click', () => {
+      // reset forms
+      (document.getElementById('form-csv-preview') as HTMLFormElement)?.reset();
+      (document.getElementById('form-invitar-individual') as HTMLFormElement)?.reset();
+      $('#csv-preview-wrap')!.hidden = true;
+      $('#csv-result-alert')!.hidden = true;
+      $('#error-inv-individual')!.hidden = true;
+      modalAlta?.showModal();
+    });
+
+    // Tab switching
+    const tabCsv = $('#tab-csv');
+    const tabIndividual = $('#tab-individual');
+    const panelCsv = $('#panel-csv');
+    const panelIndividual = $('#panel-individual');
+
+    tabCsv?.addEventListener('click', () => {
+      tabCsv.classList.add('tab-active');
+      tabIndividual?.classList.remove('tab-active');
+      if (panelCsv) panelCsv.hidden = false;
+      if (panelIndividual) panelIndividual.hidden = true;
+    });
+
+    tabIndividual?.addEventListener('click', () => {
+      tabIndividual.classList.add('tab-active');
+      tabCsv?.classList.remove('tab-active');
+      if (panelCsv) panelCsv.hidden = true;
+      if (panelIndividual) panelIndividual.hidden = false;
+    });
+
+    // CSV State
+    let currentCsvFile: File | null = null;
+    let currentImportToken = '';
+    let currentOkCount = 0;
+
+    // Paso 1 CSV: Previsualizar (dry_run: true)
+    $('#form-csv-preview')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = $('#f-csv-file') as HTMLInputElement;
+      if (!fileInput.files || !fileInput.files[0]) {
+        aviso('Seleccioná un archivo CSV.');
+        return;
+      }
+
+      currentCsvFile = fileInput.files[0];
+      const btn = $('#btn-analizar-csv') as HTMLButtonElement;
+      btn.disabled = true;
+      btn.textContent = 'Analizando…';
+
+      try {
+        const res: ImportResult = await importStudentsCsv(classroomId, currentCsvFile, true);
+        currentImportToken = res.import_token || '';
+        currentOkCount = res.summary?.ok ?? 0;
+
+        // Render summary badge
+        const badge = $('#csv-summary-badge')!;
+        badge.textContent = `${res.summary?.ok ?? 0} válidos · ${res.summary?.rejected ?? 0} rechazados`;
+
+        // Warnings
+        const warnDiv = $('#csv-warnings')!;
+        if (res.warnings && res.warnings.length > 0) {
+          warnDiv.innerHTML = res.warnings.map(escapeHtml).join('<br>');
+          warnDiv.hidden = false;
+        } else {
+          warnDiv.hidden = true;
+        }
+
+        // Table rows
+        const tbody = $('#tbody-csv-preview')!;
+        const statusMap: Record<string, string> = {
+          ok: '<span class="badge badge-success badge-xs font-semibold">Listo</span>',
+          duplicate: '<span class="badge badge-warning badge-xs font-semibold">Duplicado</span>',
+          invalid_email: '<span class="badge badge-error badge-xs font-semibold">Email inválido</span>',
+          exists: '<span class="badge badge-warning badge-xs font-semibold">Ya existe</span>',
+        };
+
+        tbody.innerHTML = (res.rows || []).map((r) => `
+          <tr class="${r.status === 'ok' ? '' : 'opacity-70 bg-base-200/50'}">
+            <td class="font-mono">${r.line}</td>
+            <td class="font-medium">${escapeHtml(r.name)}</td>
+            <td class="font-mono">${escapeHtml(r.email)}</td>
+            <td>${statusMap[r.status] || escapeHtml(r.status)}</td>
+            <td class="text-base-content/60">${escapeHtml(r.reason || (r.status === 'ok' ? 'Listo para crear' : ''))}</td>
+          </tr>
+        `).join('');
+
+        const commitBtn = $('#btn-confirmar-commit-csv') as HTMLButtonElement;
+        commitBtn.textContent = `Confirmar e importar ${currentOkCount} alumnos`;
+        commitBtn.disabled = currentOkCount === 0;
+
+        $('#csv-preview-wrap')!.hidden = false;
+        $('#csv-result-alert')!.hidden = true;
+      } catch (err) {
+        aviso(err instanceof ApiError && err.message ? err.message : 'Error al analizar el CSV. Verificá el formato.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Previsualizar CSV';
+      }
+    });
+
+    $('#btn-cancelar-csv-preview')?.addEventListener('click', () => {
+      $('#csv-preview-wrap')!.hidden = true;
+      currentImportToken = '';
+      currentCsvFile = null;
+    });
+
+    // Paso 2 CSV: Commit (dry_run: false, import_token)
+    $('#btn-confirmar-commit-csv')?.addEventListener('click', async () => {
+      if (!currentCsvFile || !currentImportToken) return;
+      const btn = $('#btn-confirmar-commit-csv') as HTMLButtonElement;
+      btn.disabled = true;
+      btn.textContent = 'Importando…';
+
+      try {
+        const res = await importStudentsCsv(classroomId, currentCsvFile, false, currentImportToken);
+        const alertDiv = $('#csv-result-alert')!;
+        alertDiv.innerHTML = `
+          <strong>¡Importación completada!</strong><br>
+          Se dieron de alta <strong>${res.created ?? currentOkCount}</strong> alumnos en el aula (cuentas creadas sin password y magic links enviados).
+          ${(res.omitted ?? 0) > 0 ? `<br>${res.omitted} filas fueron omitidas por ser duplicadas o ya existentes.` : ''}
+        `;
+        alertDiv.hidden = false;
+        $('#csv-preview-wrap')!.hidden = true;
+        aviso(`¡${res.created ?? currentOkCount} alumnos importados con éxito!`);
+        await init();
+      } catch (err) {
+        aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos completar la importación.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirmar e importar';
+      }
+    });
+
+    // Invitación Individual
+    $('#form-invitar-individual')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = ($('#f-inv-nombre') as HTMLInputElement).value.trim();
+      const email = ($('#f-inv-email') as HTMLInputElement).value.trim();
+      const sendInvite = ($('#f-inv-send') as HTMLInputElement).checked;
+      const errorDiv = $('#error-inv-individual')!;
+      const btn = $('#btn-submit-individual') as HTMLButtonElement;
+
+      errorDiv.hidden = true;
+
+      if (!nombre || !email) {
+        errorDiv.textContent = 'Completá nombre y email del alumno.';
+        errorDiv.hidden = false;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sumando…';
+
+      try {
+        await inviteStudent(classroomId, { name: nombre, email, send_invite: sendInvite });
+        modalAlta?.close();
+        aviso(`Alumno «${nombre}» dado de alta en el aula.`);
+        await init();
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.code === 'email_already_exists' || err.status === 409) {
+            errorDiv.textContent = `El email ${email} ya está registrado en la escuela.`;
+          } else {
+            errorDiv.textContent = err.message || 'Error al sumar el alumno.';
+          }
+        } else {
+          errorDiv.textContent = 'No pudimos conectar con el servidor.';
+        }
+        errorDiv.hidden = false;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sumar alumno';
+      }
+    });
+
+    // Impersonar Alumno Handler (§9.5)
+    const modalImpAl = $('#modal-impersonar-alumno') as HTMLDialogElement | null;
+    $('#btn-cancelar-imp-alumno')?.addEventListener('click', () => modalImpAl?.close());
+
+    $('#form-impersonar-alumno')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = ($('#imp-alumno-id') as HTMLInputElement).value;
+      const reason = ($('#imp-alumno-reason') as HTMLTextAreaElement).value.trim();
+      const btn = $('#btn-submit-imp-alumno') as HTMLButtonElement;
+
+      if (!reason) {
+        aviso('El motivo de la impersonación es obligatorio.');
+        $('#imp-alumno-reason')?.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Iniciando sesión…';
+
+      try {
+        await impersonate(id, reason);
+        window.location.href = '/mis-salas/';
+      } catch (err) {
+        aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos iniciar la impersonación.');
+        btn.disabled = false;
+        btn.textContent = 'Iniciar impersonación';
+      }
+    });
 
     void init();
   })();
