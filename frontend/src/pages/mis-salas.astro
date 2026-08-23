@@ -138,7 +138,7 @@ import Layout from '../layouts/Layout.astro';
 
             <div class="acciones-card mt-1">
               <a
-                href=${esAlumno ? `/consignas/?sala=${encodeURIComponent((a.join_code ?? '').toLowerCase())}` : `/alumnos/?classroom=${encodeURIComponent(a.id)}`}
+                href=${esAlumno ? `/consignas/?classroom=${encodeURIComponent(a.id)}` : `/alumnos/?classroom=${encodeURIComponent(a.id)}`}
                 class="btn btn-outline btn-primary rounded-xl w-full font-semibold btn-sm md:btn-md"
               >
                 ${esAlumno ? 'Entrar al aula' : 'Ver alumnos'}

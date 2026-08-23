@@ -1,46 +1,37 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { consignas, salas } from '../data/mock';
-
-const sala = salas[0]; // Programación 5.º A
-const totalConsignas = consignas.length;
-const totalRecibidas = consignas.reduce((acc, c) => acc + c.stats.recibidas, 0);
-const totalEsperadas = consignas.reduce((acc, c) => acc + c.stats.total, 0);
-const totalOk = consignas.reduce((acc, c) => acc + c.stats.ok, 0);
 ---
 
-<Layout titulo={`Consignas — ${sala.nombre}`} active="consignas" navRole="docente">
+<Layout titulo="Consignas" active="consignas">
   <div class="py-6 sm:py-10 space-y-6">
 
     <!-- Hero Header del Aula -->
     <section class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
       <div>
         <a
-          href="/dashboard/"
+          id="link-volver"
+          href="/mis-salas/"
           class="inline-flex items-center gap-1.5 text-xs text-base-content/60 hover:text-primary transition-colors font-medium mb-2.5"
         >
           ← Mis Aulas
         </a>
-        <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">
-          {sala.nombre} · {sala.curso} · {sala.turno}
+        <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary" id="aula-subtitulo">
+          Cargando…
         </p>
         <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content mt-1">
           Consignas
         </h1>
-        <p class="text-sm text-base-content/70 mt-1">
-          {totalConsignas} consignas publicadas · {totalRecibidas} de {totalEsperadas} entregas recibidas · {totalOk} correctas.
-        </p>
+        <p class="text-sm text-base-content/70 mt-1" id="resumen-header">Buscando las consignas del aula…</p>
       </div>
 
       <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
-        <div class="flex items-center gap-2 p-1 bg-base-100 rounded-2xl border border-base-300 shadow-xs">
-          <span class="badge badge-lg bg-primary/10 border-0 text-primary font-mono font-bold tracking-wider rounded-xl px-3 text-sm">
-            {sala.codigo}
+        <div class="flex items-center gap-2 p-1 bg-base-100 rounded-2xl border border-base-300 shadow-xs hidden" id="box-codigo">
+          <span class="badge badge-lg bg-primary/10 border-0 text-primary font-mono font-bold tracking-wider rounded-xl px-3 text-sm" id="aula-codigo">
+            ----
           </span>
           <button
             type="button"
             id="btn-copiar-codigo"
-            data-codigo={sala.codigo}
             class="btn btn-ghost btn-sm rounded-xl text-xs font-semibold hover:text-primary"
             aria-label="Copiar código de la sala"
           >
@@ -50,30 +41,34 @@ const totalOk = consignas.reduce((acc, c) => acc + c.stats.ok, 0);
 
         <a
           href="/consigna-nueva/"
-          class="btn btn-primary btn-sm md:btn-md rounded-xl font-semibold shadow-xs"
+          id="btn-nueva"
+          class="btn btn-primary btn-sm md:btn-md rounded-xl font-semibold shadow-xs hidden"
         >
           + Nueva consigna
         </a>
       </div>
     </section>
 
-    <!-- Sub-navegación dentro del aula (Consignas / Alumnos / Configuración) -->
-    <nav class="flex gap-1.5 overflow-x-auto pb-1 border-b border-base-300 text-sm font-medium" aria-label="Secciones del aula">
+    <!-- Sub-navegación dentro del aula (docente) -->
+    <nav id="nav-docente" class="hidden flex gap-1.5 overflow-x-auto pb-1 border-b border-base-300 text-sm font-medium" aria-label="Secciones del aula">
       <a
         href="/consignas/"
+        id="nav-consignas"
         class="px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold"
         aria-current="page"
       >
-        Consignas ({totalConsignas})
+        Consignas
       </a>
       <a
         href="/alumnos/"
+        id="nav-alumnos"
         class="px-4 py-2 rounded-xl text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
       >
-        Alumnos (28)
+        Alumnos
       </a>
       <a
         href="/sala-config/"
+        id="nav-config"
         class="px-4 py-2 rounded-xl text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
       >
         Configuración
@@ -84,93 +79,14 @@ const totalOk = consignas.reduce((acc, c) => acc + c.stats.ok, 0);
     <section aria-labelledby="titulo-lista" class="space-y-4 pt-2">
       <h2 class="sr-only" id="titulo-lista">Listado de consignas</h2>
 
-      <div class="flex flex-col divide-y divide-base-300 bg-base-100 rounded-2xl border border-base-300 overflow-hidden shadow-xs">
-        {consignas.map((c) => {
-          const porcOk = Math.round((c.stats.ok / c.stats.total) * 100);
-          const porcErr = Math.round((c.stats.error / c.stats.total) * 100);
-          const porcTar = Math.round((c.stats.tardia / c.stats.total) * 100);
+      <div id="lista-consignas" class="flex flex-col divide-y divide-base-300 bg-base-100 rounded-2xl border border-base-300 overflow-hidden shadow-xs">
+        <p class="p-6 text-sm text-base-content/60 text-center">Cargando consignas…</p>
+      </div>
 
-          return (
-            <article class="p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:bg-base-200/40 transition-colors">
-
-              <!-- Columna Principal -->
-              <div class="flex-1 min-w-0 flex flex-col gap-2.5">
-                <div class="flex items-center gap-3 flex-wrap">
-                  <h3 class="font-display font-normal text-2xl tracking-tight text-base-content">
-                    <a href={`/entregas/${c.id}/`} class="hover:text-primary transition-colors">
-                      {c.titulo}
-                    </a>
-                  </h3>
-                  <span class="badge badge-sm badge-outline font-mono text-[10px] uppercase font-bold tracking-wider text-base-content/70">
-                    {c.runtime}
-                  </span>
-                  {c.sinLimite && (
-                    <span class="badge badge-sm badge-ghost font-medium text-[10px]">
-                      Sin fecha límite
-                    </span>
-                  )}
-                </div>
-
-                <p class:list={[
-                  'text-xs',
-                  c.vencida ? 'text-error font-semibold' : 'text-base-content/65'
-                ]}>
-                  {c.vence} {c.vencida && '· podés seguir corrigiendo'}
-                </p>
-
-                <!-- Barra de progreso segmentada -->
-                <div
-                  class="flex h-2 max-w-md w-full rounded-full overflow-hidden bg-base-200 border border-base-300"
-                  role="progressbar"
-                  aria-label={`${c.stats.ok} OK, ${c.stats.error} error, ${c.stats.tardia} tardía de ${c.stats.recibidas} entregas`}
-                >
-                  <div class="bg-primary h-full" style={`width: ${porcOk}%`}></div>
-                  <div class="bg-error h-full" style={`width: ${porcErr}%`}></div>
-                  <div class="bg-warning h-full" style={`width: ${porcTar}%`}></div>
-                </div>
-
-                <!-- Desglose de estados -->
-                <ul class="flex items-center gap-4 flex-wrap text-xs text-base-content/70 font-medium">
-                  <li class="inline-flex items-center gap-1.5">
-                    <span class="size-2 rounded-full bg-primary inline-block"></span>
-                    {c.stats.ok} OK
-                  </li>
-                  <li class="inline-flex items-center gap-1.5">
-                    <span class="size-2 rounded-full bg-error inline-block"></span>
-                    {c.stats.error} con error
-                  </li>
-                  <li class="inline-flex items-center gap-1.5">
-                    <span class="size-2 rounded-full bg-warning inline-block"></span>
-                    {c.stats.tardia} tardía
-                  </li>
-                  <li class="text-base-content/50">
-                    {c.stats.sinEntregar} sin entregar
-                  </li>
-                </ul>
-              </div>
-
-              <!-- Columna Lateral / Acción -->
-              <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-base-200">
-                <div class="text-left md:text-right">
-                  <span class="font-mono font-bold text-xl text-base-content block leading-none">
-                    {c.stats.recibidas}<span class="text-base-content/40 text-sm font-normal">/{c.stats.total}</span>
-                  </span>
-                  <span class="text-[10px] uppercase font-bold tracking-widest text-base-content/50 block mt-0.5">
-                    entregas
-                  </span>
-                </div>
-
-                <a
-                  href={`/entregas/${c.id}/`}
-                  class="btn btn-ghost btn-sm text-primary hover:bg-primary/10 font-semibold px-3 underline underline-offset-4"
-                >
-                  Ver entregas
-                </a>
-              </div>
-
-            </article>
-          );
-        })}
+      <div id="sin-consignas" class="hidden card bg-base-100 border border-base-300 p-8 text-center">
+        <h3 class="font-display font-normal text-2xl text-base-content" id="sin-consignas-titulo">Todavía no hay consignas</h3>
+        <p class="text-sm text-base-content/60 mt-1 mb-4" id="sin-consignas-texto">Cuando tu docente publique una, va a aparecer acá.</p>
+        <div id="sin-consignas-accion"></div>
       </div>
     </section>
 
@@ -183,39 +99,244 @@ const totalOk = consignas.reduce((acc, c) => acc + c.stats.ok, 0);
     </div>
   </div>
 
-  <script is:inline>
-    (() => {
-      const $ = (sel) => document.querySelector(sel);
+  <script>
+      import {
+        ApiError, assignmentStats, getClassroom, getJoinCode, listAssignments, listClassrooms, me,
+        type Assignment, type AssignmentStats,
+      } from '../lib/api';
 
-      // Toast feedback
+    (() => {
+      const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
+
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
         }, 2600);
       }
 
+      function escapeHtml(s: string): string {
+        return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+      }
+
+      const RUNTIME_LABEL: Record<string, string> = { python: 'Python', web: 'Web', cpp: 'C++', arduino: 'Arduino' };
+
+      function textoIntentos(a: Assignment): string {
+        if (a.attempts.mode === 'one') return 'Un intento';
+        if (a.attempts.mode === 'limited') return `Hasta ${a.attempts.max} intentos`;
+        return 'Intentos ilimitados';
+      }
+
+      function textoVencimiento(a: Assignment): { texto: string; vencida: boolean } {
+        if (!a.due_at) return { texto: 'Sin fecha límite · práctica continua', vencida: false };
+        const d = new Date(a.due_at);
+        const vencida = d.getTime() < Date.now();
+        const fecha = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+        const hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        return {
+          texto: vencida
+            ? `Venció el ${fecha} ${hora}${a.late_policy === 'closed' ? ' · cerrada para tardías' : ' · tardías permitidas'}`
+            : `Vence el ${fecha} · ${hora}${a.late_policy === 'closed' ? ' · cierra al vencer' : ''}`,
+          vencida,
+        };
+      }
+
+      // --- Vista DOCENTE: fila con métricas (CU-9 paso 4) ---
+      function filaDocente(c: Assignment): string {
+        const s: AssignmentStats = c.stats ?? { total_students: 0, delivered: 0, tested_ok: 0, test_errors: 0, late: 0, missing: 0 };
+        const total = Math.max(s.total_students, 1);
+        const pct = (n: number) => Math.round((n / total) * 100);
+        const ven = textoVencimiento(c);
+        const entregadasPct = s.total_students ? Math.round((s.delivered / s.total_students) * 100) : 0;
+        return `
+        <article class="p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:bg-base-200/40 transition-colors">
+          <div class="flex-1 min-w-0 flex flex-col gap-2.5">
+            <div class="flex items-center gap-3 flex-wrap">
+              <h3 class="font-display font-normal text-2xl tracking-tight text-base-content">
+                <a href="/entregas/?id=${encodeURIComponent(c.id)}" class="hover:text-primary transition-colors">${escapeHtml(c.title)}</a>
+              </h3>
+              <span class="badge badge-sm badge-outline font-mono text-[10px] uppercase font-bold tracking-wider text-base-content/70">${RUNTIME_LABEL[c.runtime] ?? c.runtime}</span>
+              <span class="badge badge-sm badge-ghost font-medium text-[10px]">${textoIntentos(c)}</span>
+            </div>
+            <p class="${ven.vencida && c.late_policy === 'closed' ? 'text-error font-semibold' : ''} text-xs text-base-content/65">${ven.texto}</p>
+            <div class="flex h-2 max-w-md w-full rounded-full overflow-hidden bg-base-200 border border-base-300" role="progressbar"
+                 aria-label="${s.tested_ok} OK, ${s.test_errors} error, ${s.late} tardía de ${s.delivered} entregas">
+              <div class="bg-primary h-full" style="width:${pct(s.tested_ok)}%"></div>
+              <div class="bg-error h-full" style="width:${pct(s.test_errors)}%"></div>
+              <div class="bg-warning h-full" style="width:${pct(s.late)}%"></div>
+            </div>
+            <ul class="flex items-center gap-4 flex-wrap text-xs text-base-content/70 font-medium">
+              <li class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-primary inline-block"></span>${s.tested_ok} OK</li>
+              <li class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-error inline-block"></span>${s.test_errors} con error</li>
+              <li class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-warning inline-block"></span>${s.late} tardía</li>
+              <li class="text-base-content/50">${s.missing} sin entregar</li>
+            </ul>
+          </div>
+          <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-base-200">
+            <div class="text-left md:text-right">
+              <span class="font-mono font-bold text-xl text-base-content block leading-none">${s.delivered}<span class="text-base-content/40 text-sm font-normal">/${s.total_students}</span></span>
+              <span class="text-[10px] uppercase font-bold tracking-widest text-base-content/50 block mt-0.5">entregas (${entregadasPct}%)</span>
+            </div>
+            <a href="/entregas/?id=${encodeURIComponent(c.id)}"
+               class="btn btn-ghost btn-sm text-primary hover:bg-primary/10 font-semibold px-3 underline underline-offset-4">
+              Ver entregas
+            </a>
+          </div>
+        </article>`;
+      }
+
+      // --- Vista ALUMNO: activas con vencimientos (§4) ---
+      function filaAlumno(c: Assignment): string {
+        const ven = textoVencimiento(c);
+        const cerrada = ven.vencida && c.late_policy === 'closed';
+        return `
+        <article class="p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:bg-base-200/40 transition-colors">
+          <div class="flex-1 min-w-0 flex flex-col gap-2">
+            <div class="flex items-center gap-3 flex-wrap">
+              <h3 class="font-display font-normal text-2xl tracking-tight text-base-content">
+                <a href="/entregas/?id=${encodeURIComponent(c.id)}" class="hover:text-primary transition-colors">${escapeHtml(c.title)}</a>
+              </h3>
+              <span class="badge badge-sm badge-outline font-mono text-[10px] uppercase font-bold tracking-wider text-base-content/70">${RUNTIME_LABEL[c.runtime] ?? c.runtime}</span>
+            </div>
+            <p class="text-xs text-base-content/65 whitespace-pre-line">${escapeHtml(c.instructions?.split('\n')[0] ?? '')}</p>
+            <p class="text-xs ${cerrada ? 'text-error font-semibold' : ven.vencida ? 'text-warning font-semibold' : 'text-base-content/65'}">${ven.texto}</p>
+            <span class="text-[11px] text-base-content/50">${textoIntentos(c)}</span>
+          </div>
+          <div class="shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-base-200">
+            ${cerrada
+              ? '<span class="btn btn-disabled btn-sm rounded-xl font-semibold">Cerrada</span>'
+              : `<a href="/entregas/?id=${encodeURIComponent(c.id)}" class="btn btn-primary btn-sm rounded-xl font-semibold">Entregar</a>`}
+          </div>
+        </article>`;
+      }
+
+      async function cargarStats(c: Assignment): Promise<Assignment> {
+        try {
+          c.stats = await assignmentStats(c.id);
+        } catch {
+          // sin stats la fila igual se ve; métricas en 0
+        }
+        return c;
+      }
+
+      async function init() {
+        let role = '';
+        try {
+          const yo = await me();
+          role = yo.role;
+        } catch (err) {
+          window.location.href = '/login/';
+          return;
+        }
+        const esAlumno = role === 'alumno';
+
+        // ¿Qué aula? ?classroom= explícito, si no la primera del alcance.
+        const params = new URLSearchParams(window.location.search);
+        let classroomId = params.get('classroom') ?? '';
+        if (!classroomId) {
+          try {
+            const { classrooms } = await listClassrooms();
+            classroomId = classrooms[0]?.id ?? '';
+          } catch { /* sin aulas */ }
+        }
+        if (!classroomId) {
+          $('#lista-consignas')!.innerHTML = '';
+          $('#resumen-header')!.textContent = 'No pertenecés a ninguna aula todavía.';
+          $('#sin-consignas')!.classList.remove('hidden');
+          $('#sin-consignas-texto')!.textContent = esAlumno
+            ? 'Ingresá el código de tu docente para unirte.'
+            : 'Creá un aula desde «Mis Aulas» para empezar.';
+          $('#sin-consignas-accion')!.innerHTML = `<a href="${esAlumno ? '/unirse/' : '/mis-salas/'}" class="btn btn-primary rounded-full px-6">${esAlumno ? 'Unirme con código' : 'Ir a mis aulas'}</a>`;
+          return;
+        }
+
+        // Header del aula + nav (docente)
+        if (!esAlumno) {
+          $('#nav-docente')?.classList.remove('hidden');
+          $('#nav-docente')?.classList.add('flex');
+          $('#btn-nueva')?.classList.remove('hidden');
+          $('#btn-nueva')!.href = `/consigna-nueva/?classroom=${encodeURIComponent(classroomId)}`;
+          $('#nav-alumnos')!.href = `/alumnos/?classroom=${encodeURIComponent(classroomId)}`;
+          $('#nav-config')!.href = `/sala-config/?classroom=${encodeURIComponent(classroomId)}`;
+          $('#nav-consignas')!.href = `/consignas/?classroom=${encodeURIComponent(classroomId)}`;
+          try {
+            const [aula, { code }] = await Promise.all([getClassroom(classroomId), getJoinCode(classroomId)]);
+            $('#aula-subtitulo')!.textContent = `${aula.name}${aula.course ? ` · ${aula.course}` : ''}${aula.shift ? ` · ${aula.shift}` : ''}`;
+            document.title = `Consignas — ${aula.name}`;
+            $('#box-codigo')?.classList.remove('hidden');
+            $('#aula-codigo')!.textContent = code;
+            $('#btn-copiar-codigo')!.dataset.codigo = code;
+          } catch { /* header mínimo */ }
+          $('#link-volver')!.href = '/dashboard/';
+        } else {
+          $('#link-volver')!.href = '/mis-salas/';
+        }
+
+        // Listado
+        let asignaciones: Assignment[] = [];
+        try {
+          asignaciones = await listAssignments(classroomId);
+          if (!esAlumno) asignaciones = await Promise.all(asignaciones.map(cargarStats));
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          $('#lista-consignas')!.innerHTML =
+            '<p class="p-6 text-sm text-base-content/60 text-center">No pudimos cargar las consignas. Intentá de nuevo.</p>';
+          return;
+        }
+
+        const listaEl = $('#lista-consignas')!;
+        listaEl.innerHTML = asignaciones.map(esAlumno ? filaAlumno : filaDocente).join('');
+        $('#sin-consignas')?.classList.toggle('hidden', asignaciones.length > 0);
+
+        if (esAlumno) {
+          $('#resumen-header')!.textContent =
+            asignaciones.length === 0
+              ? 'No hay consignas activas en esta aula.'
+              : `${asignaciones.length} ${asignaciones.length === 1 ? 'consigna activa' : 'consignas activas'} · revisá los vencimientos.`;
+        } else {
+          const agg = asignaciones.reduce(
+            (acc, c) => {
+              const s = c.stats;
+              if (!s) return acc;
+              acc.delivered += s.delivered; acc.total += s.total_students;
+              acc.ok += s.tested_ok; acc.missing += s.missing;
+              return acc;
+            },
+            { delivered: 0, total: 0, ok: 0, missing: 0 },
+          );
+          $('#resumen-header')!.textContent = asignaciones.length === 0
+            ? 'Creá la primera consigna del aula.'
+            : `${asignaciones.length} ${asignaciones.length === 1 ? 'consigna publicada' : 'consignas publicadas'} · ${agg.delivered} de ${agg.total} entregas recibidas · ${agg.ok} correctas.`;
+          $('#sin-consignas-texto')!.textContent = 'Se publica apenas la creás y los alumnos la ven al instante.';
+          $('#sin-consignas-accion')!.innerHTML = `<a href="/consigna-nueva/?classroom=${encodeURIComponent(classroomId)}" class="btn btn-primary rounded-full px-6">Crear consigna</a>`;
+        }
+      }
+
       // Copiar código de sala
-      const btnCopiar = $('#btn-copiar-codigo');
-      btnCopiar?.addEventListener('click', function () {
-        const codigo = this.dataset.codigo || 'PROG5A';
+      $('#btn-copiar-codigo')?.addEventListener('click', function () {
+        const codigo = (this as HTMLElement).dataset.codigo || '';
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(codigo).then(
             () => aviso(`Código «${codigo}» copiado al portapapeles.`),
-            () => aviso(`El código es «${codigo}»`)
+            () => aviso(`El código es «${codigo}»`),
           );
         } else {
           aviso(`El código es «${codigo}»`);
         }
       });
+
+      void init();
     })();
   </script>
 </Layout>

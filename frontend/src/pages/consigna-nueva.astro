@@ -2,22 +2,23 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout titulo="Nueva consigna · Programación 5.º A" active="consignas" navRole="docente">
+<Layout titulo="Nueva consigna" active="consignas" navRole="docente">
   <div class="py-6 sm:py-10 space-y-6">
 
     <!-- Hero Header -->
     <section class="pb-2">
       <a
         href="/consignas/"
+        id="link-volver"
         class="inline-flex items-center gap-1.5 text-xs text-base-content/60 hover:text-primary transition-colors font-medium mb-2.5"
       >
-        ← Consignas de Programación
+        ← Consignas del aula
       </a>
       <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content">
         Nueva consigna
       </h1>
-      <p class="text-sm text-base-content/70 mt-1 max-w-xl">
-        Para Programación · 5.º A. Se publica apenas la creás y los alumnos la ven al instante.
+      <p class="text-sm text-base-content/70 mt-1 max-w-xl" id="subtitulo-aula">
+        Cargando aula… Se publica apenas la creás y los alumnos la ven al instante.
       </p>
     </section>
 
@@ -96,6 +97,7 @@ import Layout from '../layouts/Layout.astro';
             tabindex="-1"
             accept=".pdf,.png,.jpg,.jpeg,.zip,.py,.ino,.cpp,.html,.css,.js"
           />
+          <!-- Cada adjunto se sube al momento (POST /assignments/attachments) y queda listo para referenciar. -->
           <ul class="space-y-2 text-xs" id="lista-archivos"></ul>
         </div>
 
@@ -109,29 +111,29 @@ import Layout from '../layouts/Layout.astro';
 
           <fieldset class="space-y-2">
             <legend class="text-xs font-bold uppercase tracking-wider text-base-content/80">
-              Runtime esperado
+              Entorno del ejercicio · qué pueden usar los alumnos (§13.3)
             </legend>
             <div class="flex flex-wrap gap-2.5" role="radiogroup" aria-label="Runtime esperado">
               <label class="cursor-pointer">
-                <input type="radio" name="runtime" value="Python" class="peer sr-only" checked />
+                <input type="radio" name="runtime" value="python" class="peer sr-only" checked />
                 <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
                   Python 3.11
                 </span>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="runtime" value="Web" class="peer sr-only" />
+                <input type="radio" name="runtime" value="web" class="peer sr-only" />
                 <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
                   Web (HTML/Node)
                 </span>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="runtime" value="C++" class="peer sr-only" />
+                <input type="radio" name="runtime" value="cpp" class="peer sr-only" />
                 <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
                   C++ (GCC)
                 </span>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="runtime" value="Arduino" class="peer sr-only" />
+                <input type="radio" name="runtime" value="arduino" class="peer sr-only" />
                 <span class="inline-flex items-center px-4 py-2 rounded-full border border-base-300 text-xs font-semibold peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary transition-all">
                   Arduino Uno (Simulación)
                 </span>
@@ -155,7 +157,7 @@ import Layout from '../layouts/Layout.astro';
             <input
               id="f-vencimiento"
               name="vencimiento"
-              type="date"
+              type="datetime-local"
               class="input input-bordered w-full max-w-xs rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
             />
             <p class="text-xs text-base-content/50">
@@ -238,10 +240,10 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Acciones del Formulario -->
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-base-200">
-          <a href="/consignas/" class="btn btn-ghost btn-sm rounded-xl">
+          <a href="/consignas/" id="btn-cancelar" class="btn btn-ghost btn-sm rounded-xl">
             Cancelar
           </a>
-          <button type="submit" class="btn btn-primary btn-sm md:btn-md rounded-xl font-semibold px-6">
+          <button type="submit" class="btn btn-primary btn-sm md:btn-md rounded-xl font-semibold px-6" id="btn-crear">
             Crear consigna
           </button>
         </div>
@@ -258,104 +260,212 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 
-  <script is:inline>
-    (() => {
-      const $ = (sel) => document.querySelector(sel);
+  <script>
+    import {
+      ApiError, createAssignment, getClassroom, uploadAttachment,
+      type AssignmentAttachment, type AttemptsConfig,
+    } from '../lib/api';
 
-      // Toast feedback
+    (() => {
+      const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
+
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
         }, 2600);
       }
 
-      // Dropzone
-      const dropzone = $('#dropzone');
-      const inputArchivos = $('#f-archivos');
-      const listaArchivos = $('#lista-archivos');
+      function escapeHtml(s: string): string {
+        return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+      }
 
-      function pesoLegible(bytes) {
+      const classroomId = new URLSearchParams(window.location.search).get('classroom') ?? '';
+      if (!classroomId) {
+        $('#subtitulo-aula')!.textContent = 'Falta el aula: entrá desde «Consignas» para crear una consigna.';
+        ($('#btn-crear') as HTMLButtonElement).disabled = true;
+      }
+
+      // Header con nombre real del aula
+      void (async () => {
+        if (!classroomId) return;
+        try {
+          const aula = await getClassroom(classroomId);
+          document.title = `Nueva consigna · ${aula.name}`;
+          $('#subtitulo-aula')!.textContent = `Para ${aula.name}. Se publica apenas la creás y los alumnos la ven al instante.`;
+          $('#link-volver')!.href = `/consignas/?classroom=${encodeURIComponent(classroomId)}`;
+          $('#btn-cancelar')!.setAttribute('href', `/consignas/?classroom=${encodeURIComponent(classroomId)}`);
+        } catch { /* header genérico */ }
+      })();
+
+      // --- Dropzone: cada archivo se sube YA (POST /assignments/attachments, §4) ---
+      const MAX_BYTES = 10 * 1024 * 1024;
+      const inputArchivos = $('#f-archivos') as HTMLInputElement;
+      const listaArchivos = $('#lista-archivos')!;
+      /** Subidos listos para attachment_ids; los que fallan no entran. */
+      const subidos = new Map<string, AssignmentAttachment>();
+
+      function pesoLegible(bytes: number): string {
         if (bytes < 1024) return bytes + ' B';
         if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
         return (bytes / 1048576).toFixed(1) + ' MB';
       }
 
-      function pintarArchivos(files) {
-        if (!listaArchivos) return;
-        listaArchivos.innerHTML = '';
-        Array.from(files).forEach((file) => {
-          const li = document.createElement('li');
-          li.className = 'p-2.5 rounded-xl bg-base-200 border border-base-300 flex items-center justify-between gap-2';
-          li.innerHTML = `
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="font-medium text-base-content truncate">${file.name}</span>
-              <span class="badge badge-ghost font-mono text-[10px]">${pesoLegible(file.size)}</span>
-            </div>
-            <button type="button" class="btn btn-ghost btn-xs text-error font-medium">Quitar</button>
-          `;
-          li.querySelector('button')?.addEventListener('click', () => {
-            li.remove();
-          });
-          listaArchivos.appendChild(li);
+      function pintarAdjunto(att: AssignmentAttachment | null, key: string, estado: 'subiendo' | 'listo' | 'error'): HTMLElement {
+        const li = document.createElement('li');
+        li.className = 'p-2.5 rounded-xl bg-base-200 border border-base-300 flex items-center justify-between gap-2';
+        li.dataset.key = key;
+        li.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0">
+            ${estado === 'subiendo'
+              ? '<span class="loading loading-spinner loading-xs text-primary"></span>'
+              : estado === 'listo'
+                ? '<svg class="size-3.5 text-success shrink-0 stroke-[3]" viewBox="0 0 14 14" fill="none" stroke="currentColor"><path d="M2.5 7.5 5.5 10.5 11.5 3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                : '<span class="badge badge-error badge-sm text-error">error</span>'}
+            <span class="font-medium text-base-content truncate">${escapeHtml(att?.filename ?? key)}</span>
+            ${att ? `<span class="badge badge-ghost font-mono text-[10px]">${pesoLegible(att.size_bytes)}</span>` : ''}
+          </div>
+          ${estado === 'error'
+            ? ''
+            : '<button type="button" class="btn btn-ghost btn-xs text-error font-medium">Quitar</button>'}
+        `;
+        li.querySelector('button')?.addEventListener('click', () => {
+          subidos.delete(key);
+          li.remove();
+          aviso(`Quitaste «${att?.filename ?? key}» del borrador (el archivo se borra solo en 24 h si no lo usás).`);
         });
+        return li;
       }
 
-      inputArchivos?.addEventListener('change', () => {
-        if (inputArchivos.files) pintarArchivos(inputArchivos.files);
-      });
+      async function subirArchivos(files: FileList) {
+        for (const file of Array.from(files)) {
+          const key = `${file.name}:${file.size}:${file.lastModified}`;
+          if ([...subidos.keys()].includes(key)) continue;
+          if (file.size > MAX_BYTES) {
+            listaArchivos.appendChild(pintarAdjunto(null, file.name, 'error'));
+            aviso(`«${file.name}» pasa los 10 MB por archivo.`);
+            continue;
+          }
+          const li = pintarAdjunto(null, key, 'subiendo');
+          listaArchivos.appendChild(li);
+          try {
+            const att = await uploadAttachment(file);
+            subidos.set(key, att);
+            li.replaceWith(pintarAdjunto(att, key, 'listo'));
+          } catch (err) {
+            li.remove();
+            listaArchivos.appendChild(pintarAdjunto(null, file.name, 'error'));
+            aviso(err instanceof ApiError && err.message ? err.message : `No pudimos subir «${file.name}».`);
+          }
+        }
+      }
 
-      // Manejo accesible por teclado en dropzone
-      dropzone?.addEventListener('keydown', (e) => {
+      const dropzone = $('#dropzone')!;
+      dropzone.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          inputArchivos?.click();
+          inputArchivos.click();
         }
+      });
+      ['dragenter', 'dragover'].forEach((ev) =>
+        dropzone.addEventListener(ev, (e) => {
+          e.preventDefault();
+          dropzone.classList.add('border-primary', 'bg-primary/5');
+        }),
+      );
+      ['dragleave', 'drop'].forEach((ev) =>
+        dropzone.addEventListener(ev, (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('border-primary', 'bg-primary/5');
+        }),
+      );
+      dropzone.addEventListener('drop', (e) => {
+        if (e.dataTransfer?.files.length) void subirArchivos(e.dataTransfer.files);
+      });
+      inputArchivos.addEventListener('change', () => {
+        if (inputArchivos.files?.length) void subirArchivos(inputArchivos.files);
+        inputArchivos.value = '';
       });
 
       // Intentos toggle
-      const radiosIntentos = document.querySelectorAll('input[name="intentos"]');
-      const extra = $('#intentos-extra');
-      radiosIntentos.forEach((r) => {
-        r.addEventListener('change', (e) => {
-          const val = e.target.value;
-          if (val === 'n') {
-            extra?.classList.remove('hidden');
-            extra?.classList.add('flex');
-          } else {
-            extra?.classList.add('hidden');
-            extra?.classList.remove('flex');
-          }
+      const extra = $('#intentos-extra')!;
+      document.querySelectorAll<HTMLInputElement>('input[name="intentos"]').forEach((r) => {
+        r.addEventListener('change', () => {
+          extra.classList.toggle('hidden', r.value !== 'n');
+          extra.classList.toggle('flex', r.value === 'n');
         });
       });
 
-      // Form submit
-      $('#form-consigna')?.addEventListener('submit', (e) => {
+      // Submit real: POST /classrooms/{id}/assignments (§4)
+      ($('#form-consigna') as HTMLFormElement).addEventListener('submit', async (e) => {
         e.preventDefault();
-        const titulo = $('#f-titulo')?.value.trim();
-        const instrucciones = $('#f-instrucciones')?.value.trim();
+        if (!classroomId) return;
+
+        const titulo = ($('#f-titulo') as HTMLInputElement).value.trim();
+        const instrucciones = ($('#f-instrucciones') as HTMLTextAreaElement).value.trim();
         if (!titulo) {
-          $('#f-titulo')?.focus();
+          ($('#f-titulo') as HTMLInputElement).focus();
           aviso('Ponéle un título a la consigna.');
           return;
         }
         if (!instrucciones) {
-          $('#f-instrucciones')?.focus();
+          ($('#f-instrucciones') as HTMLTextAreaElement).focus();
           aviso('Completá las instrucciones para los alumnos.');
           return;
         }
-        aviso(`¡Consigna «${titulo}» creada y publicada con éxito!`);
-        setTimeout(() => {
-          window.location.href = '/consignas/';
-        }, 1200);
+
+        const runtime = document.querySelector<HTMLInputElement>('input[name="runtime"]:checked')!.value;
+        const vencimientoLocal = ($('#f-vencimiento') as HTMLInputElement).value;
+        const dueAt = vencimientoLocal ? new Date(vencimientoLocal).toISOString() : undefined;
+
+        const modoIntentos = document.querySelector<HTMLInputElement>('input[name="intentos"]:checked')!.value;
+        let attempts: AttemptsConfig = { mode: 'unlimited' };
+        if (modoIntentos === 'one') {
+          attempts = { mode: 'one' };
+        } else if (modoIntentos === 'n') {
+          const max = Number(($('#f-intentos-num') as HTMLInputElement).value);
+          if (!Number.isInteger(max) || max < 2 || max > 10) {
+            ($('#f-intentos-num') as HTMLInputElement).focus();
+            aviso('La cantidad de intentos tiene que ser un número entre 2 y 10.');
+            return;
+          }
+          attempts = { mode: 'limited', max };
+        }
+
+        const btn = $('#btn-crear') as HTMLButtonElement;
+        btn.disabled = true;
+        btn.textContent = 'Publicando…';
+        try {
+          await createAssignment(classroomId, {
+            title: titulo,
+            instructions: instrucciones,
+            attachment_ids: [...subidos.values()].map((a) => a.attachment_id),
+            runtime: runtime as 'python' | 'web' | 'cpp' | 'arduino',
+            due_at: dueAt,
+            attempts,
+            late_policy: (($('#f-tardias') as HTMLInputElement).checked ? 'allowed' : 'closed'),
+          });
+          aviso(`¡Consigna «${titulo}» creada y publicada!`);
+          setTimeout(() => {
+            window.location.href = `/consignas/?classroom=${encodeURIComponent(classroomId)}`;
+          }, 900);
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos crear la consigna.');
+          btn.disabled = false;
+          btn.textContent = 'Crear consigna';
+        }
       });
     })();
   </script>
