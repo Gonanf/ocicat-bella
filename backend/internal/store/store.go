@@ -96,6 +96,18 @@ type Store interface {
 	UpdateSubmission(ctx context.Context, s *model.Submission) error
 	ListSubmissionsByAssignment(ctx context.Context, assignmentID string) ([]model.Submission, error)
 
+	// Sandboxes y runs (§7)
+	CreateSandbox(ctx context.Context, sb *model.Sandbox) error
+	GetSandbox(ctx context.Context, id string) (*model.Sandbox, error)
+	UpdateSandbox(ctx context.Context, sb *model.Sandbox) error
+	ListSandboxes(ctx context.Context) ([]model.Sandbox, error)
+
+	CreateRun(ctx context.Context, r *model.Run) error
+	GetRun(ctx context.Context, id string) (*model.Run, error)
+	UpdateRun(ctx context.Context, r *model.Run) error
+	ListRunsBySandbox(ctx context.Context, sandboxID string) ([]model.Run, error)
+	ListRuns(ctx context.Context) ([]model.Run, error)
+
 	// Escuela (§9.1/§10)
 	SchoolStats(ctx context.Context) (*model.SchoolStats, error)
 	RevokeGuestAccess(ctx context.Context) error
@@ -115,6 +127,8 @@ type MemStore struct {
 	assignments map[string]*model.Assignment
 	attachments map[string]*model.Attachment
 	submissions map[string]*model.Submission
+	sandboxes   map[string]*model.Sandbox
+	runs        map[string]*model.Run
 }
 
 // NewMemStore creates an initialized MemStore.
@@ -130,6 +144,8 @@ func NewMemStore() *MemStore {
 		assignments: make(map[string]*model.Assignment),
 		attachments: make(map[string]*model.Attachment),
 		submissions: make(map[string]*model.Submission),
+		sandboxes:   make(map[string]*model.Sandbox),
+		runs:        make(map[string]*model.Run),
 	}
 }
 

@@ -25,7 +25,7 @@ func cellInt(row []sqlVal, i int) int {
 
 // --- Classrooms ---
 
-const classroomCols = "id, teacher_id, name, course, shift, join_code, archived, created_at"
+const classroomCols = "id, teacher_id, name, course, shift, join_code, archived, created_at, allowed_templates, custom_dockerfile_enabled"
 
 func scanClassroom(row []sqlVal) (*model.Classroom, error) {
 	createdAt, err := cellTime(row, 7)
@@ -41,14 +41,24 @@ func scanClassroom(row []sqlVal) (*model.Classroom, error) {
 		JoinCode:  cellStr(row, 5),
 		Archived:  cellInt(row, 6) == 1,
 		CreatedAt: createdAt,
+
+		AllowedTemplates:        scanIDs(cellStr(row, 8)),
+		CustomDockerfileEnabled: cellInt(row, 9) == 1,
 	}, nil
+}
+
+func classroomArgs(c *model.Classroom) []sqlVal {
+	return []sqlVal{
+		textArg(c.ID), textArg(c.TeacherID), textArg(c.Name), textArg(c.Course), textArg(c.Shift),
+		textArg(c.JoinCode), intArg(c.Archived), timeArg(c.CreatedAt),
+		idsArg(c.AllowedTemplates), intArg(c.CustomDockerfileEnabled),
+	}
 }
 
 func (t *TursoStore) CreateClassroom(ctx context.Context, c *model.Classroom) error {
 	_, err := t.exec(ctx,
-		`INSERT INTO classrooms (`+classroomCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		textArg(c.ID), textArg(c.TeacherID), textArg(c.Name), textArg(c.Course), textArg(c.Shift),
-		textArg(c.JoinCode), intArg(c.Archived), timeArg(c.CreatedAt))
+		`INSERT INTO classrooms (`+classroomCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		classroomArgs(c)...)
 	return err
 }
 
@@ -72,11 +82,11 @@ func (t *TursoStore) GetClassroomByCode(ctx context.Context, code string) (*mode
 }
 
 func (t *TursoStore) UpdateClassroom(ctx context.Context, c *model.Classroom) error {
+	args := append(classroomArgs(c)[1:], textArg(c.ID))
 	n, err := t.exec(ctx,
-		`UPDATE classrooms SET teacher_id = ?, name = ?, course = ?, shift = ?, join_code = ?, archived = ?
-		 WHERE id = ?`,
-		textArg(c.TeacherID), textArg(c.Name), textArg(c.Course), textArg(c.Shift),
-		textArg(c.JoinCode), intArg(c.Archived), textArg(c.ID))
+		`UPDATE classrooms SET teacher_id = ?, name = ?, course = ?, shift = ?, join_code = ?, archived = ?,
+		 allowed_templates = ?, custom_dockerfile_enabled = ?
+		 WHERE id = ?`, args...)
 	if err != nil {
 		return err
 	}

@@ -153,12 +153,44 @@ CREATE TABLE IF NOT EXISTS submissions(
 	UNIQUE (assignment_id, student_id, attempt_number)
 );
 CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
+
+CREATE TABLE IF NOT EXISTS sandboxes(
+	id TEXT PRIMARY KEY,
+	template_id TEXT NOT NULL,
+	created_by TEXT NOT NULL REFERENCES users(id),
+	classroom_id TEXT NOT NULL DEFAULT '',
+	mode TEXT NOT NULL DEFAULT 'job',
+	start_command TEXT NOT NULL DEFAULT '',
+	packages_extra TEXT NOT NULL DEFAULT '',
+	purpose TEXT NOT NULL DEFAULT 'standalone',
+	submission_id TEXT NOT NULL DEFAULT '',
+	retention TEXT NOT NULL DEFAULT 'historical',
+	visibility TEXT NOT NULL DEFAULT 'classroom',
+	cleaned INTEGER NOT NULL DEFAULT 0,
+	created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sandboxes_created_by ON sandboxes(created_by);
+
+CREATE TABLE IF NOT EXISTS runs(
+	id TEXT PRIMARY KEY,
+	sandbox_id TEXT NOT NULL REFERENCES sandboxes(id),
+	n INTEGER NOT NULL,
+	status TEXT NOT NULL DEFAULT 'queued',
+	exit_code INTEGER,
+	service_url TEXT NOT NULL DEFAULT '',
+	started_at TEXT,
+	logs_json TEXT NOT NULL DEFAULT '[]',
+	created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_runs_sandbox ON runs(sandbox_id);
 `
 
 // alterSQL corre migraciones no-idempotentes (ALTER TABLE) tolerando el error
 // "duplicate column" de re-ejecuciones.
 var alterSQL = []string{
 	`ALTER TABLE schools ADD COLUMN global_code_active INTEGER NOT NULL DEFAULT 1`,
+	`ALTER TABLE classrooms ADD COLUMN allowed_templates TEXT NOT NULL DEFAULT '[]'`,
+	`ALTER TABLE classrooms ADD COLUMN custom_dockerfile_enabled INTEGER NOT NULL DEFAULT 0`,
 }
 
 // NewTursoStore crea el store contra Turso y ejecuta el schema (idempotente).
