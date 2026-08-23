@@ -33,12 +33,13 @@ const (
 
 // User represents an authenticated user in the system.
 type User struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Email        string `json:"email,omitempty"`
-	Role         Role   `json:"role"`
-	Disabled     bool   `json:"disabled"`
-	PasswordHash string `json:"-"` // bcrypt; vacío para alumnos (solo magic link)
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email,omitempty"`
+	Role         Role      `json:"role"`
+	Disabled     bool      `json:"disabled"`
+	CreatedAt    time.Time `json:"created_at,omitempty"` // §9.2 lista de docentes
+	PasswordHash string    `json:"-"`                    // bcrypt; vacío para alumnos (solo magic link)
 }
 
 // School is the single school instance created by the setup wizard (§1).
@@ -138,6 +139,34 @@ type SchoolStats struct {
 	PublicMaterials int `json:"public_materials"`
 }
 
+// ImportToken acredita el paso 1 (preview dry_run) del import CSV §9.3;
+// el commit exige un token vigente del mismo aula. TTL corto.
+type ImportToken struct {
+	Token       string
+	ClassroomID string
+	CreatedBy   string
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
+}
+
+// ImportTTL ventana para pasar de preview a commit (§9.3 dos pasos).
+const ImportTTL = 30 * time.Minute
+
+// MaxImportRows es el límite de filas por import CSV (§9.3).
+const MaxImportRows = 200
+
+// AuditEntry es una acción sensible inmutable (§9.5): impersonaciones,
+// rotaciones de códigos, altas/bajas y cambios de credenciales.
+type AuditEntry struct {
+	ID           string    `json:"id"`
+	ActorID      string    `json:"actor_id"`
+	Action       string    `json:"action"`
+	TargetUserID string    `json:"target_user_id,omitempty"`
+	Reason       string    `json:"reason,omitempty"`
+	IP           string    `json:"ip,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
 // MagicContext is the request context of a magic link (§2.2).
 type MagicContext string
 
@@ -174,6 +203,9 @@ type Session struct {
 	CreatedAt   time.Time   `json:"created_at"`
 	LastSeenAt  time.Time   `json:"last_seen_at"`
 	ExpiresAt   time.Time   `json:"expires_at"`
+	// ImpersonatedBy ≠ 0: sesión de impersonación administrativa (§9.5);
+	// el usuario que actúa es UserID pero el banner/audit muestran el director.
+	ImpersonatedBy string `json:"impersonated_by,omitempty"`
 }
 
 const (
