@@ -51,6 +51,16 @@ func main() {
 	// Server run context for graceful shutdown
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
 
+	// FakeRunner: avanza la máquina de estados §7 (queued→…→cleaned) mientras
+	// no exista runner Docker real (Plan B §13.4).
+	go func() {
+		ticker := time.NewTicker(500 * time.Millisecond)
+		defer ticker.Stop()
+		for range ticker.C {
+			router.Step(serverCtx)
+		}
+	}()
+
 	// Listen for syscall signals for process to interrupt/quit
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)

@@ -248,7 +248,13 @@ func (h *Handler) DeliverSubmission(w http.ResponseWriter, r *http.Request) {
 	s.DeliveredAt = now
 	s.Late = late
 	s.SnapshotFiles = copyFileSlice(s.Files)
-	// last_test_result queda null hasta FASE 6 (sandboxes).
+	// FASE 6 (§5.2): si hubo un run purpose=submission_test terminado para esta
+	// entrega, su resultado viaja en el snapshot.
+	if tr := h.latestTestResult(r.Context(), s.ID); tr != nil {
+		s.LastTestResult = tr
+		s.TestedOK = tr.ExitCode == 0
+		s.TestError = tr.ExitCode != 0
+	}
 	if err := h.store.UpdateSubmission(r.Context(), s); err != nil {
 		writeInternal(w)
 		return

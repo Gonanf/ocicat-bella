@@ -27,6 +27,8 @@ type Handler struct {
 	guestRL       *middleware.IPRateLimiter // POST /guest/sessions: 20/h por IP (§0.3/§10)
 	loginFailRL   *middleware.FailLimiter   // 5 fallos/15min por email+IP (§0.3)
 	sendMagicLink func(email, link string)  // seam de envío de email; inyectable en tests
+
+	runner Runner // seam §7 Plan B; FakeRunner en dev/tests, Docker real post-MVP
 }
 
 // SetMagicLinkSender reemplaza el envío de emails (tests / SMTP real).
@@ -58,6 +60,7 @@ func NewRouter(cfg *config.Config, s store.Store) *Handler {
 	h.sendMagicLink = func(email, link string) {
 		log.Printf("[magic-link] para %s: %s", email, link)
 	}
+	h.runner = FakeRunner{}
 
 	h.registerRoutes()
 
@@ -102,6 +105,7 @@ func (h *Handler) registerRoutes() {
 
 	h.registerFase4Routes()
 	h.registerFase5Routes()
+	h.registerFase6Routes()
 }
 
 // atajos de middleware para las rutas de Fase 4.
@@ -167,4 +171,21 @@ func (h *Handler) registerFase5Routes() {
 	h.mux.Handle("GET /assignments/{id}/submissions", requireStaff(http.HandlerFunc(h.ListAssignmentSubmissions)))
 	h.mux.Handle("POST /submissions/{submission_id}/deliver", guestRO(requireAlumno(http.HandlerFunc(h.DeliverSubmission))))
 	h.mux.Handle("GET /submissions/{submission_id}", middleware.RequireAuth(http.HandlerFunc(h.GetSubmission)))
+}
+
+func (h *Handler) registerFase6Routes() {
+	guestRO := middleware.RequireNonGuest
+
+	// Templates y settings de sala (§10.2/G4)
+	h.mux.Handle("GET /templates", requireMiembroOStaff(http.HandlerFunc(h.ListTemplates)))
+	h.mux.Handle("PATCH /classrooms/{id}/settings", guestRO(requireStaff(http.HandlerFunc(h.PatchClassroomSettings))))
+
+	// Sandboxes y runs (§7): POST exige alumno miembro/docente/director
+	h.mux.Handle("POST /sandboxes", guestRO(middleware.RequireAuth(http.HandlerFunc(h.CreateSandbox))))
+	h.mux.HandleFunc("GET /sandboxes", h.ListSandboxes) // anónimo incluido: filtra por rol
+	h.mux.HandleFunc("GET /sandboxes/{id}", h.GetSandboxDetail)
+	h.mux.Handle("POST /sandboxes/{id}/instantiate", guestRO(middleware.RequireAuth(http.HandlerFunc(h.InstantiateSandbox))))
+	h.mux.HandleFunc("GET /runs/{run_id}", h.GetRunStatus)
+	h.mux.HandleFunc("GET /runs/{run_id}/logs", h.RunLogs)
+	h.mux.Handle("POST /runs/{run_id}/stop", guestRO(middleware.RequireAuth(http.HandlerFunc(h.StopRun))))
 }
