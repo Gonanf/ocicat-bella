@@ -354,3 +354,157 @@ export function guestSession(code: string): Promise<{ school_name: string }> {
 export function schoolPublic(): Promise<{ name: string }> {
   return request('/api/v1/school/public');
 }
+
+// --- Consignas (§4) y Entregas (§5) — Fase 4 ---
+
+/** Catálogo de runtimes (§10.2). Labels docentes en UI, no en API. */
+export type Runtime = 'python' | 'web' | 'cpp' | 'arduino';
+
+/** unlimited | limited{max} | one. */
+export type AttemptsConfig = { mode: 'unlimited' } | { mode: 'limited'; max: number } | { mode: 'one' };
+
+export type LatePolicy = 'allowed' | 'closed';
+
+export interface AssignmentAttachment {
+  attachment_id: string;
+  filename: string;
+  size_bytes: number;
+}
+
+export interface AssignmentStats {
+  total_students: number;
+  delivered: number;
+  tested_ok: number;
+  test_errors: number;
+  late: number;
+  missing: number;
+}
+
+export interface Assignment {
+  id: string;
+  classroom_id?: string;
+  title: string;
+  instructions?: string;
+  runtime: Runtime;
+  /** ISO; ausente = práctica continua. */
+  due_at?: string;
+  attempts: AttemptsConfig;
+  late_policy: LatePolicy;
+  attachments?: AssignmentAttachment[];
+  /** Métricas cuando el listado las incluye para docente/director (§4). */
+  stats?: AssignmentStats;
+  created_at?: string;
+}
+
+/** Payload de creación/edición (§4): los adjuntos van por id, ya subidos a /assignments/attachments. */
+export interface AssignmentDraft {
+  title: string;
+  instructions?: string;
+  attachment_ids?: string[];
+  runtime: Runtime;
+  due_at?: string;
+  attempts: AttemptsConfig;
+  late_policy: LatePolicy;
+}
+
+export function createAssignment(classroomId: string, payload: AssignmentDraft): Promise<Assignment> {
+  return request(`/api/v1/classrooms/${encodeURIComponent(classroomId)}/assignments`, json(payload));
+}
+
+export async function listAssignments(classroomId: string): Promise<Assignment[]> {
+  const data = await request<Assignment[] | { assignments: Assignment[] }>(
+    `/api/v1/classrooms/${encodeURIComponent(classroomId)}/assignments`,
+  );
+  return Array.isArray(data) ? data : data.assignments;
+}
+
+export function getAssignment(id: string): Promise<Assignment> {
+  return request(`/api/v1/assignments/${encodeURIComponent(id)}`);
+}
+
+export function patchAssignment(id: string, patch: Partial<AssignmentDraft>): Promise<Assignment> {
+  return request(`/api/v1/assignments/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(patch) });
+}
+
+/** Soft-delete: entregas conservadas. 204. */
+export async function deleteAssignment(id: string): Promise<void> {
+  await request(`/api/v1/assignments/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export function assignmentStats(id: string): Promise<AssignmentStats> {
+  return request(`/api/v1/assignments/${encodeURIComponent(id)}/stats`);
+}
+
+/** POST /assignments/attachments — multipart, máx 10 MB/archivo. El id va en attachment_ids del create. */
+export function uploadAttachment(file: File): Promise<AssignmentAttachment> {
+  const fd = new FormData();
+  fd.set('file', file);
+  return request('/api/v1/assignments/attachments', { method: 'POST', body: fd });
+}
+
+// --- Entregas (§5): submission = UN intento. draft → delivered (+ flags derivados).
+
+export interface SubmissionFile {
+  id: string;
+  name: string;
+  size: number;
+}
+
+export type TestResult = { run_id: string; exit_code: number };
+
+export interface Submission {
+  id: string;
+  assignment_id?: string;
+  attempt_number: number;
+  state: 'draft' | 'delivered';
+  late?: boolean;
+  tested_ok?: boolean;
+  test_error?: boolean;
+  delivered_at?: string;
+  attempts_remaining?: number;
+  last_test_result?: TestResult;
+  files?: SubmissionFile[];
+  student_name?: string;
+}
+
+/** POST /assignments/{id}/submissions/files — multipart multi; crea o reusa la draft del intento en curso. */
+export function uploadSubmissionFiles(assignmentId: string, files: File[]): Promise<Submission> {
+  const fd = new FormData();
+  for (const f of files) fd.append('files', f);
+  return request(`/api/v1/assignments/${encodeURIComponent(assignmentId)}/submissions/files`, {
+    method: 'POST',
+    body: fd,
+  });
+}
+
+/**
+ * POST /submissions/{id}/deliver — checkpoint explícito.
+ * confirm_attempt = intento que el alumno vio en pantalla ("¿Entregar? (intento N de M)").
+ * 409: attempts_exhausted | deadline_passed | attempt_conflict.
+ */
+export function deliverSubmission(submissionId: string, confirmAttempt: number): Promise<Submission> {
+  return request(`/api/v1/submissions/${encodeURIComponent(submissionId)}/deliver`, json({ confirm_attempt: confirmAttempt }));
+}
+
+/** Historial de intentos propios (#N, tardía, etc.). */
+export async function mySubmissions(assignmentId: string): Promise<Submission[]> {
+  const data = await request<Submission[] | { submissions: Submission[] }>(
+    `/api/v1/assignments/${encodeURIComponent(assignmentId)}/submissions/me`,
+  );
+  return Array.isArray(data) ? data : data.submissions;
+}
+
+export function getSubmission(id: string): Promise<Submission> {
+  return request(`/api/v1/submissions/${encodeURIComponent(id)}`);
+}
+
+/** Vista corrección docente: filter=late|missing|error; sin filter = todas (§5.4). */
+export async function listSubmissionsFiltered(
+  assignmentId: string,
+  filter?: 'late' | 'missing' | 'error',
+): Promise<Submission[]> {
+  const data = await request<Submission[] | { submissions: Submission[] }>(
+    `/api/v1/assignments/${encodeURIComponent(assignmentId)}/submissions${qs({ filter })}`,
+  );
+  return Array.isArray(data) ? data : data.submissions;
+}
