@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { perfilMock } from '../data/mock';
 ---
 
 <Layout titulo="Perfil" active="perfil" navRole="alumno">
@@ -10,15 +9,13 @@ import { perfilMock } from '../data/mock';
       <!-- Hero con Avatar -->
       <section class="flex items-center gap-5">
         <div class="size-16 rounded-2xl bg-primary text-primary-content font-display italic text-2xl grid place-items-center shrink-0 shadow-sm" id="avatar-iniciales">
-          {perfilMock.iniciales}
+          ··
         </div>
         <div>
           <h1 class="font-display font-normal text-4xl md:text-5xl tracking-tight text-base-content" id="titulo-perfil">
             Perfil
           </h1>
-          <p class="font-mono text-xs md:text-sm text-base-content/60 mt-0.5" id="hero-email">
-            {perfilMock.email}
-          </p>
+          <p class="font-mono text-xs md:text-sm text-base-content/60 mt-0.5" id="hero-email"></p>
         </div>
       </section>
 
@@ -44,7 +41,7 @@ import { perfilMock } from '../data/mock';
                 <input
                   id="f-nombre"
                   type="text"
-                  value={perfilMock.nombre}
+                  value=""
                   autocomplete="name"
                   class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary"
                 />
@@ -57,7 +54,7 @@ import { perfilMock } from '../data/mock';
                 <input
                   id="f-email"
                   type="email"
-                  value={perfilMock.email}
+                  value=""
                   autocomplete="email"
                   class="input input-bordered w-full rounded-xl font-mono text-sm bg-base-200/60 focus:bg-base-100 focus:border-primary"
                 />
@@ -82,40 +79,10 @@ import { perfilMock } from '../data/mock';
             </h2>
 
             <div class="flex flex-col gap-2.5" id="lista-sesiones">
-              {perfilMock.sesiones.map((sesion) => (
-                <div class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-base-200/60 border border-base-300 sesion-row" data-id={sesion.id} data-nombre={sesion.navegador}>
-                  <div class="flex items-center gap-3 min-w-0">
-                    <span class="size-10 rounded-xl bg-primary/10 text-primary font-mono font-bold text-xs grid place-items-center shrink-0">
-                      {sesion.osBadge}
-                    </span>
-                    <div class="min-w-0 flex flex-col">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <span class="font-medium text-sm text-base-content sesion-titulo">
-                          {sesion.navegador}
-                        </span>
-                        {sesion.actual && (
-                          <span class="badge badge-xs bg-primary/15 border border-primary/20 text-primary font-semibold uppercase tracking-wider text-[9px] px-2 py-0.5">
-                            Esta sesión
-                          </span>
-                        )}
-                      </div>
-                      <span class="text-xs text-base-content/60 truncate">
-                        {sesion.ubicacion} · {sesion.actividad}
-                      </span>
-                    </div>
-                  </div>
-
-                  {!sesion.actual && (
-                    <button
-                      type="button"
-                      class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold rounded-lg shrink-0 btn-cerrar-sesion"
-                      aria-label={`Cerrar sesión en ${sesion.navegador}`}
-                    >
-                      Cerrar
-                    </button>
-                  )}
-                </div>
-              ))}
+              <p class="flex items-center gap-2 text-xs text-base-content/60 py-1" id="sesiones-cargando">
+                <span class="loading loading-spinner loading-xs text-primary"></span>
+                Cargando sesiones…
+              </p>
             </div>
 
             <p id="sesiones-vacias" hidden class="text-xs text-base-content/60 italic py-1">
@@ -140,13 +107,22 @@ import { perfilMock } from '../data/mock';
             <p class="text-xs text-base-content/55 text-center sm:text-left">
               Entrás siempre sin contraseñas mediante tu magic link.
             </p>
-            <button
-              type="submit"
-              id="btn-guardar"
-              class="btn btn-primary rounded-xl font-semibold px-7 w-full sm:w-auto"
-            >
-              Guardar cambios
-            </button>
+            <div class="flex gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                id="btn-cerrar-sesion"
+                class="btn btn-outline btn-error rounded-xl font-semibold w-full sm:w-auto"
+              >
+                Cerrar mi sesión
+              </button>
+              <button
+                type="submit"
+                id="btn-guardar"
+                class="btn btn-primary rounded-xl font-semibold px-7 flex-1 sm:flex-none"
+              >
+                Guardar cambios
+              </button>
+            </div>
           </div>
 
         </form>
@@ -162,20 +138,22 @@ import { perfilMock } from '../data/mock';
     </div>
   </div>
 
-  <script is:inline>
+  <script>
+    import { ApiError, me, logout, listSessions, deleteSession, closeOthers, type SessionInfo } from '../lib/api';
+
     (() => {
-      const $ = (sel) => document.querySelector(sel);
+      const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T | null;
 
       // Toast feedback
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
@@ -185,6 +163,7 @@ import { perfilMock } from '../data/mock';
       const listaSesiones = $('#lista-sesiones');
       const btnCerrarOtras = $('#btn-cerrar-todas');
       const sesionesVacias = $('#sesiones-vacias');
+      const sesionesCargando = $('#sesiones-cargando');
 
       function chequearVacio() {
         const otras = listaSesiones ? listaSesiones.querySelectorAll('.btn-cerrar-sesion').length : 0;
@@ -192,41 +171,146 @@ import { perfilMock } from '../data/mock';
         if (sesionesVacias) sesionesVacias.hidden = otras !== 0;
       }
 
-      // Cerrar sesión individual
-      if (listaSesiones) {
-        listaSesiones.addEventListener('click', (e) => {
-          const btn = e.target.closest('.btn-cerrar-sesion');
-          if (!btn) return;
-          const fila = btn.closest('.sesion-row');
-          if (!fila) return;
-          const nombre = fila.dataset.nombre || 'el dispositivo';
-          fila.remove();
+      function esc(input: string): string {
+        const div = document.createElement('div');
+        div.textContent = input;
+        return div.innerHTML;
+      }
+
+      function hace(iso: string): string {
+        const s = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
+        if (Number.isNaN(s)) return '';
+        if (s < 60) return 'ahora';
+        const m = Math.floor(s / 60);
+        if (m < 60) return `hace ${m} min`;
+        const h = Math.floor(m / 60);
+        if (h < 24) return `hace ${h} h`;
+        const d = Math.floor(h / 24);
+        return `hace ${d} ${d === 1 ? 'día' : 'días'}`;
+      }
+
+      const KIND_META: Record<SessionInfo['kind'], { etiqueta: string; badge: string }> = {
+        pwa: { etiqueta: 'Celular', badge: 'PWA' },
+        pc_temporal: { etiqueta: 'PC temporal', badge: 'PC' },
+        staff: { etiqueta: 'Web', badge: 'WEB' },
+      };
+
+      function fila(sesion: SessionInfo): string {
+        const meta = KIND_META[sesion.kind] ?? KIND_META.staff;
+        const nombre = sesion.device_label || meta.etiqueta;
+        return `
+          <div class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-base-200/60 border border-base-300 sesion-row" data-id="${esc(sesion.id)}" data-nombre="${esc(nombre)}">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="size-10 rounded-xl bg-primary/10 text-primary font-mono font-bold text-[10px] grid place-items-center shrink-0 uppercase">${meta.badge}</span>
+              <div class="min-w-0 flex flex-col">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-medium text-sm text-base-content sesion-titulo">${esc(nombre)}</span>
+                  <span class="badge badge-xs bg-base-content/10 border border-base-content/20 text-base-content/70 font-semibold uppercase tracking-wider text-[9px] px-2 py-0.5">${meta.etiqueta}</span>
+                </div>
+                <span class="text-xs text-base-content/60 truncate">Visto ${esc(hace(sesion.last_seen_at))}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold rounded-lg shrink-0 btn-cerrar-sesion"
+              aria-label="Desvincular ${esc(nombre)}"
+            >
+              Desvincular
+            </button>
+          </div>`;
+      }
+
+      function redirigirSi401(err: unknown): boolean {
+        if (err instanceof ApiError && err.status === 401) {
+          window.location.href = '/login/';
+          return true;
+        }
+        return false;
+      }
+
+      async function cargarSesiones() {
+        try {
+          const { sessions } = await listSessions();
+          if (!listaSesiones) return;
+          listaSesiones.innerHTML = sessions.map(fila).join('');
           chequearVacio();
-          aviso(`Cerraste la sesión de «${nombre}».`);
+        } catch (err) {
+          if (!redirigirSi401(err)) {
+            aviso(err instanceof ApiError ? err.message : 'No pudimos cargar tus sesiones.');
+          }
+        } finally {
+          sesionesCargando?.remove();
+        }
+      }
+
+      // Desvincular sesión individual — DELETE /sessions/{id}
+      if (listaSesiones) {
+        listaSesiones.addEventListener('click', async (e) => {
+          const btn = (e.target as HTMLElement).closest('.btn-cerrar-sesion') as HTMLButtonElement | null;
+          if (!btn) return;
+          const filaEl = btn.closest('.sesion-row') as HTMLElement | null;
+          if (!filaEl) return;
+          btn.setAttribute('disabled', '');
+          try {
+            await deleteSession(filaEl.dataset.id ?? '');
+            filaEl.remove();
+            chequearVacio();
+            aviso(`Desvinculaste «${filaEl.dataset.nombre || 'el dispositivo'}».`);
+          } catch (err) {
+            btn.removeAttribute('disabled');
+            if (!redirigirSi401(err)) {
+              aviso(err instanceof ApiError ? err.message : 'No pudimos cerrar esa sesión.');
+            }
+          }
         });
       }
 
-      // Cerrar todas las otras sesiones
+      // Cerrar todas las otras sesiones — POST /sessions/close-others
       if (btnCerrarOtras) {
-        btnCerrarOtras.addEventListener('click', () => {
-          if (listaSesiones) {
-            listaSesiones.querySelectorAll('.sesion-row').forEach((fila) => {
-              if (fila.querySelector('.btn-cerrar-sesion')) {
-                fila.remove();
-              }
-            });
+        btnCerrarOtras.addEventListener('click', async () => {
+          btnCerrarOtras.setAttribute('disabled', '');
+          try {
+            await closeOthers();
+            await cargarSesiones();
+            aviso('Cerramos tus otras sesiones. Esta permanece activa.');
+          } catch (err) {
+            if (!redirigirSi401(err)) {
+              aviso(err instanceof ApiError ? err.message : 'No pudimos cerrar las otras sesiones.');
+            }
+          } finally {
+            btnCerrarOtras.removeAttribute('disabled');
           }
-          chequearVacio();
-          aviso('Cerramos tus otras sesiones. Esta permanece activa.');
         });
       }
 
       // Guardar formulario
-      const form = $('#form-perfil');
-      const inputNombre = $('#f-nombre');
-      const inputEmail = $('#f-email');
+      const form = $('#form-perfil')!;
+      const inputNombre = $('#f-nombre') as HTMLInputElement;
+      const inputEmail = $('#f-email') as HTMLInputElement;
       const heroEmail = $('#hero-email');
       const avatarIniciales = $('#avatar-iniciales');
+
+      // GET /me — identidad real reemplaza los valores iniciales
+      async function cargarPerfil() {
+        try {
+          const user = await me();
+          if (inputNombre) inputNombre.value = user.name;
+          if (inputEmail) inputEmail.value = user.email;
+          if (heroEmail) heroEmail.textContent = user.email;
+          if (avatarIniciales) {
+            const partes = user.name.split(' ').filter(Boolean);
+            avatarIniciales.textContent = partes.length >= 2
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : user.name.slice(0, 2).toUpperCase();
+          }
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          // Sin backend u otro error: quedan los valores iniciales
+        }
+      }
 
       if (form) {
         form.addEventListener('submit', (e) => {
@@ -258,7 +342,25 @@ import { perfilMock } from '../data/mock';
         });
       }
 
-      chequearVacio();
+      // Logout — DELETE /sessions/current (§2.4)
+      const btnLogout = $('#btn-cerrar-sesion');
+      btnLogout?.addEventListener('click', async () => {
+        btnLogout.setAttribute('disabled', '');
+        try {
+          await logout();
+          window.location.href = '/login/';
+        } catch (err) {
+          btnLogout.removeAttribute('disabled');
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          aviso(err instanceof ApiError ? err.message : 'No pudimos cerrar la sesión. Intentá de nuevo.');
+        }
+      });
+
+      void cargarPerfil();
+      void cargarSesiones();
     })();
   </script>
 </Layout>

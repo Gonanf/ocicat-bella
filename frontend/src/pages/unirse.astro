@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { salas } from '../data/mock';
 ---
 
 <Layout titulo="Ingresar con código" active="unirse" navRole="anonimo">
@@ -14,7 +13,8 @@ import { salas } from '../data/mock';
           Ingresar con código
         </h1>
         <p class="text-sm text-base-content/70 max-w-sm">
-          Escribí el código que te pasó tu docente para sumarte al aula o el código de tu escuela.
+          Escribí el código que te pasó tu docente para sumarte al aula.
+          ¿Tenés el código global de la escuela? <a href="/escuela/" class="link link-hover text-primary font-medium">Entrar como visitante</a>.
         </p>
 
         <form id="form-unirse" class="w-full max-w-sm mt-5 flex flex-col gap-3" novalidate>
@@ -24,25 +24,18 @@ import { salas } from '../data/mock';
             name="codigo"
             maxlength="8"
             placeholder="PROG5A"
-            aria-label="Código del aula o escuela"
+            aria-label="Código del aula"
             autocomplete="off"
             spellcheck="false"
+            required
             class="input input-bordered h-16 w-full text-center font-mono text-2xl font-bold tracking-[0.18em] uppercase bg-base-200/60 border-2 border-base-300 rounded-2xl focus:border-primary focus:bg-base-100 focus:outline-none placeholder:text-base-content/30"
           />
-          <button type="submit" class="btn btn-primary btn-lg rounded-2xl font-semibold shadow-xs">
+          <button type="submit" class="btn btn-primary btn-lg rounded-2xl font-semibold shadow-xs" id="btn-enviar">
             Entrar al aula
           </button>
         </form>
 
-        <p class="mt-4 text-xs text-base-content/60 flex items-center gap-2 flex-wrap justify-center">
-          Ejemplos:
-          {salas.map((s) => (
-            <button type="button" class="badge badge-outline font-mono text-[11px] tracking-widest hover:border-primary cursor-pointer btn-ejemplo" data-cod={s.codigo}>
-              {s.codigo}
-            </button>
-          ))}
-        </p>
-        <p class="mt-2 text-xs text-base-content/60 leading-relaxed max-w-xs">
+        <p class="mt-4 text-xs text-base-content/60 leading-relaxed max-w-xs">
           Tu alias es anónimo dentro del aula (ej.: Alumno-PROG5A-07). Nadie ve tu nombre real salvo tu docente.
         </p>
       </div>
@@ -56,37 +49,34 @@ import { salas } from '../data/mock';
     </div>
   </div>
 
-  <script is:inline>
+  <script>
+    import { ApiError, joinClassroom } from '../lib/api';
+
     (() => {
-      const $ = (sel) => document.querySelector(sel);
+      const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
         }, 2600);
       }
 
-      const input = $('#input-codigo');
+      const input = $('#input-codigo') as HTMLInputElement;
+      const btn = $('#btn-enviar') as HTMLButtonElement;
+
       input?.addEventListener('input', function () {
         this.value = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
       });
 
-      document.querySelectorAll('.btn-ejemplo').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const cod = btn.dataset.cod;
-          if (input && cod) input.value = cod;
-        });
-      });
-
-      $('#form-unirse')?.addEventListener('submit', (e) => {
+      $('#form-unirse')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const cod = input?.value.trim();
         if (!cod) {
@@ -94,12 +84,40 @@ import { salas } from '../data/mock';
           aviso('Ingresá el código provisto por tu docente.');
           return;
         }
-        aviso(`Ingresando al aula «${cod}»…`);
-        setTimeout(() => {
-          window.location.href = '/mis-salas/';
-        }, 700);
+        btn.disabled = true;
+        btn.textContent = 'Ingresando…';
+        try {
+          await joinClassroom(cod);
+          aviso(`¡Te sumaste a «${cod}»! Te llevamos a tus aulas.`);
+          setTimeout(() => { window.location.href = '/mis-salas/'; }, 600);
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = 'Entrar al aula';
+          if (err instanceof ApiError) {
+            // Copies del contrato §3
+            if (err.code === 'invalid_code' || err.status === 404) {
+              aviso('Este código no funciona; pedile el nuevo a tu docente.');
+              input.select();
+              return;
+            }
+            if (err.code === 'already_member' || err.status === 409) {
+              aviso('Ya sos parte de esta aula. Te llevamos a tus aulas.');
+              setTimeout(() => { window.location.href = '/mis-salas/'; }, 900);
+              return;
+            }
+            if (err.status === 401) {
+              window.location.href = '/login/';
+              return;
+            }
+            if (err.code === 'rate_limited') {
+              const mins = err.retryAfter ? Math.ceil(err.retryAfter / 60) : 0;
+              aviso(`Demasiados intentos. Probá de nuevo${mins > 0 ? ` en ${mins} min` : ' más tarde'}.`);
+              return;
+            }
+          }
+          aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos conectar con el servidor. Intentá de nuevo.');
+        }
       });
     })();
   </script>
 </Layout>
-

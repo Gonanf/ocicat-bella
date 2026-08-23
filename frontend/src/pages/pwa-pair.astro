@@ -1,14 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { dispositivosMock } from '../data/mock';
 ---
 
 <Layout titulo="Vincular PC · Ocicat Móvil (PWA)" hideNav={true} navRole="alumno">
   <div class="min-h-dvh flex justify-center py-0 sm:py-6 bg-base-200">
-    
+
     <!-- Shell Móvil (<420px) -->
     <div class="w-full max-w-[420px] min-h-dvh sm:min-h-[780px] bg-base-100 sm:border sm:border-base-300 sm:rounded-3xl shadow-xl flex flex-col overflow-hidden">
-      
+
       <!-- PWA Status Bar Mock -->
       <div class="flex justify-between items-center px-5 pt-3 pb-1 text-[11px] font-mono font-semibold text-base-content/60 bg-base-200/50">
         <span>14:35</span>
@@ -51,12 +50,12 @@ import { dispositivosMock } from '../data/mock';
         <div class="flex items-center gap-2.5">
           <div class="avatar placeholder">
             <div class="bg-primary text-primary-content rounded-full w-8 font-bold text-xs">
-              <span>TM</span>
+              <span id="u-iniciales">··</span>
             </div>
           </div>
           <div class="text-left leading-tight">
-            <strong class="text-xs font-bold text-base-content block">Tiziano Maidana</strong>
-            <span class="text-[10px] text-base-content/60">5° 1° · E.E.S.T. N° 1</span>
+            <strong class="text-xs font-bold text-base-content block" id="u-nombre">Cargando…</strong>
+            <span class="text-[10px] text-base-content/60" id="u-escuela"></span>
           </div>
         </div>
         <span class="badge badge-primary badge-soft font-mono text-[10px] font-bold px-2 py-0.5">
@@ -67,162 +66,14 @@ import { dispositivosMock } from '../data/mock';
       <!-- Contenido Principal PWA -->
       <div class="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
 
-        <!-- Card de Confirmación QR -->
+        <!-- Card de Confirmación QR (estado manejado por JS) -->
         <div class="card bg-base-100 border-2 border-primary shadow-md p-4 flex flex-col gap-3 relative" id="card-confirmacion">
-          <div class="flex items-center gap-2 text-sm font-bold text-base-content">
-            <svg class="size-4.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-              <line x1="8" y1="21" x2="16" y2="21"></line>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-            <span>¿Conectar con LAB-PC07?</span>
-          </div>
-
-          <p class="text-xs text-base-content/70">
-            Se detectó una solicitud de inicio de sesión desde un equipo del aula.
+          <p class="flex items-center gap-2 text-sm text-base-content/70">
+            <span class="loading loading-spinner loading-sm text-primary"></span>
+            Cargando…
           </p>
-
-          <!-- Metadatos del equipo -->
-          <div class="bg-base-200 rounded-xl p-3 flex flex-col gap-1.5 text-xs">
-            <div class="flex justify-between items-center">
-              <span class="text-base-content/60">Equipo:</span>
-              <span class="font-mono font-bold text-base-content">LAB-PC07</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-base-content/60">Ubicación:</span>
-              <span class="text-base-content/80 font-medium">Laboratorio 1 · Fila 2</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-base-content/60">Sesión:</span>
-              <span class="font-semibold text-primary">Temporal (60 min)</span>
-            </div>
-          </div>
-
-          <!-- Botones de Acción Inmediata -->
-          <div class="flex flex-col gap-2 mt-1">
-            <button
-              class="btn btn-primary rounded-xl w-full text-xs font-semibold"
-              type="button"
-              id="btn-confirmar-pair"
-            >
-              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              Sí, conectar ahora en la PC
-            </button>
-
-            <button
-              class="btn btn-ghost btn-xs text-error font-medium hover:bg-error/10 py-2 h-auto"
-              type="button"
-              id="btn-rechazar-pair"
-            >
-              No soy yo / Rechazar
-            </button>
-          </div>
         </div>
 
-        <!-- Botón para Escanear Otro QR -->
-        <button
-          class="btn btn-outline btn-sm rounded-xl w-full text-xs font-medium gap-2"
-          type="button"
-          id="btn-abrir-scanner"
-        >
-          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-          Escanear otro código QR
-        </button>
-
-        <!-- Lista de Dispositivos Vinculados (§13.9.5 Límite ~3 dispositivos) -->
-        <div class="card bg-base-100 border border-base-300 p-3.5 flex flex-col gap-2.5">
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-xs text-base-content">Mis dispositivos activos</span>
-            <span class="badge badge-neutral badge-xs font-mono text-[10px]" id="dev-count">
-              2 de 3 autorizados
-            </span>
-          </div>
-
-          <ul class="space-y-2 text-xs" id="lista-dispositivos">
-            <!-- Dispositivo Celular Actual -->
-            <li class="p-2.5 rounded-xl border border-primary/40 bg-primary/5 flex items-center justify-between">
-              <div class="flex items-center gap-2 min-w-0">
-                <svg class="size-4 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="5" y="2" width="14" height="20" rx="2"></rect>
-                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                </svg>
-                <div class="min-w-0">
-                  <strong class="font-semibold text-base-content block truncate">Xiaomi Redmi 10 (Este celu)</strong>
-                  <span class="text-[10px] text-base-content/60">Dispositivo principal · Emparejado</span>
-                </div>
-              </div>
-            </li>
-
-            <!-- PC LAB activa -->
-            <li class="p-2.5 rounded-xl border border-base-300 bg-base-200/50 flex items-center justify-between" id="item-lab-pc">
-              <div class="flex items-center gap-2 min-w-0">
-                <svg class="size-4 text-base-content/70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-                  <line x1="8" y1="21" x2="16" y2="21"></line>
-                  <line x1="12" y1="17" x2="12" y2="21"></line>
-                </svg>
-                <div class="min-w-0">
-                  <strong class="font-semibold text-base-content block truncate">LAB-PC07</strong>
-                  <span class="text-[10px] text-primary font-medium">Conectada ahora</span>
-                </div>
-              </div>
-              <button class="btn btn-ghost btn-xs text-error font-medium underline text-[11px] p-1 h-auto" type="button" id="btn-cerrar-lab">
-                Cerrar sesión
-              </button>
-            </li>
-
-            <!-- PC Biblioteca previa -->
-            <li class="p-2.5 rounded-xl border border-base-300 bg-base-200/50 flex items-center justify-between" id="item-biblio-pc">
-              <div class="flex items-center gap-2 min-w-0">
-                <svg class="size-4 text-base-content/70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-                  <line x1="8" y1="21" x2="16" y2="21"></line>
-                  <line x1="12" y1="17" x2="12" y2="21"></line>
-                </svg>
-                <div class="min-w-0">
-                  <strong class="font-semibold text-base-content block truncate">PC-Biblioteca-02</strong>
-                  <span class="text-[10px] text-base-content/60">Último acceso ayer</span>
-                </div>
-              </div>
-              <button class="btn btn-ghost btn-xs text-base-content/60 hover:text-error underline text-[11px] p-1 h-auto" type="button" id="btn-desvincular-biblio">
-                Desvincular
-              </button>
-            </li>
-          </ul>
-        </div>
-
-      </div>
-
-      <!-- Modal Visor Scanner Simulado -->
-      <div
-        class="fixed inset-0 bg-black/85 z-50 hidden flex-col items-center justify-center p-6 text-white"
-        id="scanner-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="scanner-modal-title"
-      >
-        <div id="scanner-modal-title" class="text-sm font-bold mb-3">Escanear código en la PC</div>
-        <div class="relative size-56 border-2 border-white rounded-2xl overflow-hidden mb-4 shadow-2xl">
-          <div class="absolute left-0 right-0 h-0.5 bg-success shadow-[0_0_12px_var(--color-success)] animate-pulse" style="top: 45%;"></div>
-        </div>
-        <p class="text-xs text-center text-white/80 max-w-xs mb-5 leading-relaxed">
-          Apuntá tu cámara al código QR que muestra la pantalla de la computadora.
-        </p>
-        <div class="flex flex-col gap-2 w-full max-w-xs">
-          <button class="btn btn-primary btn-sm rounded-xl text-xs" type="button" id="btn-simular-captura">
-            Simular captura LAB-PC07
-          </button>
-          <button class="btn btn-ghost btn-sm rounded-xl text-xs text-white/70" type="button" id="btn-cerrar-scanner">
-            Cerrar
-          </button>
-        </div>
       </div>
 
       <!-- Barra de Navegación Inferior PWA -->
@@ -255,90 +106,274 @@ import { dispositivosMock } from '../data/mock';
     </div>
   </div>
 
-  <script is:inline>
-    (() => {
-      const $ = (sel) => document.querySelector(sel);
+  <script>
+    import { ApiError, me, qrScan, qrConfirm, qrDeny, type ScanInfo } from '../lib/api';
 
-      // Toast feedback
+    (() => {
+      const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T | null;
+
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
         }, 2600);
       }
 
-      // Notificar a ventana principal si está abierta
-      function avisarVentanaPrincipal(mensaje) {
-        if (window.opener && !window.opener.closed) {
-          window.opener.postMessage(mensaje, window.location.origin);
+      const card = $('#card-confirmacion');
+
+      // El qr_url del contrato apunta a /qr/{token} en el dominio oficial.
+      // El backend debe servir esta página ahí (o con ?token=); aceptamos ambos.
+      function tokenDeURL(): string {
+        const qs = new URLSearchParams(window.location.search).get('token');
+        if (qs) return qs.trim();
+        const m = window.location.pathname.match(/\/qr\/([A-Za-z0-9_-]+)\/?$/);
+        return m ? m[1] : '';
+      }
+
+      function esc(input: string): string {
+        const div = document.createElement('div');
+        div.textContent = input;
+        return div.innerHTML;
+      }
+
+      function cuando(ts: string): string {
+        const d = new Date(ts);
+        return Number.isNaN(d.getTime())
+          ? ts
+          : d.toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+      }
+
+      function htmlFormulario(mensaje?: string): string {
+        return `
+          ${mensaje ? `<p class="text-xs text-error font-medium">${esc(mensaje)}</p>` : ''}
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            Escaneá con la cámara del celu el QR que muestra la PC, o pegá acá el token que aparece debajo del código.
+          </p>
+          <form id="form-token" class="flex gap-2">
+            <input
+              type="text"
+              id="in-token"
+              required
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Token del QR"
+              class="input input-bordered input-sm w-full rounded-xl font-mono text-xs bg-base-200/60 focus:bg-base-100 focus:border-primary"
+            />
+            <button type="submit" class="btn btn-primary btn-sm rounded-xl text-xs font-semibold shrink-0">
+              Conectar
+            </button>
+          </form>`;
+      }
+
+      function pintarInicial(mensaje?: string) {
+        if (!card) return;
+        card.className = 'card bg-base-100 border border-base-300 shadow-md p-4 flex flex-col gap-3';
+        card.innerHTML = `
+          <div class="flex items-center gap-2 text-sm font-bold text-base-content">
+            <svg class="size-4.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Vincular una PC</span>
+          </div>
+          ${htmlFormulario(mensaje)}
+        `;
+        engancharFormulario();
+      }
+
+      // [C3]: device_label es decorativo; origin_ip + requested_at son la prueba real
+      function pintarConfirmacion(info: ScanInfo) {
+        if (!card) return;
+        const label = info.device_label || 'esta PC';
+        card.className = 'card bg-base-100 border-2 border-primary shadow-md p-4 flex flex-col gap-3 relative';
+        card.innerHTML = `
+          <div class="flex items-center gap-2 text-sm font-bold text-base-content">
+            <svg class="size-4.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>¿Conectar con <span class="font-mono">${esc(label)}</span>?</span>
+          </div>
+
+          <p class="text-xs text-base-content/70">
+            Se solicitó inicio de sesión desde este equipo. Verificá los datos antes de confirmar.
+          </p>
+
+          <div class="bg-base-200 rounded-xl p-3 flex flex-col gap-1.5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-base-content/60">Equipo:</span>
+              <span class="font-mono font-bold text-base-content">${esc(label)}</span>
+            </div>
+            ${info.origin_ip ? `
+            <div class="flex justify-between items-center">
+              <span class="text-base-content/60">IP de origen:</span>
+              <span class="font-mono font-bold text-base-content">${esc(info.origin_ip)}</span>
+            </div>` : ''}
+            <div class="flex justify-between items-center">
+              <span class="text-base-content/60">Solicitado:</span>
+              <span class="font-semibold text-base-content/80">${esc(cuando(info.requested_at))}</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2 mt-1">
+            <button class="btn btn-primary rounded-xl w-full text-xs font-semibold" type="button" id="btn-confirmar-pair">
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Sí, conectar ahora en la PC
+            </button>
+            <button class="btn btn-ghost btn-xs text-error font-medium hover:bg-error/10 py-2 h-auto" type="button" id="btn-rechazar-pair">
+              No soy yo / Rechazar
+            </button>
+          </div>
+        `;
+        $('#btn-confirmar-pair')?.addEventListener('click', () => void confirmar(info.pairing_id, label));
+        $('#btn-rechazar-pair')?.addEventListener('click', () => void rechazar(info.pairing_id));
+      }
+
+      function pintarExito(label: string) {
+        if (!card) return;
+        card.className = 'card bg-success/10 border-2 border-success p-4 flex flex-col gap-2 text-center';
+        card.innerHTML = `
+          <div class="text-2xl mb-0.5">✨</div>
+          <strong class="text-sm font-bold text-success">¡Sesión iniciada en ${esc(label)}!</strong>
+          <p class="text-xs text-base-content/70">Ya podés usar esa computadora con tu usuario. La sesión es temporal y expira sola.</p>
+        `;
+      }
+
+      function pintarRechazado() {
+        if (!card) return;
+        card.className = 'card bg-base-100 border border-base-300 shadow-md p-4 flex flex-col gap-3 text-center';
+        card.innerHTML = `
+          <strong class="text-sm font-bold text-base-content">Conexión rechazada.</strong>
+          <p class="text-xs text-base-content/70">La PC no iniciará sesión. Podés ingresar otro código si querés volver a intentar.</p>
+          ${htmlFormulario()}
+        `;
+        engancharFormulario();
+      }
+
+      function ocuparBotones() {
+        const b1 = $('#btn-confirmar-pair') as HTMLButtonElement | null;
+        const b2 = $('#btn-rechazar-pair') as HTMLButtonElement | null;
+        [b1, b2].forEach((b) => {
+          if (!b) return;
+          b.setAttribute('disabled', '');
+          b.classList.add('loading');
+        });
+      }
+
+      async function escanear(token: string) {
+        try {
+          const info = await qrScan(token);
+          pintarConfirmacion(info);
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          if (err instanceof ApiError && err.status === 410) {
+            pintarInicial('Ese código ya expiró. Mirá el nuevo QR en la pantalla de la PC.');
+            return;
+          }
+          pintarInicial(err instanceof ApiError ? err.message : 'No pudimos validar el código.');
         }
       }
 
-      // Notificar al abrir que se leyó el QR
-      avisarVentanaPrincipal('qr-scanned');
-
-      // Confirmar Conexión
-      const cardConfirm = $('#card-confirmacion');
-      $('#btn-confirmar-pair')?.addEventListener('click', () => {
-        avisarVentanaPrincipal('pair-confirmed');
-        aviso('✅ ¡Conexión con LAB-PC07 confirmada con éxito!');
-        if (cardConfirm) {
-          cardConfirm.className = 'card bg-success/10 border-2 border-success p-4 flex flex-col gap-2 text-center';
-          cardConfirm.innerHTML = `
-            <div class="text-2xl mb-0.5">✨</div>
-            <strong class="text-sm font-bold text-success">¡Sesión iniciada en LAB-PC07!</strong>
-            <p class="text-xs text-base-content/70">Ya podés usar la computadora del aula con tu usuario. Esta sesión expira automáticamente en 60 minutos.</p>
-          `;
+      async function confirmar(pairingId: string, label: string) {
+        ocuparBotones();
+        try {
+          await qrConfirm(pairingId);
+          aviso(`¡Conexión con ${label} confirmada con éxito!`);
+          pintarExito(label);
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          const msg =
+            err instanceof ApiError && err.status === 410
+              ? 'El código venció antes de confirmar. Escaneá el nuevo QR.'
+              : err instanceof ApiError
+                ? err.message
+                : 'No pudimos confirmar la conexión.';
+          aviso(msg);
+          pintarInicial(msg);
         }
-      });
+      }
 
-      // Rechazar Conexión
-      $('#btn-rechazar-pair')?.addEventListener('click', () => {
-        if (cardConfirm) cardConfirm.style.display = 'none';
-        aviso('Conexión rechazada. La PC seguirá esperando.');
-      });
+      async function rechazar(pairingId: string) {
+        ocuparBotones();
+        try {
+          await qrDeny(pairingId);
+          aviso('Conexión rechazada. La PC seguirá esperando.');
+          pintarRechazado();
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          aviso(err instanceof ApiError ? err.message : 'No pudimos rechazar la conexión.');
+          pintarInicial();
+        }
+      }
 
-      // Scanner Visor
-      const scannerModal = $('#scanner-modal');
-      $('#btn-abrir-scanner')?.addEventListener('click', () => {
-        scannerModal?.classList.remove('hidden');
-        scannerModal?.classList.add('flex');
-      });
-      $('#btn-cerrar-scanner')?.addEventListener('click', () => {
-        scannerModal?.classList.add('hidden');
-        scannerModal?.classList.remove('flex');
-      });
-      $('#btn-simular-captura')?.addEventListener('click', () => {
-        scannerModal?.classList.add('hidden');
-        scannerModal?.classList.remove('flex');
-        if (cardConfirm) cardConfirm.style.display = 'flex';
-        avisarVentanaPrincipal('qr-scanned');
-        aviso('Código QR de LAB-PC07 capturado.');
-      });
+      function engancharFormulario() {
+        $('#form-token')?.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const input = $('#in-token') as HTMLInputElement | null;
+          const token = input?.value.trim() ?? '';
+          if (!token) {
+            aviso('Pegá el token que muestra la PC.');
+            input?.focus();
+            return;
+          }
+          if (!card) return;
+          card.querySelector('form')?.remove();
+          card.insertAdjacentHTML(
+            'beforeend',
+            '<p class="flex items-center gap-2 text-sm text-base-content/70"><span class="loading loading-spinner loading-sm text-primary"></span>Validando código…</p>',
+          );
+          void escanear(token);
+        });
+      }
 
-      // Cerrar sesión remota PC
-      $('#btn-cerrar-lab')?.addEventListener('click', () => {
-        $('#item-lab-pc')?.remove();
-        const devCount = $('#dev-count');
-        if (devCount) devCount.textContent = '1 de 3 autorizados';
-        aviso('Sesión en LAB-PC07 cerrada de forma remota.');
-      });
+      // Usuario real en la barra superior
+      async function cargarUsuario() {
+        try {
+          const user = await me();
+          const iniciales = $('#u-iniciales');
+          const nombre = $('#u-nombre');
+          const escuela = $('#u-escuela');
+          if (nombre) nombre.textContent = user.name;
+          if (escuela) escuela.textContent = user.school_name ?? '';
+          if (iniciales) {
+            const partes = user.name.split(' ').filter(Boolean);
+            iniciales.textContent =
+              partes.length >= 2 ? (partes[0][0] + partes[1][0]).toUpperCase() : user.name.slice(0, 2).toUpperCase();
+          }
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+          }
+        }
+      }
 
-      // Desvincular PC
-      $('#btn-desvincular-biblio')?.addEventListener('click', () => {
-        $('#item-biblio-pc')?.remove();
-        const devCount = $('#dev-count');
-        if (devCount) devCount.textContent = '1 de 3 autorizados';
-        aviso('PC-Biblioteca-02 desvinculada.');
-      });
+      void cargarUsuario();
+
+      const tokenURL = tokenDeURL();
+      if (tokenURL) {
+        void escanear(tokenURL);
+      } else {
+        pintarInicial();
+      }
     })();
   </script>
 </Layout>

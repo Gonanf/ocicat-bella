@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { aulasDocente } from '../data/mock';
 ---
 
 <Layout titulo="Mis Aulas" active="aulas" navRole="docente">
@@ -13,10 +12,10 @@ import { aulasDocente } from '../data/mock';
           Panel docente
         </p>
         <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content">
-          Buenas, <em class="italic text-primary font-normal">Roberto</em><span class="text-warning">.</span>
+          Buenas, <em class="italic text-primary font-normal" id="saludo-nombre">…</em><span class="text-warning">.</span>
         </h1>
-        <p class="mt-2 text-sm text-base-content/70 max-w-xl">
-          {aulasDocente.length} aulas a cargo · {aulasDocente.reduce((acc, a) => acc + a.alumnosCount, 0)} alumnos inscriptos · {aulasDocente.reduce((acc, a) => acc + a.sandboxesPrendidos, 0)} sandboxes prendidos ahora.
+        <p class="mt-2 text-sm text-base-content/70 max-w-xl" id="resumen-aulas">
+          Cargando aulas…
         </p>
       </div>
 
@@ -37,91 +36,7 @@ import { aulasDocente } from '../data/mock';
     <section aria-labelledby="titulo-aulas">
       <h2 class="sr-only" id="titulo-aulas">Mis aulas</h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="grid-aulas">
-        {aulasDocente.map((aula) => (
-          <article
-            class="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-base-content/30 transition-all p-5 flex flex-col justify-between gap-4"
-            data-id={aula.id}
-          >
-            <div class="space-y-3">
-              <span class="inline-block font-mono font-bold text-lg tracking-wider text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-xl">
-                {aula.codigo}
-              </span>
-
-              <div>
-                <h3 class="font-display font-normal text-2xl text-base-content tracking-tight">
-                  {aula.nombre}
-                </h3>
-                <p class="text-xs text-base-content/60 mt-0.5">
-                  {aula.curso} · {aula.turno} · {aula.especialidad}
-                </p>
-              </div>
-            </div>
-
-            <div class="space-y-3 pt-2">
-              <div class="grid grid-cols-3 gap-2 border-t border-base-200 pt-3 text-center">
-                <div class="flex flex-col">
-                  <b class="text-base font-bold text-base-content">{aula.alumnosCount}</b>
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">alumnos</span>
-                </div>
-                <div class="flex flex-col">
-                  <b class="text-base font-bold text-base-content">{aula.consignasCount}</b>
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">consignas</span>
-                </div>
-                <div class="flex flex-col items-center">
-                  <b class="text-base font-bold text-base-content flex items-center gap-1.5">
-                    <span class:list={[
-                      'size-2 rounded-full',
-                      aula.sandboxesPrendidos > 0 ? 'bg-success animate-pulse' : 'bg-base-300'
-                    ]}></span>
-                    {aula.sandboxesPrendidos}
-                  </b>
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">prendidos</span>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <a
-                  href="/consignas/"
-                  class="btn btn-outline btn-primary btn-sm flex-1 rounded-xl font-semibold"
-                >
-                  Entrar
-                </a>
-                <button
-                  class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-3 text-xs"
-                  type="button"
-                  data-copy={aula.codigo}
-                  aria-label={`Copiar código ${aula.codigo}`}
-                >
-                  Código
-                </button>
-                <a
-                  href="/sala-config/"
-                  class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-3 text-xs"
-                  aria-label={`Configuración de ${aula.nombre}`}
-                >
-                  Config
-                </a>
-              </div>
-            </div>
-          </article>
-        ))}
-
-        <!-- Card para crear aula (Dashed) -->
-        <button
-          type="button"
-          class="card bg-base-100/40 hover:bg-primary/5 border-2 border-dashed border-base-300 hover:border-primary transition-all p-6 flex flex-col items-center justify-center text-center gap-2 min-h-[260px] cursor-pointer group"
-          id="card-crear-trigger"
-        >
-          <span class="font-display font-light text-5xl text-primary leading-none group-hover:scale-110 transition-transform">
-            +
-          </span>
-          <span class="font-display text-xl text-base-content">Crear nueva aula</span>
-          <p class="text-xs text-base-content/60 max-w-[24ch]">
-            Generá un código para que tus alumnos se sumen al instante.
-          </p>
-        </button>
-      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="grid-aulas"></div>
     </section>
 
   </div>
@@ -135,7 +50,7 @@ import { aulasDocente } from '../data/mock';
 
       <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Nueva aula</h3>
       <p class="text-xs text-base-content/70 mt-1">
-        Definí la materia y el curso. Se generará un código de acceso para tus estudiantes.
+        Definí la materia y el curso. Se genera un código de acceso automáticamente para tus estudiantes.
       </p>
 
       <form id="form-nueva-aula" class="mt-5 space-y-4">
@@ -174,27 +89,20 @@ import { aulasDocente } from '../data/mock';
               id="f-turno"
               class="select select-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
             >
-              <option value="Turno tarde">Turno tarde</option>
-              <option value="Turno mañana">Turno mañana</option>
-              <option value="Turno completo">Turno completo</option>
-              <option value="Turno noche">Turno noche</option>
+              <option value="">—</option>
+              <option value="mañana">Turno mañana</option>
+              <option value="tarde">Turno tarde</option>
+              <option value="completo">Turno completo</option>
+              <option value="noche">Turno noche</option>
             </select>
           </div>
         </div>
 
-        <!-- Código autogenerado con preview -->
-        <div class="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between gap-3">
-          <div>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/60 block">Código sugerido</span>
-            <span class="font-mono font-bold text-xl text-primary tracking-widest" id="codigo-preview">SIST6A</span>
-          </div>
-          <button
-            type="button"
-            class="btn btn-ghost btn-xs text-xs text-primary underline"
-            id="btn-regenerar-cod"
-          >
-            Generar otro
-          </button>
+        <!-- Éxito: código generado por el backend -->
+        <div id="aula-creada-ok" hidden class="p-3.5 rounded-xl bg-success/10 border border-success/25 text-sm">
+          <span class="font-bold block mb-1">Aula creada ✓</span>
+          Código para compartir:
+          <span class="font-mono font-bold text-lg tracking-widest text-success" id="codigo-generado">······</span>
         </div>
 
         <div class="modal-action flex justify-end gap-2 pt-2 border-t border-base-200">
@@ -203,11 +111,12 @@ import { aulasDocente } from '../data/mock';
             class="btn btn-ghost btn-sm rounded-xl"
             id="btn-cancelar-modal"
           >
-            Cancelar
+            Cerrar
           </button>
           <button
             type="submit"
             class="btn btn-primary btn-sm rounded-xl font-semibold px-4"
+            id="btn-crear-aula"
           >
             Crear aula
           </button>
@@ -226,68 +135,264 @@ import { aulasDocente } from '../data/mock';
     </div>
   </div>
 
-  <script is:inline>
-    (() => {
-      const $ = (sel) => document.querySelector(sel);
+  <script>
+    import {
+      ApiError, createClassroom, getJoinCode, listClassrooms, me,
+      rotateJoinCode, type Classroom,
+    } from '../lib/api';
 
-      // Toast feedback
+    (() => {
+      const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
+      const grid = $('#grid-aulas');
+      const resumen = $('#resumen-aulas');
+
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
         }, 2600);
       }
 
-      // Copiar código
-      document.querySelectorAll('[data-copy]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const code = btn.getAttribute('data-copy');
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(code).then(
-              () => aviso(`Código «${code}» copiado al portapapeles`),
-              () => aviso(`El código es «${code}»`)
-            );
-          } else {
-            aviso(`El código es «${code}»`);
-          }
-        });
-      });
-
-      // Modal
-      const modal = $('#modal-crear-aula');
-      $('#btn-abrir-crear')?.addEventListener('click', () => modal?.showModal());
-      $('#card-crear-trigger')?.addEventListener('click', () => modal?.showModal());
-      $('#btn-cancelar-modal')?.addEventListener('click', () => modal?.close());
-
-      // Generación de código
-      const codigoPreview = $('#codigo-preview');
-      const letras = 'ABCDEFGHJKMNPQRSTUVWXYZ';
-      function generarCodigo() {
-        const nom = ($('#f-nombre')?.value || 'AULA').slice(0, 4).toUpperCase().replace(/[^A-Z]/g, '') || 'AULA';
-        const sufijo = (Math.floor(Math.random() * 8) + 2) + letras[Math.floor(Math.random() * letras.length)];
-        return (nom.slice(0, 4) + sufijo).slice(0, 7);
+      function escapeHtml(s: string): string {
+        return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
       }
 
-      $('#btn-regenerar-cod')?.addEventListener('click', () => {
-        if (codigoPreview) codigoPreview.textContent = generarCodigo();
+      function copiar(code: string) {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(code).then(
+            () => aviso(`Código «${code}» copiado al portapapeles`),
+            () => aviso(`El código es «${code}»`),
+          );
+        } else {
+          aviso(`El código es «${code}»`);
+        }
+      }
+
+      function cardAula(a: Classroom, esDirector: boolean): string {
+        const sub = [a.course, a.shift].filter(Boolean).map(escapeHtml).join(' · ');
+        return `
+        <article class="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-base-content/30 transition-all p-5 flex flex-col justify-between gap-4" data-id="${escapeHtml(a.id)}" data-nombre="${escapeHtml(a.name)}">
+          <div class="space-y-3">
+            <span class="inline-block font-mono font-bold text-lg tracking-wider text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-xl">
+              ${escapeHtml(a.join_code ?? '······')}
+            </span>
+            <div>
+              <h3 class="font-display font-normal text-2xl text-base-content tracking-tight">${escapeHtml(a.name)}</h3>
+              <p class="text-xs text-base-content/60 mt-0.5">
+                ${sub}${esDirector && a.teacher_name ? `${sub ? ' · ' : ''}docente ${escapeHtml(a.teacher_name)}` : ''}
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-2">
+            <div class="grid grid-cols-3 gap-2 border-t border-base-200 pt-3 text-center">
+              <div class="flex flex-col">
+                <b class="text-base font-bold text-base-content">${a.students_count ?? 0}</b>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">alumnos</span>
+              </div>
+              <div class="flex flex-col">
+                <b class="text-base font-bold text-base-content">${a.active_assignments ?? 0}</b>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">consignas</span>
+              </div>
+              <div class="flex flex-col items-center">
+                <b class="text-base font-bold text-base-content flex items-center gap-1.5">
+                  <span class="size-2 rounded-full ${((a.running_sandboxes ?? 0) > 0) ? 'bg-success animate-pulse' : 'bg-base-300'}"></span>
+                  ${a.running_sandboxes ?? 0}
+                </b>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/50">prendidos</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <a
+                href="/alumnos/?classroom=${encodeURIComponent(a.id)}"
+                class="btn btn-outline btn-primary btn-sm flex-1 rounded-xl font-semibold"
+              >
+                Alumnos
+              </a>
+              <button
+                class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-3 text-xs"
+                type="button"
+                data-copiar
+                aria-label="Copiar código de ${escapeHtml(a.name)}"
+              >
+                Código
+              </button>
+              <button
+                class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-3 text-xs text-warning hover:bg-warning/10 hover:border-warning/40"
+                type="button"
+                data-rotar
+                aria-label="Rotar código de ${escapeHtml(a.name)}"
+              >
+                Rotar
+              </button>
+              <a
+                href="/sala-config/?classroom=${encodeURIComponent(a.id)}"
+                class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-3 text-xs"
+                aria-label="Configuración de ${escapeHtml(a.name)}"
+              >
+                Config
+              </a>
+            </div>
+
+            <!-- Doble confirmación de rotación (§3: el anterior muere al instante) -->
+            <div hidden class="p-3 rounded-xl bg-error/10 border border-error/30 text-xs flex flex-col gap-2" data-confirm-panel>
+              <p><strong>¿Rotamos el código de «${escapeHtml(a.name)}»?</strong> El actual deja de funcionar al instante: quien intente entrar con el código viejo queda afuera.</p>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-ghost btn-xs rounded-lg" data-cancelar-rotar>Cancelar</button>
+                <button type="button" class="btn btn-error btn-xs rounded-lg font-bold text-error-content" data-rotar-final>Rotar ahora</button>
+              </div>
+            </div>
+          </div>
+        </article>`;
+      }
+
+      async function init() {
+        let role = '';
+        try {
+          const yo = await me();
+          role = yo.role;
+          const saludo = $('#saludo-nombre');
+          if (saludo) saludo.textContent = yo.name.split(' ')[0];
+          if (role !== 'docente' && role !== 'director') {
+            window.location.href = role === 'alumno' ? '/mis-salas/' : '/login/';
+            return;
+          }
+        } catch {
+          window.location.href = '/login/';
+          return;
+        }
+
+        try {
+          const { classrooms } = await listClassrooms();
+          const esDirector = role === 'director';
+          if (grid) grid.innerHTML = classrooms.map((a) => cardAula(a, esDirector)).join('');
+          const alumnos = classrooms.reduce((acc, a) => acc + (a.students_count ?? 0), 0);
+          const prendidos = classrooms.reduce((acc, a) => acc + (a.running_sandboxes ?? 0), 0);
+          if (resumen) {
+            resumen.textContent = `${classrooms.length} ${classrooms.length === 1 ? 'aula' : 'aulas'} · ${alumnos} alumnos inscriptos · ${prendidos} sandboxes prendidos ahora.`;
+          }
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          if (resumen) resumen.textContent = 'No pudimos cargar tus aulas. Intentá de nuevo.';
+        }
+      }
+
+      // Acciones del grid (delegadas)
+      grid?.addEventListener('click', async (e) => {
+        const target = e.target as HTMLElement;
+        const card = target.closest<HTMLElement>('article[data-id]');
+        if (!card) return;
+        const id = card.dataset.id!;
+        const nombre = card.dataset.nombre || 'la aula';
+
+        if (target.closest('[data-copiar]')) {
+          try {
+            const { code } = await getJoinCode(id);
+            copiar(code);
+          } catch {
+            aviso('No pudimos traer el código. Intentá de nuevo.');
+          }
+          return;
+        }
+
+        if (target.closest('[data-rotar]')) {
+          const panel = card.querySelector<HTMLElement>('[data-confirm-panel]');
+          if (panel) {
+            panel.hidden = false;
+            panel.querySelector<HTMLButtonElement>('[data-rotar-final]')?.focus();
+          }
+          return;
+        }
+
+        if (target.closest('[data-cancelar-rotar]')) {
+          const panel = card.querySelector<HTMLElement>('[data-confirm-panel]');
+          if (panel) panel.hidden = true;
+          return;
+        }
+
+        if (target.closest('[data-rotar-final]')) {
+          const btn = target.closest<HTMLButtonElement>('[data-rotar-final]')!;
+          btn.disabled = true;
+          btn.textContent = 'Rotando…';
+          try {
+            const { code } = await rotateJoinCode(id);
+            const badge = card.querySelector<HTMLElement>('span.font-mono');
+            if (badge) badge.textContent = code;
+            const panel = card.querySelector<HTMLElement>('[data-confirm-panel]');
+            if (panel) panel.hidden = true;
+            btn.disabled = false;
+            btn.textContent = 'Rotar ahora';
+            aviso(`Código rotado: ahora es «${code}». El anterior dejó de funcionar.`);
+          } catch (err) {
+            btn.disabled = false;
+            btn.textContent = 'Rotar ahora';
+            aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos rotar el código.');
+          }
+        }
       });
 
-      $('#form-nueva-aula')?.addEventListener('submit', (e) => {
+      // Modal crear aula — POST /classrooms real (el backend genera el código)
+      const modal = $('#modal-crear-aula');
+      $('#btn-abrir-crear')?.addEventListener('click', () => modal?.showModal());
+      $('#btn-cancelar-modal')?.addEventListener('click', () => modal?.close());
+
+      $('#form-nueva-aula')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nombre = $('#f-nombre')?.value.trim();
-        const curso = $('#f-curso')?.value.trim();
-        const codigo = codigoPreview?.textContent || 'AULA1A';
-        modal?.close();
-        aviso(`¡Aula «${nombre} (${curso})» creada con código ${codigo}!`);
+        const nombreEl = $('#f-nombre') as HTMLInputElement;
+        const cursoEl = $('#f-curso') as HTMLInputElement;
+        const turnoEl = $('#f-turno') as HTMLSelectElement;
+        const btn = $('#btn-crear-aula') as HTMLButtonElement;
+
+        const nombre = nombreEl.value.trim();
+        if (!nombre) {
+          nombreEl.focus();
+          aviso('Ponéle un nombre a la materia.');
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = 'Creando…';
+        try {
+          const aula = await createClassroom({
+            name: nombre,
+            course: cursoEl.value.trim() || undefined,
+            shift: turnoEl.value || undefined,
+          });
+          const okBox = $('#aula-creada-ok');
+          const codEl = $('#codigo-generado');
+          if (okBox && codEl && aula.join_code) {
+            okBox.hidden = false;
+            codEl.textContent = aula.join_code;
+          }
+          aviso(`¡Aula «${nombre}» creada! Compartí el código ${aula.join_code ?? ''}.`);
+          if (grid && resumen) {
+            grid.insertAdjacentHTML('beforeend', cardAula(aula, false));
+            const total = document.querySelectorAll('#grid-aulas article').length;
+            resumen.textContent = `${total} ${total === 1 ? 'aula' : 'aulas'}.`;
+          }
+          nombreEl.value = '';
+          cursoEl.value = '';
+          turnoEl.value = '';
+        } catch (err) {
+          aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos crear el aula. Intentá de nuevo.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Crear aula';
+        }
       });
+
+      void init();
     })();
   </script>
 </Layout>

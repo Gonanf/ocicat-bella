@@ -244,20 +244,22 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 
-  <script is:inline>
+  <script>
+    import { ApiError, loginEmail, loginPassword, requestMagicLink } from '../lib/api';
+
     (() => {
-      const $ = (sel) => document.querySelector(sel);
+      const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
 
       // Toast feedback
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
@@ -265,25 +267,59 @@ import Layout from '../layouts/Layout.astro';
       }
 
       // Referencias Formulario
-      const formEmail = $('#form-email-step');
-      const formPassword = $('#form-password-step');
-      const estadoMagic = $('#estado-magic-enviado');
-      const inputEmail = $('#input-email');
-      const docenteEmailDisplay = $('#docente-email-display');
-      const alumnoMailEnviado = $('#alumno-mail-enviado');
-      const inputPass = $('#input-password');
+      const formEmail = $('#form-email-step')!;
+      const formPassword = $('#form-password-step')!;
+      const estadoMagic = $('#estado-magic-enviado')!;
+      const inputEmail = $('#input-email') as HTMLInputElement;
+      const docenteEmailDisplay = $('#docente-email-display') as HTMLInputElement;
+      const alumnoMailEnviado = $('#alumno-mail-enviado')!;
+      const inputPass = $('#input-password') as HTMLInputElement;
 
-      // Heurística de detección de roles
-      function esDocenteODirector(email) {
-        const e = email.toLowerCase();
-        return e.startsWith('docente') || e.startsWith('profe') || e.startsWith('director') || 
-               e.startsWith('admin') || e.includes('.docente.') || e.includes('profesor') ||
-               e.startsWith('roberto') || e.startsWith('laura');
+      function mostrarPasoPassword(email: string) {
+        formEmail.hidden = true;
+        formPassword.hidden = false;
+        estadoMagic.hidden = true;
+        docenteEmailDisplay.value = email;
+        inputPass.value = '';
+        inputPass.focus();
+        aviso('Cuenta docente identificada. Ingresá tu contraseña.');
       }
 
-      // Procesar Email
-      formEmail.addEventListener('submit', (e) => {
+      async function enviarMagicLink(email: string) {
+        try {
+          await requestMagicLink(email, 'login_pc');
+          formEmail.hidden = true;
+          formPassword.hidden = true;
+          estadoMagic.hidden = false;
+          alumnoMailEnviado.textContent = email;
+          aviso('¡Link de acceso enviado a tu correo!');
+        } catch (err) {
+          aviso(mensajeDeError(err));
+        }
+      }
+
+      // Copys del contrato §2.1 + genéricos §0
+      function mensajeDeError(err: unknown): string {
+        if (!(err instanceof ApiError)) return 'No pudimos conectar con el servidor. Intentá de nuevo.';
+        switch (err.code) {
+          case 'invalid_credentials':
+            return err.message || 'Email o contraseña incorrectos.';
+          case 'account_disabled':
+            return err.message || 'Tu cuenta está desactivada; contactate con la dirección de la escuela.';
+          case 'rate_limited': {
+            const mins = err.retryAfter ? Math.ceil(err.retryAfter / 60) : 0;
+            return `Demasiados intentos. Probá de nuevo${mins > 0 ? ` en ${mins} min` : ' más tarde'}.`;
+          }
+          default:
+            return err.message || 'Ocurrió un error inesperado.';
+        }
+      }
+
+      // Procesar Email — paso 1 real: POST /auth/login/email detecta el rol
+      let enviandoEmail = false;
+      formEmail.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (enviandoEmail) return;
         const email = inputEmail.value.trim();
         if (!email || !email.includes('@')) {
           inputEmail.focus();
@@ -291,22 +327,19 @@ import Layout from '../layouts/Layout.astro';
           return;
         }
 
-        if (esDocenteODirector(email)) {
-          // Flujo Docente/Directivo -> Paso contraseña
-          formEmail.hidden = true;
-          formPassword.hidden = false;
-          estadoMagic.hidden = true;
-          docenteEmailDisplay.value = email;
-          inputPass.value = '';
-          inputPass.focus();
-          aviso('Cuenta docente identificada. Ingresá tu contraseña.');
-        } else {
-          // Flujo Alumno -> Magic link directo sin password
-          formEmail.hidden = true;
-          formPassword.hidden = true;
-          estadoMagic.hidden = false;
-          alumnoMailEnviado.textContent = email;
-          aviso('¡Link de acceso enviado a tu correo!');
+        enviandoEmail = true;
+        try {
+          const { next } = await loginEmail(email);
+          if (next === 'password') {
+            mostrarPasoPassword(email);
+          } else {
+            // Alumno → magic link (contexto login_pc, CU-2)
+            await enviarMagicLink(email);
+          }
+        } catch (err) {
+          aviso(mensajeDeError(err));
+        } finally {
+          enviandoEmail = false;
         }
       });
 
@@ -326,22 +359,28 @@ import Layout from '../layouts/Layout.astro';
 
       // Reenviar Magic Link
       $('#btn-reenviar-magic').addEventListener('click', () => {
-        aviso(`Te enviamos un nuevo enlace a ${alumnoMailEnviado.textContent}`);
+        void enviarMagicLink(alumnoMailEnviado.textContent ?? '');
       });
 
-      // Submit Docente
-      formPassword.addEventListener('submit', (e) => {
+      // Submit Docente — paso 2 real: POST /auth/login/password
+      let ingresando = false;
+      formPassword.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (ingresando) return;
         const pass = inputPass.value;
         if (!pass) {
           inputPass.focus();
           aviso('Ingresá tu contraseña.');
           return;
         }
-        aviso('Iniciando sesión docente…');
-        setTimeout(() => {
+        ingresando = true;
+        try {
+          await loginPassword(docenteEmailDisplay.value, pass);
           window.location.href = '/dashboard/';
-        }, 800);
+        } catch (err) {
+          aviso(mensajeDeError(err));
+          ingresando = false;
+        }
       });
 
       // Toggle Password

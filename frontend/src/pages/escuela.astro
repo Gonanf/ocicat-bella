@@ -1,0 +1,1005 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout titulo="Gestión Escolar" active="escuela" navRole="director">
+  <!-- VISTA DIRECTOR -->
+  <div id="panel-director" hidden class="py-6 sm:py-10 space-y-8">
+
+    <!-- Hero Director -->
+    <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2" data-od-id="hero-admin">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-widest text-primary mb-1.5" id="hero-eyebrow">
+          Panel del director
+        </p>
+        <h1 class="font-display font-normal text-3xl sm:text-4xl md:text-5xl tracking-tight text-base-content" id="titulo-admin">
+          Buenas, <em class="italic text-primary font-normal" id="dir-nombre">…</em><span class="text-warning">.</span>
+        </h1>
+        <p class="mt-2 text-sm text-base-content/70 max-w-xl">
+          La instancia completa de la escuela en una sola vista.
+        </p>
+      </div>
+
+      <div class="shrink-0 flex items-center gap-2">
+        <a href="/dashboard/" class="btn btn-outline btn-sm rounded-xl">Ver todas las aulas</a>
+      </div>
+    </section>
+
+    <!-- A · Código Global de Escuela (§13.7, §9.1) -->
+    <section aria-labelledby="titulo-seccion-codigo" class="space-y-4" data-od-id="seccion-codigo-global">
+      <div class="card bg-base-100 border border-base-300 shadow-sm rounded-2xl p-6 sm:p-7 space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div class="space-y-2 max-w-xl">
+            <div class="flex items-center gap-2">
+              <h2 class="font-display text-2xl text-base-content tracking-tight" id="titulo-seccion-codigo">
+                Código global de la escuela
+              </h2>
+              <span id="badge-codigo-estado" class="badge badge-success badge-soft badge-sm font-semibold">
+                Activo
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-base-content/70 leading-relaxed">
+              <strong>Quien lo ingresa entra como visitante:</strong> puede ver proyectos y documentos públicos de toda la escuela.
+              Nunca ve consignas ni entregas: eso queda dentro de cada aula. El acceso es de solo lectura.
+            </p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end gap-3 shrink-0">
+            <span
+              class="font-mono font-bold text-2xl sm:text-3xl tracking-widest text-primary bg-primary/10 border border-primary/20 px-5 py-2.5 rounded-2xl select-all"
+              id="codigo-global-display"
+            >
+              ······
+            </span>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-4 text-xs font-semibold"
+                id="btn-copiar-global"
+              >
+                Copiar
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary btn-outline btn-sm rounded-xl px-4 text-xs font-semibold"
+                id="btn-abrir-regen"
+              >
+                Regenerar
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm border border-base-300 rounded-xl px-3 text-xs text-error hover:bg-error/10 hover:border-error/40"
+                id="btn-toggle-desactivar"
+              >
+                Desactivar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirmación Paso 1: advertencia regenerar -->
+        <div
+          id="regen-confirm-paso1"
+          hidden
+          class="p-4 rounded-xl bg-warning/15 border border-warning/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-base-content"
+          data-od-id="confirmacion-regenerar-1"
+        >
+          <div class="flex items-start gap-2.5">
+            <svg class="size-5 text-warning shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3 2.5 20h19L12 3Z"></path>
+              <path d="M12 10v4"></path>
+              <path d="M12 17h.01"></path>
+            </svg>
+            <p>
+              <strong>¿Regeneramos el código?</strong> Se genera uno nuevo y el actual deja de funcionar al instante:
+              <strong class="text-error">los invitados viejos quedan afuera</strong> y los carteles con el viejo quedan invalidados.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+            <button type="button" class="btn btn-ghost btn-xs rounded-lg" data-cancelar-regen>Cancelar</button>
+            <button type="button" class="btn btn-warning btn-xs rounded-lg font-semibold" id="btn-continuar-regen">
+              Sí, continuar
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirmación Paso 2: última confirmación regenerar -->
+        <div
+          id="regen-confirm-paso2"
+          hidden
+          class="p-4 rounded-xl bg-error/15 border border-error/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-base-content"
+          data-od-id="confirmacion-regenerar-2"
+        >
+          <div class="flex items-start gap-2.5">
+            <svg class="size-5 text-error shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3 2.5 20h19L12 3Z"></path>
+              <path d="M12 10v4"></path>
+              <path d="M12 17h.01"></path>
+            </svg>
+            <p>
+              <strong>Última confirmación:</strong> el código viejo deja de funcionar para toda la escuela inmediatamente.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+            <button type="button" class="btn btn-ghost btn-xs rounded-lg" data-cancelar-regen>No, volver</button>
+            <button type="button" class="btn btn-error btn-xs rounded-lg font-bold text-white" id="btn-confirmar-regen-final">
+              Regenerar ahora
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirmación Desactivar Código -->
+        <div
+          id="desactivar-confirm"
+          hidden
+          class="p-4 rounded-xl bg-error/15 border border-error/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-base-content"
+        >
+          <div class="flex items-start gap-2.5">
+            <svg class="size-5 text-error shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m15 9-6 6"></path>
+              <path d="m9 9 6 6"></path>
+            </svg>
+            <p>
+              <strong>¿Desactivar el código global?</strong> Nadie podrá ingresar como invitado hasta que generes uno nuevo.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+            <button type="button" class="btn btn-ghost btn-xs rounded-lg" id="btn-cancelar-desactivar">Cancelar</button>
+            <button type="button" class="btn btn-error btn-xs rounded-lg font-bold text-white" id="btn-confirmar-desactivar">
+              Sí, desactivar
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-base-200 pt-3 flex items-center justify-between text-xs text-base-content/60">
+          <span>Pegalo en el cartel del aula de informática; si lo rotás o desactivás, actualizalo ahí.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- B · Gestión de Docentes (CU-15) -->
+    <section aria-labelledby="titulo-docentes" class="space-y-4" data-od-id="seccion-docentes">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="font-display text-2xl sm:text-3xl text-base-content tracking-tight" id="titulo-docentes">
+            Docentes
+          </h2>
+          <p class="text-xs text-base-content/70 mt-0.5" id="resumen-docentes">
+            Cargando docentes…
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-primary rounded-xl font-semibold shadow-xs"
+          id="btn-abrir-crear-docente"
+          data-od-id="btn-crear-docente"
+        >
+          + Crear docente
+        </button>
+      </div>
+
+      <div class="card bg-base-100 border border-base-300 overflow-x-auto shadow-xs rounded-2xl" data-od-id="tabla-docentes">
+        <table class="table table-zebra w-full text-xs">
+          <thead>
+            <tr class="bg-base-200/80 text-base-content/70 uppercase text-[10px] tracking-wider border-b border-base-300">
+              <th>Docente</th>
+              <th>Email</th>
+              <th>Estado</th>
+              <th>Salas</th>
+              <th>Entregas</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-docentes">
+            <tr><td colspan="6" class="text-center py-6 text-base-content/60">Cargando lista de docentes…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- C · Actividad de la Instancia -->
+    <section aria-labelledby="titulo-actividad" class="space-y-4" data-od-id="seccion-actividad">
+      <div>
+        <h2 class="font-display text-2xl sm:text-3xl text-base-content tracking-tight" id="titulo-actividad">
+          Actividad de la instancia
+        </h2>
+        <p class="text-xs text-base-content/70 mt-0.5">
+          Un vistazo rápido al estado general de la escuela hoy.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4" data-od-id="grid-actividad">
+        <article class="card bg-base-100 border border-base-300 p-5 rounded-2xl shadow-xs">
+          <span class="font-display font-normal text-3xl sm:text-4xl text-base-content" id="stat-aulas">0</span>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/60 mt-1">Total aulas</span>
+        </article>
+        <article class="card bg-base-100 border border-base-300 p-5 rounded-2xl shadow-xs">
+          <span class="font-display font-normal text-3xl sm:text-4xl text-base-content" id="stat-alumnos">0</span>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/60 mt-1">Alumnos registrados</span>
+        </article>
+        <article class="card bg-base-100 border border-base-300 p-5 rounded-2xl shadow-xs">
+          <span class="font-display font-normal text-3xl sm:text-4xl text-base-content" id="stat-docentes">0</span>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/60 mt-1">Docentes activos</span>
+        </article>
+        <article class="card bg-base-100 border border-base-300 p-5 rounded-2xl shadow-xs">
+          <span class="font-display font-normal text-3xl sm:text-4xl text-base-content" id="stat-materiales">0</span>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-base-content/60 mt-1">Materiales públicos</span>
+        </article>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- VISTA VISITANTE / INVITADO (CU-14) -->
+  <div id="vista-invitado" hidden class="py-8 space-y-6">
+    <!-- Estado 1: ingresar código global -->
+    <section id="vista-codigo" class="min-h-[55vh] grid place-items-center py-6 sm:py-10">
+      <div class="card w-full max-w-xl bg-base-100 border border-base-300 shadow-xl">
+        <div class="card-body items-center text-center py-10 px-6 sm:px-10">
+          <span class="badge badge-warning badge-soft font-mono text-xs font-semibold px-3 py-1 mb-1">
+            Invitados
+          </span>
+          <h1 class="font-display font-normal text-3xl sm:text-4xl tracking-tight text-base-content">
+            Visitar la escuela
+          </h1>
+          <p class="text-sm text-base-content/70 max-w-sm">
+            Con el código global de la escuela podés ver y descargar los materiales que comparte la institución.
+            Si sos alumno, no necesitás esto: entrá con tu cuenta o el código del aula.
+          </p>
+
+          <form id="form-escuela-guest" class="w-full max-w-sm mt-5 flex flex-col gap-3" novalidate>
+            <input
+              id="input-global-guest"
+              type="text"
+              maxlength="16"
+              placeholder="ESCUELA-7K2M"
+              aria-label="Código global de la escuela"
+              autocomplete="off"
+              spellcheck="false"
+              required
+              class="input input-bordered h-16 w-full text-center font-mono text-2xl font-bold tracking-[0.18em] uppercase bg-base-200/60 border-2 border-base-300 rounded-2xl focus:border-primary focus:bg-base-100 focus:outline-none placeholder:text-base-content/30"
+            />
+            <button type="submit" class="btn btn-primary btn-lg rounded-2xl font-semibold shadow-xs" id="btn-ingresar-guest">
+              Entrar como visitante
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Estado 2: vista pública de la escuela -->
+    <div id="vista-publica" hidden class="space-y-6">
+      <section class="flex flex-wrap justify-between items-end gap-4 border-b border-base-300 pb-6">
+        <div>
+          <p class="font-mono text-xs font-bold uppercase tracking-widest text-primary">Modo visitante · solo lectura</p>
+          <h1 class="font-display font-normal text-4xl sm:text-5xl tracking-tight mt-1" id="titulo-escuela-guest">Escuela …</h1>
+          <p class="mt-2 text-sm text-base-content/60 max-w-xl">
+            Los materiales públicos y escolares de esta institución. Podés verlos y descargarlos;
+            las consignas son privadas del curso.
+          </p>
+        </div>
+        <a href="/login/" class="btn btn-outline btn-sm rounded-full shrink-0">Tengo cuenta</a>
+      </section>
+
+      <div class="grid sm:grid-cols-2 gap-3" id="grid-publicos"></div>
+      <p id="sin-publicos" hidden class="text-sm text-base-content/60 py-8 text-center">
+        La escuela todavía no publicó materiales para visitantes.
+      </p>
+
+      <button type="button" id="btn-intentar-subir" class="btn btn-outline rounded-full border-base-300 hover:border-error hover:text-error">
+        ＋ Subir material
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Crear Docente (CU-15) -->
+  <dialog id="modal-crear-docente" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-md shadow-2xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
+      </form>
+      <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Crear docente</h3>
+      <p class="text-xs text-base-content/70 mt-1">
+        Le generamos una contraseña temporal o enlace de acceso para su primer ingreso.
+      </p>
+
+      <form id="form-crear-docente" class="mt-5 space-y-4" novalidate>
+        <div class="form-control flex flex-col gap-1">
+          <label for="d-nombre" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Nombre completo
+          </label>
+          <input
+            id="d-nombre"
+            type="text"
+            required
+            placeholder="ej. Carina Mendoza"
+            class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+        </div>
+
+        <div class="form-control flex flex-col gap-1">
+          <label for="d-email" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Email institucional
+          </label>
+          <input
+            id="d-email"
+            type="email"
+            required
+            placeholder="cmendoza@escuela.edu.ar"
+            class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+        </div>
+
+        <div class="form-control flex flex-col gap-1">
+          <label class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Tipo de credencial inicial
+          </label>
+          <div class="flex gap-4 pt-1">
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="radio" name="cred-tipo" value="password" checked class="radio radio-primary radio-sm" />
+              <span>Contraseña temporal</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="radio" name="cred-tipo" value="magic_link" class="radio radio-primary radio-sm" />
+              <span>Magic link</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-control flex flex-col gap-1" id="wrap-d-pass">
+          <label for="d-pass" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Contraseña temporal
+          </label>
+          <input
+            id="d-pass"
+            type="text"
+            value="Escuela2026-temp!"
+            class="input input-bordered w-full font-mono rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+          <span class="text-[11px] text-base-content/60 mt-0.5">Pasásela en persona o por canal privado; la cambiará luego.</span>
+        </div>
+
+        <div id="error-crear-docente" hidden class="p-3 rounded-xl bg-error/10 border border-error/25 text-xs text-error font-medium"></div>
+
+        <div class="modal-action flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="button" class="btn btn-ghost btn-sm rounded-xl" id="btn-cancelar-crear-docente">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold px-4" id="btn-guardar-docente">
+            Crear docente
+          </button>
+        </div>
+      </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>cerrar</button>
+    </form>
+  </dialog>
+
+  <!-- MODAL: Reset Credencial Docente (CU-15) -->
+  <dialog id="modal-reset-cred" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-md shadow-2xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
+      </form>
+      <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Restablecer credenciales</h3>
+      <p class="text-xs text-base-content/70 mt-1">
+        Docente: <strong id="reset-docente-nombre">…</strong>
+      </p>
+
+      <form id="form-reset-cred" class="mt-5 space-y-4" novalidate>
+        <input type="hidden" id="reset-docente-id" />
+
+        <div class="form-control flex flex-col gap-1">
+          <label class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Método de restablecimiento
+          </label>
+          <div class="flex gap-4 pt-1">
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="radio" name="reset-tipo" value="password" checked class="radio radio-primary radio-sm" />
+              <span>Nueva contraseña</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="radio" name="reset-tipo" value="magic_link" class="radio radio-primary radio-sm" />
+              <span>Enviar magic link</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-control flex flex-col gap-1" id="wrap-reset-pass">
+          <label for="reset-pass-val" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Nueva contraseña temporal
+          </label>
+          <input
+            id="reset-pass-val"
+            type="text"
+            value="Escuela2026-reset!"
+            class="input input-bordered w-full font-mono rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+        </div>
+
+        <div class="modal-action flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="button" class="btn btn-ghost btn-sm rounded-xl" id="btn-cancelar-reset-cred">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold px-4" id="btn-submit-reset-cred">
+            Aplicar cambio
+          </button>
+        </div>
+      </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>cerrar</button>
+    </form>
+  </dialog>
+
+  <!-- MODAL: Iniciar Impersonación (§9.5) -->
+  <dialog id="modal-impersonar" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-md shadow-2xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
+      </form>
+      <div class="flex items-center gap-2">
+        <span class="badge badge-warning font-mono font-bold text-[10px]">AUDITADO</span>
+        <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Impersonar usuario</h3>
+      </div>
+      <p class="text-xs text-base-content/70 mt-1">
+        Vas a ver y actuar en la plataforma como <strong id="imp-target-nombre">…</strong>.
+      </p>
+
+      <div class="p-3 rounded-xl bg-warning/15 border border-warning/30 text-xs text-base-content/80 mt-3">
+        <strong>Aviso de auditoría:</strong> Esta acción queda registrada con tu identidad, IP y el motivo que especifiques.
+      </div>
+
+      <form id="form-impersonar" class="mt-4 space-y-4" novalidate>
+        <input type="hidden" id="imp-target-id" />
+
+        <div class="form-control flex flex-col gap-1">
+          <label for="imp-reason" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Motivo de la impersonación <span class="text-error">*</span>
+          </label>
+          <textarea
+            id="imp-reason"
+            required
+            rows="2"
+            placeholder="ej. Ayudar al docente a configurar consigna del aula 5A a su pedido"
+            class="textarea textarea-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-xs"
+          ></textarea>
+        </div>
+
+        <div class="modal-action flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="button" class="btn btn-ghost btn-sm rounded-xl" id="btn-cancelar-impersonar">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-warning btn-sm rounded-xl font-bold px-4" id="btn-submit-impersonar">
+            Iniciar impersonación
+          </button>
+        </div>
+      </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>cerrar</button>
+    </form>
+  </dialog>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+<script>
+  import {
+    ApiError,
+    createTeacher,
+    deactivateGlobalCode,
+    disableTeacher,
+    enableTeacher,
+    getSchool,
+    guestSession,
+    impersonate,
+    listMaterials,
+    listTeachers,
+    materialFileUrl,
+    me,
+    regenerateGlobalCode,
+    resetTeacherCredential,
+    schoolPublic,
+    type Material,
+    type Teacher,
+    type TeacherCredential,
+  } from '../lib/api';
+
+  (() => {
+    const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
+    const toast = $('#toast');
+    const toastMsg = $('#toast-msg');
+    let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function aviso(msg: string) {
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer ?? undefined);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+      }, 2800);
+    }
+
+    function escapeHtml(s: string): string {
+      return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+    }
+
+    // Copy exacto del contrato §10 para mutación como invitado
+    const COPY_GUEST = 'Las consignas son privadas del curso; para participar necesitás que tu docente te dé de alta.';
+
+    function filaDocente(t: Teacher): string {
+      const activo = t.status === 'active';
+      const badgeEstado = activo
+        ? '<span class="badge badge-success badge-soft badge-sm font-semibold">Activo</span>'
+        : t.status === 'invited'
+        ? '<span class="badge badge-warning badge-soft badge-sm font-semibold">Invitado</span>'
+        : '<span class="badge badge-neutral badge-soft badge-sm font-semibold text-base-content/50">Desactivado</span>';
+
+      const rowClass = activo ? '' : 'opacity-60 bg-base-200/30';
+
+      return `
+      <tr class="hover:bg-base-200/50 transition-colors fila-docente ${rowClass}" data-id="${escapeHtml(t.id)}" data-nombre="${escapeHtml(t.name)}" data-email="${escapeHtml(t.email)}" data-status="${escapeHtml(t.status)}">
+        <td class="font-medium">
+          <strong class="font-bold text-sm text-base-content block">${escapeHtml(t.name)}</strong>
+          <span class="font-mono text-[11px] text-base-content/60">${escapeHtml(t.email)}</span>
+        </td>
+        <td><span class="font-mono text-xs text-base-content/80">${escapeHtml(t.email)}</span></td>
+        <td>${badgeEstado}</td>
+        <td><span class="font-mono font-bold text-xs text-base-content">${t.classrooms_count ?? 0}</span></td>
+        <td><span class="font-mono font-bold text-xs text-base-content">${t.total_submissions ?? 0}</span></td>
+        <td class="text-right td-acciones">
+          <div class="inline-flex items-center gap-1.5 flex-wrap justify-end">
+            <button type="button" class="btn btn-ghost btn-xs text-warning hover:bg-warning/10 font-semibold btn-imp" title="Impersonar sesión docente">Impersonar</button>
+            <button type="button" class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 font-semibold btn-reset-cred">Reset</button>
+            ${
+              activo
+                ? '<button type="button" class="btn btn-ghost btn-xs text-error hover:bg-error/10 font-semibold btn-toggle-estado">Desactivar</button>'
+                : '<button type="button" class="btn btn-ghost btn-xs text-success hover:bg-success/10 font-semibold btn-toggle-estado">Reactivar</button>'
+            }
+          </div>
+        </td>
+      </tr>`;
+    }
+
+    async function cargarPanelDirector() {
+      try {
+        const [escuela, docentes] = await Promise.all([
+          getSchool(),
+          listTeachers(),
+        ]);
+
+        $('#hero-eyebrow')!.textContent = `Panel del director · ${escuela.name}`;
+        const chip = $('#codigo-global-display')!;
+        const badge = $('#badge-codigo-estado')!;
+
+        if (escuela.global_code.active && escuela.global_code.code) {
+          chip.textContent = escuela.global_code.code;
+          badge.textContent = 'Activo';
+          badge.className = 'badge badge-success badge-soft badge-sm font-semibold';
+          $('#btn-toggle-desactivar')!.textContent = 'Desactivar';
+          $('#btn-toggle-desactivar')!.hidden = false;
+        } else {
+          chip.textContent = 'DESACTIVADO';
+          badge.textContent = 'Desactivado';
+          badge.className = 'badge badge-neutral badge-soft badge-sm font-semibold text-base-content/50';
+          $('#btn-toggle-desactivar')!.hidden = true;
+        }
+
+        // Stats
+        $('#stat-aulas')!.textContent = String(escuela.stats.classrooms ?? 0);
+        $('#stat-alumnos')!.textContent = String(escuela.stats.students ?? 0);
+        $('#stat-docentes')!.textContent = String(escuela.stats.teachers ?? docentes.length);
+        $('#stat-materiales')!.textContent = String(escuela.stats.public_materials ?? 0);
+
+        // Docentes
+        const activos = docentes.filter((d) => d.status === 'active').length;
+        $('#resumen-docentes')!.textContent = `${docentes.length} ${docentes.length === 1 ? 'docente' : 'docentes'} · ${activos} activos.`;
+
+        const tbody = $('#tbody-docentes')!;
+        tbody.innerHTML = docentes.length
+          ? docentes.map(filaDocente).join('')
+          : '<tr><td colspan="6" class="text-center py-6 text-base-content/60">Todavía no hay docentes registrados.</td></tr>';
+
+        $('#panel-director')!.hidden = false;
+        $('#vista-invitado')!.hidden = true;
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          window.location.href = '/login/';
+          return;
+        }
+        aviso('No pudimos cargar los datos de la escuela.');
+      }
+    }
+
+    async function mostrarVistaPublica() {
+      try {
+        const { name } = await schoolPublic();
+        $('#titulo-escuela-guest')!.textContent = `Escuela ${name}`;
+        const { materials } = await listMaterials({ scope: 'public' });
+        $('#grid-publicos')!.innerHTML = materials.map((m: Material) => {
+          const tipo = { pdf: 'PDF', video: 'VID', image: 'IMG', office: 'DOC', other: 'ARC' }[m.type] || 'DOC';
+          const fecha = new Date(m.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+          return `
+          <article class="card bg-base-100 border border-base-300 p-4">
+            <div class="flex items-start justify-between gap-2">
+              <h2 class="font-semibold text-sm leading-snug break-words">${escapeHtml(m.title)}</h2>
+              <span class="badge badge-sm badge-ghost font-mono shrink-0">${tipo}</span>
+            </div>
+            <p class="text-xs text-base-content/60 mt-1">${m.subject ? `${escapeHtml(m.subject)} · ` : ''}${escapeHtml(m.uploaded_by)} · ${fecha}</p>
+            <div class="flex justify-end gap-2 pt-2 border-t border-base-200 mt-2">
+              <a href="${materialFileUrl(m.id)}" target="_blank" rel="noopener" class="btn btn-xs btn-ghost rounded-full">Ver</a>
+              <a href="${materialFileUrl(m.id, true)}" class="btn btn-xs rounded-full border border-base-300 bg-base-100 hover:border-base-content">Descargar</a>
+            </div>
+          </article>`;
+        }).join('');
+        $('#sin-publicos')!.hidden = materials.length > 0;
+        $('#vista-codigo')!.hidden = true;
+        $('#vista-publica')!.hidden = false;
+        $('#vista-invitado')!.hidden = false;
+        $('#panel-director')!.hidden = true;
+      } catch {
+        aviso('No pudimos cargar la escuela.');
+      }
+    }
+
+    async function init() {
+      try {
+        const yo = await me();
+        if (yo.role === 'director') {
+          const dirNombre = $('#dir-nombre');
+          if (dirNombre) dirNombre.textContent = yo.name.split(' ')[0];
+          await cargarPanelDirector();
+          return;
+        }
+        if (yo.role === 'invitado') {
+          await mostrarVistaPublica();
+          return;
+        }
+        // Alumno o docente
+        window.location.href = yo.role === 'alumno' ? '/mis-salas/' : '/dashboard/';
+      } catch {
+        // anónimo -> vista código invitado
+        $('#panel-director')!.hidden = true;
+        $('#vista-invitado')!.hidden = false;
+        $('#vista-codigo')!.hidden = false;
+        $('#vista-publica')!.hidden = true;
+      }
+    }
+
+    // Copiar código global
+    $('#btn-copiar-global')?.addEventListener('click', () => {
+      const cod = $('#codigo-global-display')?.textContent.trim() || '';
+      if (!cod || cod === '······' || cod === 'DESACTIVADO') return;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(cod).then(
+          () => aviso(`Código «${cod}» copiado`),
+          () => aviso(`El código es «${cod}»`),
+        );
+      } else {
+        aviso(`El código es «${cod}»`);
+      }
+    });
+
+    // Regenerar código global con doble confirmación (§13.7 / §9.1)
+    const regenPaso1 = $('#regen-confirm-paso1');
+    const regenPaso2 = $('#regen-confirm-paso2');
+
+    function cerrarRegen() {
+      if (regenPaso1) regenPaso1.hidden = true;
+      if (regenPaso2) regenPaso2.hidden = true;
+    }
+
+    $('#btn-abrir-regen')?.addEventListener('click', () => {
+      if (regenPaso1) regenPaso1.hidden = false;
+      if (regenPaso2) regenPaso2.hidden = true;
+      $('#desactivar-confirm')!.hidden = true;
+    });
+
+    document.querySelectorAll('[data-cancelar-regen]').forEach((b) => {
+      b.addEventListener('click', cerrarRegen);
+    });
+
+    $('#btn-continuar-regen')?.addEventListener('click', () => {
+      if (regenPaso1) regenPaso1.hidden = true;
+      if (regenPaso2) regenPaso2.hidden = false;
+    });
+
+    $('#btn-confirmar-regen-final')?.addEventListener('click', async () => {
+      const btn = $('#btn-confirmar-regen-final') as HTMLButtonElement | null;
+      if (btn) btn.disabled = true;
+      try {
+        const { code } = await regenerateGlobalCode();
+        $('#codigo-global-display')!.textContent = code;
+        const badge = $('#badge-codigo-estado')!;
+        badge.textContent = 'Activo';
+        badge.className = 'badge badge-success badge-soft badge-sm font-semibold';
+        $('#btn-toggle-desactivar')!.hidden = false;
+        cerrarRegen();
+        aviso(`¡Código regenerado: ${code}! El anterior quedó invalidado al instante.`);
+      } catch (err) {
+        aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos regenerar el código.');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+
+    // Desactivar código global (§9.1)
+    $('#btn-toggle-desactivar')?.addEventListener('click', () => {
+      cerrarRegen();
+      $('#desactivar-confirm')!.hidden = false;
+    });
+
+    $('#btn-cancelar-desactivar')?.addEventListener('click', () => {
+      $('#desactivar-confirm')!.hidden = true;
+    });
+
+    $('#btn-confirmar-desactivar')?.addEventListener('click', async () => {
+      const btn = $('#btn-confirmar-desactivar') as HTMLButtonElement | null;
+      if (btn) btn.disabled = true;
+      try {
+        await deactivateGlobalCode();
+        $('#codigo-global-display')!.textContent = 'DESACTIVADO';
+        const badge = $('#badge-codigo-estado')!;
+        badge.textContent = 'Desactivado';
+        badge.className = 'badge badge-neutral badge-soft badge-sm font-semibold text-base-content/50';
+        $('#btn-toggle-desactivar')!.hidden = true;
+        $('#desactivar-confirm')!.hidden = true;
+        aviso('Código global desactivado. Nadie entra como invitado hasta generar uno nuevo.');
+      } catch (err) {
+        aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos desactivar el código.');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+
+    // Modal Crear Docente (CU-15)
+    const modalDocente = $('#modal-crear-docente') as HTMLDialogElement | null;
+    $('#btn-abrir-crear-docente')?.addEventListener('click', () => {
+      (document.getElementById('form-crear-docente') as HTMLFormElement)?.reset();
+      $('#error-crear-docente')!.hidden = true;
+      $('#wrap-d-pass')!.hidden = false;
+      modalDocente?.showModal();
+    });
+
+    $('#btn-cancelar-crear-docente')?.addEventListener('click', () => modalDocente?.close());
+
+    document.querySelectorAll<HTMLInputElement>('input[name="cred-tipo"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        const wrapPass = $('#wrap-d-pass');
+        if (wrapPass) wrapPass.hidden = radio.value !== 'password';
+      });
+    });
+
+    $('#form-crear-docente')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = ($('#d-nombre') as HTMLInputElement).value.trim();
+      const email = ($('#d-email') as HTMLInputElement).value.trim();
+      const tipoRadio = document.querySelector<HTMLInputElement>('input[name="cred-tipo"]:checked')?.value || 'password';
+      const pass = ($('#d-pass') as HTMLInputElement).value;
+      const errorDiv = $('#error-crear-docente')!;
+      const btn = $('#btn-guardar-docente') as HTMLButtonElement;
+
+      errorDiv.hidden = true;
+
+      if (!nombre || !email) {
+        errorDiv.textContent = 'Completá el nombre y email del docente.';
+        errorDiv.hidden = false;
+        return;
+      }
+
+      const credential: TeacherCredential = tipoRadio === 'magic_link'
+        ? { type: 'magic_link' }
+        : { type: 'password', password: pass };
+
+      btn.disabled = true;
+      btn.textContent = 'Creando…';
+
+      try {
+        await createTeacher({ name: nombre, email, credential });
+        modalDocente?.close();
+        aviso(`Docente «${nombre}» creado con éxito.`);
+        await cargarPanelDirector();
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.code === 'email_already_exists' || err.status === 409) {
+            errorDiv.textContent = `Ya existe un usuario con el email ${email} en la escuela.`;
+          } else {
+            errorDiv.textContent = err.message || 'Ocurrió un error al crear el docente.';
+          }
+        } else {
+          errorDiv.textContent = 'No pudimos conectar con el servidor.';
+        }
+        errorDiv.hidden = false;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Crear docente';
+      }
+    });
+
+    // Delegación de acciones de la tabla de docentes
+    $('#tbody-docentes')?.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+      const fila = target.closest<HTMLTableRowElement>('.fila-docente');
+      if (!fila) return;
+      const id = fila.dataset.id!;
+      const nombre = fila.dataset.nombre!;
+      const status = fila.dataset.status!;
+
+      // 1. Impersonar (§9.5)
+      if (target.closest('.btn-imp')) {
+        const modalImp = $('#modal-impersonar') as HTMLDialogElement | null;
+        $('#imp-target-id')!.setAttribute('value', id);
+        $('#imp-target-nombre')!.textContent = nombre;
+        ($('#imp-reason') as HTMLTextAreaElement).value = '';
+        modalImp?.showModal();
+        return;
+      }
+
+      // 2. Reset Credenciales (CU-15)
+      if (target.closest('.btn-reset-cred')) {
+        const modalReset = $('#modal-reset-cred') as HTMLDialogElement | null;
+        $('#reset-docente-id')!.setAttribute('value', id);
+        $('#reset-docente-nombre')!.textContent = nombre;
+        modalReset?.showModal();
+        return;
+      }
+
+      // 3. Desactivar / Reactivar (CU-15)
+      if (target.closest('.btn-toggle-estado')) {
+        const td = fila.querySelector('.td-acciones')!;
+        if (status === 'active') {
+          // Confirmación de desactivación
+          td.innerHTML = `
+            <div class="inline-flex items-center gap-1.5 text-xs">
+              <span class="text-error font-bold">¿Desactivar? Bloquea su acceso; sus aulas quedan congeladas.</span>
+              <button class="btn btn-error btn-xs text-white btn-confirm-disable" type="button">Sí, desactivar</button>
+              <button class="btn btn-ghost btn-xs btn-cancel-disable" type="button">No</button>
+            </div>`;
+          td.querySelector('.btn-cancel-disable')?.addEventListener('click', () => cargarPanelDirector());
+          td.querySelector('.btn-confirm-disable')?.addEventListener('click', async (ev) => {
+            const b = ev.currentTarget as HTMLButtonElement;
+            b.disabled = true;
+            b.textContent = 'Desactivando…';
+            try {
+              await disableTeacher(id);
+              aviso(`Docente «${nombre}» desactivado. En caso de login recibirá derivación al director.`);
+              await cargarPanelDirector();
+            } catch (err) {
+              aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos desactivar al docente.');
+              await cargarPanelDirector();
+            }
+          });
+        } else {
+          // Reactivar
+          const btn = target as HTMLButtonElement;
+          btn.disabled = true;
+          btn.textContent = 'Reactivando…';
+          try {
+            await enableTeacher(id);
+            aviso(`Docente «${nombre}» reactivado.`);
+            await cargarPanelDirector();
+          } catch (err) {
+            aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos reactivar al docente.');
+            await cargarPanelDirector();
+          }
+        }
+      }
+    });
+
+    // Modal Reset Credenciales Handler
+    const modalReset = $('#modal-reset-cred') as HTMLDialogElement | null;
+    $('#btn-cancelar-reset-cred')?.addEventListener('click', () => modalReset?.close());
+    document.querySelectorAll<HTMLInputElement>('input[name="reset-tipo"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        const wrapPass = $('#wrap-reset-pass');
+        if (wrapPass) wrapPass.hidden = radio.value !== 'password';
+      });
+    });
+
+    $('#form-reset-cred')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = ($('#reset-docente-id') as HTMLInputElement).value;
+      const tipo = document.querySelector<HTMLInputElement>('input[name="reset-tipo"]:checked')?.value || 'password';
+      const pass = ($('#reset-pass-val') as HTMLInputElement).value;
+      const btn = $('#btn-submit-reset-cred') as HTMLButtonElement;
+
+      const credential: TeacherCredential = tipo === 'magic_link'
+        ? { type: 'magic_link' }
+        : { type: 'password', password: pass };
+
+      btn.disabled = true;
+      btn.textContent = 'Aplicando…';
+
+      try {
+        await resetTeacherCredential(id, credential);
+        modalReset?.close();
+        aviso(tipo === 'magic_link' ? 'Magic link enviado al docente.' : 'Contraseña restablecida con éxito.');
+      } catch (err) {
+        aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos restablecer la credencial.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Aplicar cambio';
+      }
+    });
+
+    // Modal Impersonar Handler (§9.5)
+    const modalImp = $('#modal-impersonar') as HTMLDialogElement | null;
+    $('#btn-cancelar-impersonar')?.addEventListener('click', () => modalImp?.close());
+
+    $('#form-impersonar')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = ($('#imp-target-id') as HTMLInputElement).value;
+      const reason = ($('#imp-reason') as HTMLTextAreaElement).value.trim();
+      const btn = $('#btn-submit-impersonar') as HTMLButtonElement;
+
+      if (!reason) {
+        aviso('El motivo de la impersonación es obligatorio por auditoría.');
+        $('#imp-reason')?.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Iniciando sesión…';
+
+      try {
+        await impersonate(id, reason);
+        window.location.href = '/dashboard/';
+      } catch (err) {
+        aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos iniciar la impersonación.');
+        btn.disabled = false;
+        btn.textContent = 'Iniciar impersonación';
+      }
+    });
+
+    // Formulario de ingreso de invitado (CU-14)
+    $('#form-escuela-guest')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = $('#input-global-guest') as HTMLInputElement;
+      const btn = $('#btn-ingresar-guest') as HTMLButtonElement;
+      const code = input.value.trim().toUpperCase();
+      if (!code) {
+        input.focus();
+        aviso('Ingresá el código global de la escuela.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Entrando…';
+      try {
+        await guestSession(code);
+        await mostrarVistaPublica();
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.code === 'invalid_code' || err.status === 404) {
+            aviso('Este código ya no funciona; pedile el nuevo a la escuela.');
+            input.select();
+          } else {
+            aviso(err.message || 'No pudimos conectar con el servidor.');
+          }
+        } else {
+          aviso('No pudimos conectar con el servidor.');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Entrar como visitante';
+      }
+    });
+
+    $('#btn-intentar-subir')?.addEventListener('click', () => {
+      aviso(COPY_GUEST);
+    });
+
+    void init();
+  })();
+</script>
+</Layout>

@@ -1,41 +1,30 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { salas, materiales, instaladores } from '../data/mock';
-
-const conteoPorSala = salas.map((s) => ({
-  ...s,
-  total: materiales.filter((m) => m.salaId === s.id).length,
-}));
-
-const filtros = ['Todos', 'Libro', 'Doc', 'Video'];
 ---
 
 <Layout titulo="Materiales" active="materiales">
   <div class="py-8 border-b border-base-300 flex flex-wrap justify-between items-end gap-4 mb-6">
     <div>
       <h1 class="font-display font-normal text-5xl tracking-tight">Materiales</h1>
-      <p class="mt-2 text-base-content/60">La biblioteca de la sala: bajá lo que necesites o subí lo que falte.</p>
+      <p class="mt-2 text-base-content/60" id="subtitulo-scope">Cargando la biblioteca…</p>
     </div>
-    <button type="button" class="btn rounded-full border border-base-300 bg-base-100 hover:border-base-content">＋ Subir material</button>
+    <button type="button" class="btn rounded-full border border-base-300 bg-base-100 hover:border-base-content hidden" id="btn-subir">＋ Subir material</button>
+  </div>
+
+  <!-- Selector de alcance (§6: el listado filtra según quien pregunta) -->
+  <div class="flex gap-2 flex-wrap mb-5" role="group" aria-label="Alcance del listado" id="tabs-scope">
+    <a href="/materiales/?scope=public" class="btn btn-sm rounded-full bg-base-100 border-base-300 hover:border-base-content" data-scope="public">Públicos</a>
+    <a href="/materiales/?scope=mine" class="btn btn-sm rounded-full bg-base-100 border-base-300 hover:border-base-content" data-scope="mine">Míos / mis aulas</a>
+    <a href="/materiales/" class="btn btn-sm rounded-full bg-base-100 border-base-300 hover:border-base-content hidden" data-scope="classroom" id="tab-classroom">Del aula</a>
   </div>
 
   <div class="grid lg:grid-cols-[260px_1fr] gap-6 items-start">
     <aside aria-label="Materias" class="card lg:sticky lg:top-24">
       <div class="card-body py-4 px-3 gap-1">
         <p class="px-2 pb-1 font-mono text-[11px] uppercase tracking-[0.12em] text-base-content/60">Materias</p>
-        {conteoPorSala.map((s, i) => (
-          <button
-            type="button"
-            aria-pressed={i === 0 ? 'true' : 'false'}
-            class:list={[
-              'btn w-full justify-between rounded-xl border-transparent',
-              i === 0 ? 'bg-neutral text-neutral-content' : 'bg-base-100 text-base-content hover:bg-base-300',
-            ]}
-          >
-            <span>{s.nombre}</span>
-            <span class:list={['badge badge-sm font-mono', i === 0 ? 'badge-neutral' : 'badge-ghost']}>{s.total}</span>
-          </button>
-        ))}
+        <div id="lista-materias" class="flex flex-col gap-1">
+          <span class="px-2 text-sm text-base-content/50">…</span>
+        </div>
       </div>
     </aside>
 
@@ -43,68 +32,352 @@ const filtros = ['Todos', 'Libro', 'Doc', 'Video'];
       <div class="flex flex-wrap gap-2 items-center mb-4">
         <input
           type="search"
-          placeholder="Buscar en la materia…"
+          placeholder="Buscar por título…"
           aria-label="Buscar materiales"
+          id="input-buscar"
           class="input input-bordered flex-1 min-w-56 rounded-full bg-base-100 border-base-300 focus:border-primary"
         />
-        <div role="group" aria-label="Filtrar por tipo" class="flex gap-2 flex-wrap">
-          {filtros.map((f, i) => (
-            <button
-              type="button"
-              aria-pressed={i === 0 ? 'true' : 'false'}
-              class:list={[
-                'btn btn-sm rounded-full',
-                i === 0 ? 'bg-neutral text-neutral-content border-transparent' : 'bg-base-100 border-base-300 hover:border-base-content',
-              ]}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
+        <select id="filtro-tipo" aria-label="Filtrar por tipo" class="select select-sm select-bordered rounded-full bg-base-100 border-base-300">
+          <option value="">Todos los tipos</option>
+          <option value="pdf">PDF</option>
+          <option value="video">Video</option>
+          <option value="image">Imagen</option>
+          <option value="office">Office</option>
+          <option value="other">Otro</option>
+        </select>
       </div>
 
-      <div class="grid sm:grid-cols-2 gap-3">
-        {materiales.map((m) => (
-          <article class="card bg-base-100 border border-base-300 hover:border-base-300 transition-colors">
-            <div class="card-body p-4 gap-2">
-              <div class="flex items-start justify-between gap-2">
-                <h2 class="font-semibold text-sm leading-snug break-words">{m.nombre}</h2>
-                <span class="badge badge-sm badge-ghost font-mono shrink-0">{m.etiqueta}</span>
-              </div>
-              <p class="text-xs text-base-content/60">
-                {m.tamano} · {m.fecha} · {m.autor}
-              </p>
-              <div class="card-actions justify-end pt-2 border-t border-base-300 mt-1">
-                <button type="button" class="btn btn-xs rounded-full border border-base-300 bg-base-100 hover:border-base-content">Descargar</button>
-                <button type="button" class="btn btn-xs btn-ghost rounded-full">Ver</button>
-              </div>
-            </div>
-          </article>
-        ))}
+      <div class="grid sm:grid-cols-2 gap-3" id="grid-materiales">
+        <p class="text-sm text-base-content/60 py-8 sm:col-span-2 text-center">Cargando materiales…</p>
       </div>
-
-      <section aria-label="Instaladores" class="mt-10">
-        <div class="mb-3">
-          <h2 class="font-display font-normal text-3xl tracking-tight">Instaladores</h2>
-          <p class="text-sm text-base-content/60 mt-1">Para equipar las PCs del aula: bajalos de acá, que ya están probados.</p>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-3">
-          {instaladores.map((inst) => (
-            <article class="card bg-base-100 border border-base-300">
-              <div class="card-body p-4 flex-row items-center gap-3">
-                <span class="badge badge-primary font-mono">EXE</span>
-                <div class="min-w-0">
-                  <p class="font-semibold text-sm">{inst.nombre}</p>
-                  <p class="text-xs text-base-content/60 truncate">{inst.version}</p>
-                </div>
-                <button type="button" class="btn btn-sm ml-auto rounded-full border border-base-300 bg-base-100 hover:border-base-content">
-                  Descargar
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      <p id="sin-materiales" class="hidden text-sm text-base-content/60 py-8 text-center">
+        No hay materiales acá todavía.
+      </p>
     </section>
   </div>
+
+  <!-- Modal Subir material — vive DENTRO del aula (§6) -->
+  <dialog id="modal-subir" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-md shadow-2xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
+      </form>
+
+      <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Subir material</h3>
+      <p class="text-xs text-base-content/70 mt-1" id="modal-subir-sub"></p>
+
+      <form id="form-subir" class="mt-5 space-y-4">
+        <div class="form-control flex flex-col gap-1">
+          <label for="u-file" class="text-xs font-bold uppercase tracking-wider text-base-content/80">Archivo</label>
+          <input
+            id="u-file"
+            type="file"
+            required
+            class="file-input file-input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+        </div>
+
+        <div class="form-control flex flex-col gap-1">
+          <label for="u-title" class="text-xs font-bold uppercase tracking-wider text-base-content/80">Título</label>
+          <input
+            id="u-title"
+            type="text"
+            required
+            placeholder="ej. Guía N°3: listas y bucles"
+            class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-control flex flex-col gap-1">
+            <label for="u-vis" class="text-xs font-bold uppercase tracking-wider text-base-content/80">Visibilidad</label>
+            <select
+              id="u-vis"
+              class="select select-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+            >
+              <option value="classroom" selected>Solo el aula</option>
+              <option value="school">Escuela (invitados con código)</option>
+              <option value="public">Pública (todos)</option>
+            </select>
+          </div>
+
+          <div class="form-control flex flex-col gap-1">
+            <label for="u-subject" class="text-xs font-bold uppercase tracking-wider text-base-content/80">Materia (opcional)</label>
+            <input
+              id="u-subject"
+              type="text"
+              placeholder="ej. Programación"
+              class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="button" class="btn btn-ghost btn-sm rounded-xl" id="btn-cancelar-subir">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold px-4" id="btn-confirmar-subir">
+            Subir
+          </button>
+        </div>
+      </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>cerrar</button>
+    </form>
+  </dialog>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
 </Layout>
+
+<script>
+  import {
+    ApiError, deleteMaterial, listMaterials, materialFileUrl, me,
+    uploadMaterial, type Material, type MaterialType,
+  } from '../lib/api';
+
+  (() => {
+    const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
+    const toast = $('#toast');
+    const toastMsg = $('#toast-msg');
+    let toastTimer: ReturnType<typeof setTimeout> | null = null;
+    function aviso(msg: string) {
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer ?? undefined);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+      }, 2600);
+    }
+
+    function escapeHtml(s: string): string {
+      return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+    }
+
+    const tipoBadge: Record<MaterialType, string> = { pdf: 'PDF', video: 'VID', image: 'IMG', office: 'DOC', other: 'ARC' };
+    const visBadge: Record<Material['visibility'], string> = {
+      public: 'badge-success badge-soft',
+      school: 'badge-warning badge-soft',
+      classroom: 'badge-neutral',
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const scopeParam = params.get('scope') ?? '';
+    const classroomId = params.get('classroom') ?? '';
+    // scope efectivo: classroom:{id} > ?scope= > mine si hay sesión > public
+    let scope = classroomId ? `classroom:${classroomId}` : scopeParam;
+
+    let yo: Awaited<ReturnType<typeof me>> | null = null;
+    let materiales: Material[] = [];
+
+    function puedeBorrar(m: Material): boolean {
+      if (!yo) return false;
+      return yo.role === 'director' || m.uploaded_by === yo.id || m.uploaded_by === yo.name;
+    }
+
+    function card(m: Material): string {
+      const fecha = new Date(m.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+      return `
+      <article class="card bg-base-100 border border-base-300 hover:border-base-300 transition-colors" data-id="${escapeHtml(m.id)}">
+        <div class="card-body p-4 gap-2">
+          <div class="flex items-start justify-between gap-2">
+            <h2 class="font-semibold text-sm leading-snug break-words">${escapeHtml(m.title)}</h2>
+            <span class="badge badge-sm badge-ghost font-mono shrink-0">${tipoBadge[m.type]}</span>
+          </div>
+          <p class="text-xs text-base-content/60">
+            ${m.subject ? `${escapeHtml(m.subject)} · ` : ''}${escapeHtml(m.uploaded_by)} · ${fecha}
+            <span class="badge badge-xs ${visBadge[m.visibility]} ml-1">${m.visibility === 'classroom' ? 'aula' : m.visibility}</span>
+          </p>
+          <div class="card-actions justify-end pt-2 border-t border-base-300 mt-1">
+            <a href="${materialFileUrl(m.id)}" target="_blank" rel="noopener" class="btn btn-xs btn-ghost rounded-full">Ver</a>
+            <a href="${materialFileUrl(m.id, true)}" class="btn btn-xs rounded-full border border-base-300 bg-base-100 hover:border-base-content">Descargar</a>
+            ${puedeBorrar(m)
+              ? `<button type="button" class="btn btn-xs btn-ghost btn-error rounded-full hover:bg-error/10 font-semibold" data-borrar>Borrar</button>`
+              : ''}
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function render(materiaSel = '') {
+      const grid = $('#grid-materiales')!;
+      const q = ($('#input-buscar') as HTMLInputElement).value.trim().toLowerCase();
+      const tipo = ($('#filtro-tipo') as HTMLSelectElement).value;
+      const filtrados = materiales.filter(
+        (m) =>
+          (!tipo || m.type === tipo) &&
+          (!materiaSel || m.subject === materiaSel) &&
+          (!q || m.title.toLowerCase().includes(q)),
+      );
+      grid.innerHTML = filtrados.map(card).join('');
+      $('#sin-materiales')?.classList.toggle('hidden', filtrados.length > 0);
+      document.querySelectorAll<HTMLButtonElement>('[data-materia]').forEach((b) => {
+        const activo = (b.dataset.materia ?? '') === materiaSel;
+        b.className = `btn w-full justify-between rounded-xl border-transparent ${
+          activo ? 'bg-neutral text-neutral-content' : 'bg-base-100 text-base-content hover:bg-base-300'
+        }`;
+      });
+
+      // Materias derivadas del resultado
+      const materias = [...new Set(materiales.map((m) => m.subject).filter((s): s is string => !!s))];
+      const lista = $('#lista-materias')!;
+      lista.innerHTML =
+        `<button type="button" class="btn w-full justify-between rounded-xl border-transparent bg-neutral text-neutral-content" data-materia="">
+           <span>Todas</span>
+           <span class="badge badge-sm badge-neutral font-mono">${materiales.length}</span>
+         </button>` +
+        materias
+          .map((s) => {
+            const total = materiales.filter((m) => m.subject === s).length;
+            return `<button type="button" class="btn w-full justify-between rounded-xl border-transparent bg-base-100 text-base-content hover:bg-base-300" data-materia="${escapeHtml(s)}">
+                      <span>${escapeHtml(s)}</span>
+                      <span class="badge badge-sm badge-ghost font-mono">${total}</span>
+                    </button>`;
+          })
+          .join('');
+    }
+
+    async function cargar() {
+      try {
+        ({ materials: materiales } = await listMaterials({ scope }));
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 403) {
+          aviso('Las consignas son privadas del curso; para participar necesitás que tu docente te dé de alta.');
+        } else if (!(err instanceof ApiError)) {
+          aviso('No pudimos conectar con el servidor.');
+        }
+        materiales = [];
+      }
+      render();
+    }
+
+    async function init() {
+      // ¿Quién pregunta?
+      try {
+        yo = await me();
+        // invitado ve lo mismo que anónimo (+school, lo filtra el server)
+        if (!scope) scope = yo.role === 'invitado' ? 'public' : 'mine';
+      } catch {
+        if (!scope) scope = 'public';
+      }
+
+      // Tabs activos
+      document.querySelectorAll<HTMLAnchorElement>('#tabs-scope [data-scope]').forEach((a) => {
+        const val = a.dataset.scope!;
+        const activo =
+          (val === 'public' && scope === 'public') ||
+          (val === 'mine' && scope === 'mine') ||
+          (val === 'classroom' && scope.startsWith('classroom:'));
+        a.className = `btn btn-sm rounded-full ${
+          activo ? 'bg-neutral text-neutral-content border-transparent' : 'bg-base-100 border-base-300 hover:border-base-content'
+        }`;
+        if (val !== 'classroom') a.href = `/materiales/?scope=${val}`;
+      });
+
+      if (scope.startsWith('classroom:')) {
+        const tabAula = $('#tab-classroom')!;
+        tabAula.classList.remove('hidden');
+        tabAula.href = `/materiales/?classroom=${encodeURIComponent(classroomId)}`;
+        $('#subtitulo-scope')!.textContent = 'Los materiales de esta aula.';
+        // Subida: solo docente/director dentro del aula (§6)
+        if (yo && (yo.role === 'docente' || yo.role === 'director')) {
+          $('#btn-subir')?.classList.remove('hidden');
+        }
+      } else if (scope === 'public') {
+        $('#subtitulo-scope')!.textContent = 'Lo que la escuela comparte con el mundo.';
+      } else {
+        $('#subtitulo-scope')!.textContent = 'Tus materiales y los de tus aulas.';
+      }
+
+      await cargar();
+    }
+
+    // Filtros client-side
+    $('#input-buscar')?.addEventListener('input', render);
+    $('#filtro-tipo')?.addEventListener('change', render);
+    $('#lista-materias')?.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-materia]');
+      if (!btn) return;
+      render(btn.dataset.materia ?? '');
+    });
+
+    // Borrar (autor o director → DELETE /materials/{id}, §6)
+    $('#grid-materiales')?.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-borrar]')) return;
+      const art = target.closest<HTMLElement>('article[data-id]')!;
+      const id = art.dataset.id!;
+      try {
+        await deleteMaterial(id);
+        art.style.opacity = '0';
+        setTimeout(() => {
+          art.remove();
+          materiales = materiales.filter((m) => m.id !== id);
+          render();
+        }, 150);
+        aviso('Material borrado.');
+      } catch (err) {
+        if (err instanceof ApiError && err.code === 'guest_read_only') {
+          aviso('Estás en modo visitante: solo podés ver y descargar. Para participar necesitás que tu docente te dé de alta.');
+        } else {
+          aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos borrar el material.');
+        }
+      }
+    });
+
+    // Subir material — multipart real (§6)
+    const modalSubir = $('#modal-subir');
+    $('#modal-subir-sub')!.textContent = 'El archivo queda asociado a esta aula.';
+    $('#btn-subir')?.addEventListener('click', () => modalSubir?.showModal());
+    $('#btn-cancelar-subir')?.addEventListener('click', () => modalSubir?.close());
+
+    $('#form-subir')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = $('#u-file') as HTMLInputElement;
+      const titleEl = $('#u-title') as HTMLInputElement;
+      const visEl = $('#u-vis') as HTMLSelectElement;
+      const subjectEl = $('#u-subject') as HTMLInputElement;
+      const btn = $('#btn-confirmar-subir') as HTMLButtonElement;
+
+      const file = fileInput.files?.[0];
+      if (!file) {
+        fileInput.focus();
+        aviso('Elegí un archivo primero.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Subiendo…';
+      try {
+        const m = await uploadMaterial(classroomId, {
+          file,
+          title: titleEl.value.trim() || file.name,
+          visibility: visEl.value as Material['visibility'],
+          subject: subjectEl.value.trim() || undefined,
+        });
+        modalSubir?.close();
+        materiales.unshift(m);
+        render();
+        aviso(`«${m.title}» subido ✓`);
+        fileInput.value = '';
+        titleEl.value = '';
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          window.location.href = '/login/';
+          return;
+        }
+        aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos subir el archivo.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Subir';
+      }
+    });
+
+    void init();
+  })();
+</script>
