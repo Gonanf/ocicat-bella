@@ -208,6 +208,6 @@ func (h *Handler) registerFase7Routes() {
 
 	// Impersonación administrativa §9.5: endpoint SEPARADO del resto, auditado
 	h.mux.Handle("POST /admin/impersonations", requireDirector(http.HandlerFunc(h.StartImpersonation)))
-	h.mux.Handle("DELETE /admin/impersonations/current", requireDirector(http.HandlerFunc(h.EndImpersonation)))
+	h.mux.Handle("DELETE /admin/impersonations/current", middleware.RequireAuth(http.HandlerFunc(h.EndImpersonation)))
 	h.mux.Handle("GET /admin/audit-log", requireDirector(http.HandlerFunc(h.AuditLog)))
 }
