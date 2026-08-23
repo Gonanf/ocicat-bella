@@ -111,6 +111,14 @@ type Store interface {
 	// Escuela (§9.1/§10)
 	SchoolStats(ctx context.Context) (*model.SchoolStats, error)
 	RevokeGuestAccess(ctx context.Context) error
+
+	// Gestión escolar §9: docentes, import CSV y auditoría
+	UpdateUser(ctx context.Context, u *model.User) error
+	ListUsersByRole(ctx context.Context, role model.Role) ([]model.User, error)
+	CreateImportToken(ctx context.Context, tok *model.ImportToken) error
+	GetImportToken(ctx context.Context, token string) (*model.ImportToken, error)
+	CreateAuditEntry(ctx context.Context, e *model.AuditEntry) error
+	ListAuditEntries(ctx context.Context, actorID, action string, from, to time.Time) ([]model.AuditEntry, error)
 }
 
 // MemStore is a thread-safe in-memory implementation of Store for development and testing.
@@ -129,6 +137,8 @@ type MemStore struct {
 	submissions map[string]*model.Submission
 	sandboxes   map[string]*model.Sandbox
 	runs        map[string]*model.Run
+	importToks  map[string]*model.ImportToken
+	auditLog    []model.AuditEntry
 }
 
 // NewMemStore creates an initialized MemStore.
@@ -146,6 +156,7 @@ func NewMemStore() *MemStore {
 		submissions: make(map[string]*model.Submission),
 		sandboxes:   make(map[string]*model.Sandbox),
 		runs:        make(map[string]*model.Run),
+		importToks:  make(map[string]*model.ImportToken),
 	}
 }
 

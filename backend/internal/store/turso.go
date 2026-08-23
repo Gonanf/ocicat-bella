@@ -183,6 +183,25 @@ CREATE TABLE IF NOT EXISTS runs(
 	created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_runs_sandbox ON runs(sandbox_id);
+
+CREATE TABLE IF NOT EXISTS import_tokens(
+	token TEXT PRIMARY KEY,
+	classroom_id TEXT NOT NULL REFERENCES classrooms(id),
+	created_by TEXT NOT NULL REFERENCES users(id),
+	created_at TEXT NOT NULL,
+	expires_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS audit_log(
+	id TEXT PRIMARY KEY,
+	actor_id TEXT NOT NULL REFERENCES users(id),
+	action TEXT NOT NULL,
+	target_user_id TEXT NOT NULL DEFAULT '',
+	reason TEXT NOT NULL DEFAULT '',
+	ip TEXT NOT NULL DEFAULT '',
+	created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor_id);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action);
 `
 
 // alterSQL corre migraciones no-idempotentes (ALTER TABLE) tolerando el error
@@ -191,6 +210,8 @@ var alterSQL = []string{
 	`ALTER TABLE schools ADD COLUMN global_code_active INTEGER NOT NULL DEFAULT 1`,
 	`ALTER TABLE classrooms ADD COLUMN allowed_templates TEXT NOT NULL DEFAULT '[]'`,
 	`ALTER TABLE classrooms ADD COLUMN custom_dockerfile_enabled INTEGER NOT NULL DEFAULT 0`,
+	`ALTER TABLE sessions ADD COLUMN impersonated_by TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE users ADD COLUMN created_at TEXT NOT NULL DEFAULT ''`,
 }
 
 // NewTursoStore crea el store contra Turso y ejecuta el schema (idempotente).
@@ -368,6 +389,7 @@ func scanUser(row []sqlVal) *model.User {
 	email, _ := cell(row, 2)
 	name, _ := cell(row, 1)
 	id, _ := cell(row, 0)
+	createdAt, _ := cellTime(row, 6) // ausente en JOINs que no la seleccionan
 	return &model.User{
 		ID:           id,
 		Name:         name,
@@ -375,12 +397,13 @@ func scanUser(row []sqlVal) *model.User {
 		PasswordHash: hash,
 		Role:         model.Role(cellStr(row, 4)),
 		Disabled:     disabledStr == "1",
+		CreatedAt:    createdAt,
 	}
 }
 
 func cellStr(row []sqlVal, i int) string { s, _ := cell(row, i); return s }
 
-const sessionCols = "id, user_id, kind, device_label, created_at, last_seen_at, expires_at"
+const sessionCols = "id, user_id, kind, device_label, created_at, last_seen_at, expires_at, impersonated_by"
 
 func scanSession(row []sqlVal) (*model.Session, error) {
 	createdAt, err := cellTime(row, 4)
@@ -396,13 +419,14 @@ func scanSession(row []sqlVal) (*model.Session, error) {
 		return nil, err
 	}
 	return &model.Session{
-		ID:          cellStr(row, 0),
-		UserID:      cellStr(row, 1),
-		Kind:        model.SessionKind(cellStr(row, 2)),
-		DeviceLabel: cellStr(row, 3),
-		CreatedAt:   createdAt,
-		LastSeenAt:  lastSeenAt,
-		ExpiresAt:   expiresAt,
+		ID:             cellStr(row, 0),
+		UserID:         cellStr(row, 1),
+		Kind:           model.SessionKind(cellStr(row, 2)),
+		DeviceLabel:    cellStr(row, 3),
+		CreatedAt:      createdAt,
+		LastSeenAt:     lastSeenAt,
+		ExpiresAt:      expiresAt,
+		ImpersonatedBy: cellStr(row, 7),
 	}, nil
 }
 
@@ -416,7 +440,7 @@ func (t *TursoStore) GetSession(ctx context.Context, sessionID string) (*model.S
 	if len(rows) == 0 {
 		return nil, nil, ErrNotFound
 	}
-	sess, err := scanSession(rows[0][:7])
+	sess, err := scanSession(rows[0][:8])
 	if err != nil {
 		return nil, nil, err
 	}
@@ -426,10 +450,10 @@ func (t *TursoStore) GetSession(ctx context.Context, sessionID string) (*model.S
 
 func (t *TursoStore) CreateSession(ctx context.Context, session *model.Session) error {
 	_, err := t.exec(ctx,
-		`INSERT INTO sessions (`+sessionCols+`) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO sessions (`+sessionCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		textArg(session.ID), textArg(session.UserID), textArg(string(session.Kind)),
 		textArg(session.DeviceLabel), timeArg(session.CreatedAt), timeArg(session.LastSeenAt),
-		timeArg(session.ExpiresAt))
+		timeArg(session.ExpiresAt), textArg(session.ImpersonatedBy))
 	return err
 }
 
@@ -460,7 +484,7 @@ func (t *TursoStore) ListSessionsByUser(ctx context.Context, userID string) ([]m
 	return out, nil
 }
 
-const userCols = "id, name, email, password_hash, role, disabled"
+const userCols = "id, name, email, password_hash, role, disabled, created_at"
 
 func (t *TursoStore) GetUser(ctx context.Context, userID string) (*model.User, error) {
 	rows, err := t.query(ctx, `SELECT `+userCols+` FROM users WHERE id = ?`, textArg(userID))
@@ -486,9 +510,10 @@ func (t *TursoStore) GetUserByEmail(ctx context.Context, email string) (*model.U
 
 func (t *TursoStore) CreateUser(ctx context.Context, user *model.User) error {
 	_, err := t.exec(ctx,
-		`INSERT INTO users (`+userCols+`) VALUES (?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO users (`+userCols+`) VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		textArg(user.ID), textArg(user.Name), textArg(user.Email),
-		textArg(user.PasswordHash), textArg(string(user.Role)), intArg(user.Disabled))
+		textArg(user.PasswordHash), textArg(string(user.Role)), intArg(user.Disabled),
+		timeArg(user.CreatedAt))
 	return err
 }
 
@@ -697,11 +722,11 @@ func (t *TursoStore) ScanPairingSession(ctx context.Context, pairingID, userID s
 // alguna vez importara.
 func (t *TursoStore) ClaimPairingSession(ctx context.Context, pairingID, userID string, sess *model.Session, now time.Time) error {
 	results, err := t.run(ctx,
-		stmtIn{SQL: `INSERT INTO sessions (` + sessionCols + `) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		stmtIn{SQL: `INSERT INTO sessions (` + sessionCols + `) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			Args: []sqlVal{
 				textArg(sess.ID), textArg(sess.UserID), textArg(string(sess.Kind)),
 				textArg(sess.DeviceLabel), timeArg(sess.CreatedAt), timeArg(sess.LastSeenAt),
-				timeArg(sess.ExpiresAt),
+				timeArg(sess.ExpiresAt), textArg(""),
 			}},
 		stmtIn{SQL: `UPDATE pairing_sessions SET status = ?, session_id = ?
 			WHERE pairing_id = ? AND status = ? AND user_id = ? AND expires_at > ?`,
