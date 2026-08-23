@@ -63,11 +63,12 @@ func (h *Handler) StartImpersonation(w http.ResponseWriter, r *http.Request) {
 
 // EndImpersonation maneja DELETE /admin/impersonations/current (§9.5): mata
 // la sesión impersonada y devuelve la cookie a una sesión viva del director;
-// logout de impersonación ≠ logout del director.
+// logout de impersonación ≠ logout del director. Lo llama la propia sesión
+// impersonada (que actúa con el rol del usuario), por eso va tras RequireAuth
+// y NO tras requireDirector; sesiones sin marca → 404 (nada que terminar).
 func (h *Handler) EndImpersonation(w http.ResponseWriter, r *http.Request) {
 	sess := middleware.SessionFromContext(r.Context())
-	director := middleware.UserFromContext(r.Context())
-	if sess == nil || sess.ImpersonatedBy == "" || sess.ImpersonatedBy != director.ID {
+	if sess == nil || sess.ImpersonatedBy == "" {
 		errors.WriteCode(w, errors.CodeNotFound)
 		return
 	}
@@ -75,12 +76,12 @@ func (h *Handler) EndImpersonation(w http.ResponseWriter, r *http.Request) {
 		writeInternal(w)
 		return
 	}
-	if err := h.audit(r.Context(), director.ID, "impersonation.end", sess.UserID, "", middleware.ExtractIP(r)); err != nil {
+	if err := h.audit(r.Context(), sess.ImpersonatedBy, "impersonation.end", sess.UserID, "", middleware.ExtractIP(r)); err != nil {
 		writeInternal(w)
 		return
 	}
 
-	sessions, err := h.store.ListSessionsByUser(r.Context(), director.ID)
+	sessions, err := h.store.ListSessionsByUser(r.Context(), sess.ImpersonatedBy)
 	var back *model.Session
 	if err == nil {
 		now := time.Now()
