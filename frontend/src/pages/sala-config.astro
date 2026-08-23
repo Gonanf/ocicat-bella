@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { templatesEntornos, herramientasVisibles } from '../data/mock';
 ---
 
 <Layout titulo="Configuración del aula" active="aulas" navRole="docente">
@@ -22,7 +21,7 @@ import { templatesEntornos, herramientasVisibles } from '../data/mock';
         Configuración del aula
       </h1>
       <p class="text-sm text-base-content/70 mt-1 max-w-xl">
-        Definí qué pueden usar tus alumnos cuando abren un sandbox y qué herramientas ven mientras trabajan.
+        Definí qué plantillas pueden usar tus alumnos cuando abren un sandbox en esta aula (§10.2).
       </p>
     </section>
 
@@ -59,78 +58,25 @@ import { templatesEntornos, herramientasVisibles } from '../data/mock';
         <div class="space-y-4">
           <div>
             <p class="text-xs font-bold uppercase tracking-widest text-primary">
-              Qué pueden usar los alumnos
+              Plantillas permitidas (allowed_templates)
             </p>
             <p class="text-xs text-base-content/70 mt-0.5">
-              Elegí los entornos base del ejercicio con los que trabajan en esta aula.
+              Elegí las plantillas de entorno base con las que pueden trabajar los alumnos en esta aula.
             </p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="grid-templates">
-            {templatesEntornos.map((tpl) => (
-              <label class="card bg-base-200/50 hover:bg-primary/5 border border-base-300 has-[:checked]:border-primary has-[:checked]:bg-primary/5 p-4 rounded-2xl cursor-pointer transition-all flex flex-col justify-between gap-2 select-none group">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="font-mono font-bold text-sm text-base-content group-hover:text-primary">
-                    {tpl.nombre}
-                  </span>
-                  <input
-                    type="checkbox"
-                    name="tpl"
-                    value={tpl.id}
-                    checked={tpl.habilitado}
-                    class="checkbox checkbox-primary checkbox-sm rounded-lg"
-                  />
-                </div>
-                <p class="text-xs text-base-content/65 leading-relaxed">
-                  {tpl.descripcion}
-                </p>
-              </label>
-            ))}
+            <p class="p-6 text-sm text-base-content/60 text-center sm:col-span-2">Cargando plantillas…</p>
           </div>
 
           <p class="text-xs text-base-content/60 font-medium">
-            <strong class="text-base-content font-bold" id="tpl-num">1</strong> de <span>{templatesEntornos.length}</span> entornos habilitados para los alumnos.
+            <strong class="text-base-content font-bold" id="tpl-num">0</strong> de <span id="tpl-total">4</span> entornos habilitados para los alumnos.
           </p>
         </div>
 
         <hr class="border-base-200" />
 
-        <!-- SECCIÓN 2: Herramientas visibles -->
-        <div class="space-y-4">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-primary">
-              Herramientas visibles
-            </p>
-            <p class="text-xs text-base-content/70 mt-0.5">
-              Lo que apagás acá no aparece en el sandbox del alumno.
-            </p>
-          </div>
-
-          <div class="flex flex-wrap gap-2.5" role="group" aria-label="Herramientas visibles en el sandbox">
-            {herramientasVisibles.map((herr) => (
-              <button
-                type="button"
-                class:list={[
-                  'btn btn-sm rounded-full font-semibold transition-all herr-chip gap-2',
-                  herr.activa ? 'btn-primary' : 'btn-outline border-base-300 text-base-content/70 hover:bg-base-200'
-                ]}
-                aria-pressed={herr.activa ? 'true' : 'false'}
-                data-id={herr.id}
-              >
-                <span class="font-mono text-xs opacity-80">{herr.icono}</span>
-                <span>{herr.nombre}</span>
-              </button>
-            ))}
-          </div>
-
-          <p class="text-[11px] text-base-content/50">
-            Tocá cada herramienta para prenderla o apagarla según la dinámica de la clase.
-          </p>
-        </div>
-
-        <hr class="border-base-200" />
-
-        <!-- SECCIÓN 3: Avanzado - Entorno propio -->
+        <!-- SECCIÓN 2: Avanzado - Dockerfile propio -->
         <div class="space-y-4">
           <div>
             <p class="text-xs font-bold uppercase tracking-widest text-primary">
@@ -141,17 +87,17 @@ import { templatesEntornos, herramientasVisibles } from '../data/mock';
           <div class="p-4 rounded-2xl bg-base-200/60 border border-base-300 flex items-start justify-between gap-4">
             <div>
               <strong class="text-xs font-bold uppercase tracking-wider text-base-content block">
-                Permitir que los alumnos armen su propio entorno (avanzado)
+                Permitir Dockerfile personalizado (custom_dockerfile_enabled)
               </strong>
               <p class="text-xs text-base-content/70 mt-0.5 max-w-lg leading-relaxed">
-                Sin esto, todos parten del entorno del ejercicio que definiste arriba.
+                Sin esto, todos parten de las plantillas de entorno permitidas arriba.
               </p>
             </div>
             <input
               type="checkbox"
-              id="f-entorno-propio"
+              id="f-custom-dockerfile"
               class="toggle toggle-warning shrink-0"
-              aria-label="Permitir entorno propio avanzado"
+              aria-label="Permitir Dockerfile personalizado"
             />
           </div>
 
@@ -163,10 +109,12 @@ import { templatesEntornos, herramientasVisibles } from '../data/mock';
               <path d="M12 17h.01"></path>
             </svg>
             <p class="leading-relaxed">
-              <strong>Mantenelo apagado salvo que un proyecto lo requiera:</strong> un entorno armado a medida puede consumir muchos recursos del aula o intentar conexiones no deseadas fuera del entorno controlado.
+              <strong>Mantenelo apagado salvo que un proyecto lo requiera:</strong> un Dockerfile propio puede intentar descargar dependencias pesadas o consumir recursos excesivos del servidor escolar.
             </p>
           </div>
         </div>
+
+        <div id="error-config" class="hidden p-4 rounded-xl bg-error/10 border border-error/25 text-xs text-error font-medium" role="alert"></div>
 
         <!-- Guardar Configuración -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-base-200">
@@ -175,6 +123,7 @@ import { templatesEntornos, herramientasVisibles } from '../data/mock';
           </p>
           <button
             type="submit"
+            id="btn-guardar"
             class="btn btn-primary btn-sm md:btn-md rounded-xl font-semibold px-6 shrink-0"
           >
             Guardar configuración
@@ -193,81 +142,173 @@ import { templatesEntornos, herramientasVisibles } from '../data/mock';
     </div>
   </div>
 
-  <script is:inline>
-    // Wire básico del aula real; la data de sandboxes/settings llega en FE5 (§7).
-    (() => {
-      const classroomId = new URLSearchParams(window.location.search).get('classroom');
-      if (!classroomId) {
-        window.location.href = '/dashboard/';
-        return;
-      }
-      fetch('/api/v1/classrooms/' + encodeURIComponent(classroomId), { credentials: 'include' })
-        .then((r) => (r.ok ? r.json() : Promise.reject(r)))
-        .then((aula) => {
-          const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.textContent = v; };
-          set('h-nombre', aula.name);
-          set('h-detalle', [aula.name, aula.course, aula.shift].filter(Boolean).join(' · '));
-          const navC = document.getElementById('nav-consignas');
-          const navA = document.getElementById('nav-alumnos');
-          if (navC) navC.href = '/consignas/?classroom=' + encodeURIComponent(classroomId);
-          if (navA) navA.href = '/alumnos/?classroom=' + encodeURIComponent(classroomId);
-        })
-        .catch(() => { window.location.href = '/dashboard/'; });
-    })();
-  </script>
+  <script>
+    import {
+      ApiError, getClassroom, listTemplates, patchClassroomSettings,
+      type Template
+    } from '../lib/api';
 
-  <script is:inline>
     (() => {
-      const $ = (sel) => document.querySelector(sel);
+      const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
 
       // Toast feedback
       const toast = $('#toast');
       const toastMsg = $('#toast-msg');
-      let toastTimer = null;
-      function aviso(msg) {
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
         if (!toast || !toastMsg) return;
         toastMsg.textContent = msg;
         toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(toastTimer);
+        clearTimeout(toastTimer ?? undefined);
         toastTimer = setTimeout(() => {
           toast.classList.remove('opacity-100', 'translate-y-0');
           toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
         }, 2600);
       }
 
-      // Contador de templates
-      const tpls = document.querySelectorAll('input[name="tpl"]');
-      const numEl = $('#tpl-num');
+      function escapeHtml(s: string): string {
+        return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+      }
+
+      const classroomId = new URLSearchParams(window.location.search).get('classroom') ?? '';
+      if (!classroomId) {
+        window.location.href = '/dashboard/';
+        return;
+      }
+
+      const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
+        'python/numpy': 'Python 3.11 con NumPy, Pandas, Matplotlib y SciPy (modo job)',
+        'bun/react': 'Bun + React y Vite listos para SPA (modo service web)',
+        'cpp/sqlite': 'C++ (GCC) con SQLite3 para bases de datos y algoritmos (modo job)',
+        'arduino': 'Arduino CLI con compilación y simulación Uno (modo job)',
+      };
+
+      let todosLosTemplates: Template[] = [];
+      let allowedMap: Record<string, boolean> = {};
+
       function refrescarConteo() {
+        const tpls = document.querySelectorAll<HTMLInputElement>('input[name="tpl"]');
         let count = 0;
         tpls.forEach((t) => { if (t.checked) count++; });
+        const numEl = $('#tpl-num');
         if (numEl) numEl.textContent = String(count);
       }
-      tpls.forEach((t) => t.addEventListener('change', refrescarConteo));
-      refrescarConteo();
 
-      // Chips de herramientas toggleables
-      document.querySelectorAll('.herr-chip').forEach((chip) => {
-        chip.addEventListener('click', function () {
-          const encendido = this.getAttribute('aria-pressed') === 'true';
-          const nuevo = !encendido;
-          this.setAttribute('aria-pressed', String(nuevo));
-          if (nuevo) {
-            this.classList.add('btn-primary');
-            this.classList.remove('btn-outline', 'border-base-300', 'text-base-content/70');
-          } else {
-            this.classList.remove('btn-primary');
-            this.classList.add('btn-outline', 'border-base-300', 'text-base-content/70');
-          }
+      function renderTemplatesGrid() {
+        const grid = $('#grid-templates');
+        if (!grid) return;
+
+        $('#tpl-total')!.textContent = String(todosLosTemplates.length);
+
+        grid.innerHTML = todosLosTemplates.map((t) => {
+          const checked = allowedMap[t.id] ?? true;
+          const desc = TEMPLATE_DESCRIPTIONS[t.id] || `Modo ${t.mode_default} · ${t.runtimes.join(', ')}`;
+          return `
+            <label class="card bg-base-200/50 hover:bg-primary/5 border border-base-300 has-[:checked]:border-primary has-[:checked]:bg-primary/5 p-4 rounded-2xl cursor-pointer transition-all flex flex-col justify-between gap-2 select-none group">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono font-bold text-sm text-base-content group-hover:text-primary">
+                  ${escapeHtml(t.label)} <span class="text-xs font-normal text-base-content/60">(${escapeHtml(t.id)})</span>
+                </span>
+                <input
+                  type="checkbox"
+                  name="tpl"
+                  value="${escapeHtml(t.id)}"
+                  ${checked ? 'checked' : ''}
+                  class="checkbox checkbox-primary checkbox-sm rounded-lg"
+                />
+              </div>
+              <p class="text-xs text-base-content/65 leading-relaxed">
+                ${escapeHtml(desc)}
+              </p>
+            </label>
+          `;
+        }).join('');
+
+        document.querySelectorAll<HTMLInputElement>('input[name="tpl"]').forEach((el) => {
+          el.addEventListener('change', refrescarConteo);
         });
-      });
+        refrescarConteo();
+      }
+
+      async function init() {
+        try {
+          const [aula, allTplRes, allowedTplRes] = await Promise.all([
+            getClassroom(classroomId),
+            listTemplates(),
+            listTemplates(classroomId),
+          ]);
+
+          const set = (id: string, v?: string) => {
+            const el = document.getElementById(id);
+            if (el && v) el.textContent = v;
+          };
+          set('h-nombre', aula.name);
+          set('h-detalle', [aula.name, aula.course, aula.shift].filter(Boolean).join(' · '));
+          document.title = `Configuración — ${aula.name}`;
+
+          const navC = document.getElementById('nav-consignas') as HTMLAnchorElement | null;
+          const navA = document.getElementById('nav-alumnos') as HTMLAnchorElement | null;
+          if (navC) navC.href = '/consignas/?classroom=' + encodeURIComponent(classroomId);
+          if (navA) navA.href = '/alumnos/?classroom=' + encodeURIComponent(classroomId);
+
+          todosLosTemplates = allTplRes.templates;
+          allowedMap = {};
+          allowedTplRes.templates.forEach((t) => { allowedMap[t.id] = true; });
+
+          renderTemplatesGrid();
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          window.location.href = '/dashboard/';
+        }
+      }
 
       // Submit Form
-      $('#form-config')?.addEventListener('submit', (e) => {
+      $('#form-config')?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const errBox = $('#error-config')!;
+        errBox.classList.add('hidden');
+        errBox.textContent = '';
+
+        const selected: string[] = [];
+        document.querySelectorAll<HTMLInputElement>('input[name="tpl"]:checked').forEach((input) => {
+          selected.push(input.value);
+        });
+
+        if (selected.length === 0) {
+          errBox.textContent = 'Tenés que habilitar al menos un entorno para los alumnos.';
+          errBox.classList.remove('hidden');
+          return;
+        }
+
+        const customDocker = ($('#f-custom-dockerfile') as HTMLInputElement)?.checked ?? false;
+        const btn = $('#btn-guardar') as HTMLButtonElement;
+        btn.disabled = true;
+        btn.textContent = 'Guardando…';
+
+        try {
+          await patchClassroomSettings(classroomId, {
+            allowed_templates: selected,
+            custom_dockerfile_enabled: customDocker,
+          });
           aviso('Configuración guardada. Se aplica a los sandboxes nuevos.');
+        } catch (err) {
+          if (err instanceof ApiError) {
+            errBox.textContent = err.message || 'No pudimos guardar la configuración.';
+          } else {
+            errBox.textContent = 'No pudimos conectar con el servidor.';
+          }
+          errBox.classList.remove('hidden');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Guardar configuración';
+        }
       });
+
+      void init();
     })();
   </script>
 </Layout>
