@@ -1,0 +1,745 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout titulo="Sandboxes" active="sandboxes">
+  <div class="py-6 sm:py-10 space-y-6">
+
+    <!-- ==================== VISTA LISTADO ==================== -->
+    <section id="vista-listado" class="space-y-6">
+      <div class="flex flex-wrap justify-between items-end gap-4 pb-2">
+        <div>
+          <h1 class="font-display font-normal text-4xl sm:text-5xl tracking-tight text-base-content">
+            Sandboxes
+          </h1>
+          <p class="mt-1.5 text-sm text-base-content/70">
+            Los proyectos del curso, corriendo en el servidor de la escuela (§7).
+          </p>
+        </div>
+        <button
+          type="button"
+          id="btn-abrir-crear"
+          class="btn btn-primary rounded-xl font-semibold px-5 shadow-xs"
+        >
+          ＋ Nuevo sandbox
+        </button>
+      </div>
+
+      <!-- Barra de Presupuesto y Capacidad -->
+      <div class="card bg-base-100 border border-base-300 shadow-xs" aria-label="Presupuesto de sandboxes">
+        <div class="card-body p-4 flex-row items-center gap-4 flex-wrap justify-between">
+          <div class="flex items-center gap-4 flex-wrap">
+            <span class="text-sm text-base-content font-medium">
+              <strong class="font-display text-xl text-base-content" id="cap-corriendo">0</strong> de <strong id="cap-total">4</strong> sandboxes prendidos
+            </span>
+            <progress
+              id="cap-progress"
+              class="progress progress-primary w-44"
+              value="0"
+              max="4"
+              aria-label="Sandboxes en uso"
+            ></progress>
+            <span class="badge badge-ghost text-xs font-normal">servidor escolar</span>
+          </div>
+          <span class="text-xs text-base-content/60 font-medium" id="cap-note">
+            Presupuesto: hasta 4 simultáneos. Si está lleno, tu sandbox espera en cola.
+          </span>
+        </div>
+      </div>
+
+      <!-- Grid de Sandboxes -->
+      <div class="grid md:grid-cols-2 gap-4 pt-2" id="grid-sandboxes">
+        <p class="p-8 text-sm text-base-content/60 text-center md:col-span-2">Cargando sandboxes…</p>
+      </div>
+
+      <!-- Estado vacío -->
+      <div id="sin-sandboxes" class="hidden card bg-base-100 border border-base-300 p-8 text-center">
+        <h3 class="font-display font-normal text-2xl text-base-content">No hay sandboxes corriendo</h3>
+        <p class="text-sm text-base-content/60 mt-1 mb-4">Creá uno desde una plantilla para empezar a experimentar.</p>
+        <div>
+          <button type="button" id="btn-crear-vacio" class="btn btn-primary rounded-xl px-6">
+            ＋ Crear sandbox
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VISTA DETALLE ==================== -->
+    <section id="vista-detalle" class="hidden space-y-6">
+      <nav aria-label="Volver" class="text-sm text-base-content/60">
+        <a href="/sandboxes/" id="btn-volver-listado" class="inline-flex items-center gap-1.5 text-xs text-base-content/60 hover:text-primary transition-colors font-medium">
+          ← Volver a Sandboxes
+        </a>
+      </nav>
+
+      <div class="flex flex-wrap items-end justify-between gap-4 pb-2">
+        <div>
+          <h1 class="font-display font-normal text-3xl sm:text-4xl tracking-tight text-base-content" id="det-titulo">
+            …
+          </h1>
+          <div class="flex gap-2 flex-wrap items-center mt-2" id="det-badges">
+            <span class="badge badge-outline font-mono text-[11px]" id="det-template">—</span>
+            <span class="badge badge-outline font-mono text-[11px]" id="det-modo">—</span>
+            <span class="badge badge-neutral text-xs font-semibold" id="det-estado">cargando…</span>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap items-center">
+          <a
+            id="btn-visitar-servicio"
+            href="#"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-outline btn-primary btn-sm md:btn-md rounded-xl font-semibold hidden"
+          >
+            ↗ Abrir servicio web
+          </a>
+          <button
+            type="button"
+            id="btn-stop-sandbox"
+            class="btn btn-error btn-outline btn-sm md:btn-md rounded-xl font-semibold hidden"
+          >
+            ■ Detener
+          </button>
+          <button
+            type="button"
+            id="btn-reinstanciar-sandbox"
+            class="btn btn-primary btn-sm md:btn-md rounded-xl font-semibold hidden"
+          >
+            ▶ Re-instanciar
+          </button>
+        </div>
+      </div>
+
+      <!-- Banner de estado en cola / proceso -->
+      <div id="banner-cola" class="hidden p-4 rounded-2xl bg-warning/15 border border-warning/30 flex items-start gap-3 text-xs text-base-content">
+        <span class="loading loading-spinner loading-xs text-warning shrink-0 mt-0.5"></span>
+        <div>
+          <strong class="font-bold text-sm" id="banner-cola-titulo">En cola de espera</strong>
+          <p class="mt-0.5 text-base-content/80" id="banner-cola-desc">
+            Esperando turno en el servidor de la escuela. Se iniciará automáticamente cuando haya presupuesto.
+          </p>
+        </div>
+      </div>
+
+      <!-- Consola de logs + Aside Metadata -->
+      <div class="grid lg:grid-cols-[1fr_330px] gap-6 items-start">
+        <div class="space-y-6">
+          <!-- Terminal logs en vivo -->
+          <div class="rounded-2xl overflow-hidden border border-[#1E2A44] shadow-lg">
+            <div class="flex justify-between items-center px-4 py-2.5 bg-[#0B1222] font-mono text-[11px] tracking-wider text-[#8AA0C2]">
+              <span id="terminal-header-title">logs · backend docker</span>
+              <span id="terminal-live-badge" class="inline-flex items-center gap-1.5 uppercase font-bold text-xs text-[#8AA0C2]">
+                conectando…
+              </span>
+            </div>
+            <div
+              id="terminal-output"
+              class="mockup-code rounded-none border-0 min-h-80 max-h-[30rem] overflow-auto text-[12.5px] bg-[#070D18] text-[#DCE6F5] p-4 font-mono leading-relaxed"
+              role="log"
+              tabindex="0"
+              aria-label="Salida de la ejecución"
+            >
+              <pre data-prefix=">"><code>Conectando al stream de logs…</code></pre>
+            </div>
+          </div>
+
+          <!-- Historial de ejecuciones -->
+          <div class="card bg-base-100 border border-base-300 shadow-xs" id="box-historial">
+            <div class="card-body p-4 sm:p-5 overflow-x-auto">
+              <h2 class="font-mono text-xs font-bold uppercase tracking-widest text-primary mb-3">Historial de ejecuciones</h2>
+              <table class="table table-sm w-full">
+                <thead>
+                  <tr class="text-xs text-base-content/60">
+                    <th>Ejecución</th>
+                    <th>Resultado</th>
+                    <th>Exit code</th>
+                  </tr>
+                </thead>
+                <tbody id="historial-tbody">
+                  <tr><td colspan="3" class="text-xs text-base-content/50 py-3 text-center">Sin ejecuciones previas</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aside metadata -->
+        <aside class="card bg-base-100 border border-base-300 lg:sticky lg:top-24 shadow-xs" aria-label="Datos del sandbox">
+          <div class="card-body p-5 gap-1">
+            <h2 class="font-display font-normal text-xl text-base-content mb-2">Datos del sandbox</h2>
+            <dl class="text-xs divide-y divide-dashed divide-base-200">
+              <div class="flex justify-between gap-3 py-2.5"><dt class="text-base-content/60">Modo</dt><dd class="font-medium text-right" id="meta-modo">—</dd></div>
+              <div class="flex justify-between gap-3 py-2.5"><dt class="text-base-content/60">Retención</dt><dd class="font-medium text-right" id="meta-retencion">—</dd></div>
+              <div class="flex justify-between gap-3 py-2.5"><dt class="text-base-content/60">Plantilla</dt><dd class="font-mono font-medium text-right" id="meta-template">—</dd></div>
+              <div class="flex justify-between gap-3 py-2.5"><dt class="text-base-content/60">Autor</dt><dd class="font-mono text-right" id="meta-autor">—</dd></div>
+              <div class="flex justify-between gap-3 py-2.5"><dt class="text-base-content/60">Comando</dt><dd class="font-mono text-right break-all" id="meta-comando">—</dd></div>
+              <div class="flex justify-between gap-3 py-2.5"><dt class="text-base-content/60">Paquetes extra</dt><dd class="font-mono text-right" id="meta-paquetes">—</dd></div>
+              <div class="flex justify-between gap-3 py-2.5"><dt class="text-base-content/60">Creado</dt><dd class="text-right text-base-content/70" id="meta-creado">—</dd></div>
+              <div class="flex justify-between gap-3 py-2.5"><dt class="text-base-content/60">Último Exit</dt><dd id="meta-exit"><span class="badge badge-sm font-mono">—</span></dd></div>
+            </dl>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ==================== VISTA 404 EFÍMERO ==================== -->
+    <section id="vista-ephemeral-404" class="hidden py-12 text-center max-w-lg mx-auto">
+      <div class="card bg-base-100 border border-base-300 p-8 shadow-sm">
+        <span class="size-14 rounded-full bg-warning/15 text-warning grid place-items-center mx-auto mb-4">
+          <svg class="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path>
+          </svg>
+        </span>
+        <h2 class="font-display font-normal text-3xl text-base-content">Sandbox efímero finalizado</h2>
+        <p class="text-sm text-base-content/70 mt-2 leading-relaxed">
+          Este sandbox se ejecutó con <strong class="font-semibold text-base-content">retención efímera</strong> y su contenedor ya fue limpiado por el servidor (404). Los registros efímeros no conservan estado tras su finalización (§7).
+        </p>
+        <div class="mt-6">
+          <a href="/sandboxes/" class="btn btn-primary rounded-xl px-6">← Volver a Sandboxes</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal Crear Sandbox -->
+  <dialog id="modal-crear" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-2xl p-6 sm:p-7 max-w-lg shadow-2xl">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3" aria-label="Cerrar modal">✕</button>
+      </form>
+
+      <h3 class="font-display font-normal text-2xl sm:text-3xl text-base-content">Nuevo sandbox</h3>
+      <p class="text-xs text-base-content/70 mt-1">
+        Elegí una plantilla permitida en tu aula para iniciar un contenedor (§7).
+      </p>
+
+      <form id="form-crear" class="mt-5 space-y-4" novalidate>
+        <!-- Selección de plantilla -->
+        <div class="form-control flex flex-col gap-1">
+          <label for="c-template" class="text-xs font-bold uppercase tracking-wider text-base-content/80">Plantilla base</label>
+          <select id="c-template" required class="select select-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm font-medium">
+            <option value="python/numpy">Python + NumPy (numpy, pandas, matplotlib, scipy)</option>
+            <option value="bun/react">Bun + React (zod, axios, dayjs) [modo service web]</option>
+            <option value="cpp/sqlite">C++ + SQLite</option>
+            <option value="arduino">Arduino Uno</option>
+          </select>
+        </div>
+
+        <!-- Modo -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-control flex flex-col gap-1">
+            <label for="c-mode" class="text-xs font-bold uppercase tracking-wider text-base-content/80">Modo</label>
+            <select id="c-mode" class="select select-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm">
+              <option value="job">Job (ejecuta y termina)</option>
+              <option value="service">Service (servidor web)</option>
+            </select>
+          </div>
+
+          <div class="form-control flex flex-col gap-1">
+            <label for="c-retention" class="text-xs font-bold uppercase tracking-wider text-base-content/80">Retención</label>
+            <select id="c-retention" class="select select-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm">
+              <option value="historical" selected>Histórica (re-instanciable)</option>
+              <option value="ephemeral">Efímera (404 al limpiar)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Paquetes extra -->
+        <div class="form-control flex flex-col gap-1">
+          <label for="c-packages" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Paquetes extra <span class="text-base-content/50 font-normal lowercase">(allowlist)</span>
+          </label>
+          <input
+            id="c-packages"
+            type="text"
+            placeholder="ej. pandas matplotlib"
+            class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm font-mono"
+          />
+          <p class="text-[11px] text-base-content/55 mt-0.5" id="c-allowlist-hint">
+            Permitidos: numpy pandas matplotlib scipy
+          </p>
+        </div>
+
+        <!-- Comando de inicio -->
+        <div class="form-control flex flex-col gap-1">
+          <label for="c-startcmd" class="text-xs font-bold uppercase tracking-wider text-base-content/80">
+            Comando de inicio <span class="text-base-content/50 font-normal lowercase">(opcional)</span>
+          </label>
+          <input
+            id="c-startcmd"
+            type="text"
+            placeholder="python main.py"
+            class="input input-bordered w-full rounded-xl bg-base-200/60 focus:bg-base-100 focus:border-primary text-sm font-mono"
+          />
+        </div>
+
+        <!-- Alerta de error -->
+        <div id="c-error" class="hidden p-3.5 rounded-xl bg-error/10 border border-error/25 text-xs text-error font-medium leading-relaxed" role="alert"></div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-base-200">
+          <button type="button" class="btn btn-ghost btn-sm rounded-xl" id="btn-cancelar-crear">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm rounded-xl font-semibold px-5" id="btn-confirmar-crear">
+            Lanzar sandbox
+          </button>
+        </div>
+      </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>cerrar</button>
+    </form>
+  </dialog>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-bottom toast-center z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4" role="status" aria-live="polite">
+    <div class="alert alert-neutral shadow-lg rounded-full px-5 py-2.5 text-sm font-medium">
+      <span id="toast-msg">Notificación</span>
+    </div>
+  </div>
+
+  <script>
+    import {
+      ApiError, createSandbox, getSandbox, instantiateSandbox,
+      listSandboxes, listTemplates, me, stopRun, streamRunLogs,
+      type RunDetail, type RunStatus, type SandboxDetail,
+      type SandboxMode, type SandboxRetention, type SandboxSummary,
+      type Template,
+    } from '../../lib/api';
+
+    (() => {
+      const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T | null;
+
+      const toast = $('#toast');
+      const toastMsg = $('#toast-msg');
+      let toastTimer: ReturnType<typeof setTimeout> | null = null;
+      function aviso(msg: string) {
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer ?? undefined);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }, 3200);
+      }
+
+      function escapeHtml(s: string): string {
+        return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+      }
+
+      const TEMPLATE_NAMES: Record<string, string> = {
+        'python/numpy': 'Python + NumPy',
+        'bun/react': 'Bun + React',
+        'cpp/sqlite': 'C++ + SQLite',
+        'arduino': 'Arduino',
+      };
+
+      const TEMPLATE_ALLOWLIST: Record<string, string> = {
+        'python/numpy': 'Permitidos: numpy pandas matplotlib scipy',
+        'bun/react': 'Permitidos: zod axios dayjs',
+        'cpp/sqlite': 'GCC 13 + SQLite3',
+        'arduino': 'Arduino Uno toolchain',
+      };
+
+      const STATUS_INFO: Record<RunStatus | string, { label: string; badge: string; pulse?: boolean }> = {
+        queued: { label: 'En cola', badge: 'badge-warning badge-soft', pulse: true },
+        downloading_image: { label: 'Descargando imagen', badge: 'badge-info badge-soft', pulse: true },
+        starting: { label: 'Iniciando', badge: 'badge-info badge-soft', pulse: true },
+        ready: { label: 'Listo', badge: 'badge-success badge-soft' },
+        running: { label: 'Corriendo', badge: 'badge-success badge-soft', pulse: true },
+        succeeded: { label: 'Terminado OK', badge: 'badge-success badge-soft' },
+        failed: { label: 'Falló / Timeout', badge: 'badge-error badge-soft' },
+        cleaned: { label: 'Detenido / Limpiado', badge: 'badge-ghost text-base-content/60' },
+      };
+
+      const params = new URLSearchParams(window.location.search);
+      const sandboxId = params.get('id') ?? '';
+
+      let availableTemplates: Template[] = [];
+      let activeEventSource: EventSource | null = null;
+
+      // --- RENDER VISTA LISTADO ---
+
+      function cardSandbox(sb: SandboxSummary): string {
+        const estado = STATUS_INFO[sb.status ?? 'cleaned'] ?? { label: sb.status ?? 'detenido', badge: 'badge-ghost' };
+        const tplName = TEMPLATE_NAMES[sb.template_id] || sb.template_id;
+        const fecha = new Date(sb.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const esRunning = sb.status === 'running' || sb.status === 'starting' || sb.status === 'downloading_image' || sb.status === 'ready';
+
+        return `
+        <article class="card bg-base-100 border border-base-300 hover:border-base-300 shadow-xs transition-colors">
+          <div class="card-body p-4 sm:p-5 gap-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2 class="font-semibold text-base leading-snug break-words">${escapeHtml(tplName)}</h2>
+                <p class="text-xs text-base-content/60 mt-0.5">
+                  ${sb.author ? `por <span class="font-mono text-xs font-medium text-base-content">${escapeHtml(sb.author)}</span> · ` : ''}${fecha}
+                </p>
+              </div>
+              <span class="badge ${estado.badge} normal-case tracking-wide shrink-0 font-medium gap-1.5">
+                ${estado.pulse ? '<i class="inline-block size-1.5 rounded-full bg-current animate-pulse" aria-hidden="true"></i>' : ''}
+                ${estado.label}
+              </span>
+            </div>
+
+            <div class="flex gap-2 flex-wrap items-center text-xs">
+              <span class="badge badge-outline font-mono text-[10px] uppercase font-bold tracking-wider">${sb.mode}</span>
+              <span class="badge badge-outline font-mono text-[10px]">${sb.retention === 'historical' ? 'histórico' : 'efímero'}</span>
+            </div>
+
+            <div class="card-actions justify-between items-center pt-3 mt-1 border-t border-base-200">
+              <span class="font-mono text-[11px] text-base-content/50">sb-${escapeHtml(sb.id.slice(-6))}</span>
+              <a href="/sandboxes/?id=${encodeURIComponent(sb.id)}" class="btn btn-sm rounded-xl bg-base-100 border border-base-300 hover:border-base-content font-medium">
+                Ver detalle
+              </a>
+            </div>
+          </div>
+        </article>`;
+      }
+
+      async function initListado() {
+        $('#vista-listado')?.classList.remove('hidden');
+        $('#vista-detalle')?.classList.add('hidden');
+        $('#vista-ephemeral-404')?.classList.add('hidden');
+
+        try {
+          const [{ sandboxes: list }, { templates }] = await Promise.all([
+            listSandboxes(),
+            listTemplates().catch(() => ({ templates: [] as Template[] })),
+          ]);
+
+          availableTemplates = templates;
+          poblarSelectTemplates(templates);
+
+          const runningCount = list.filter((s) => s.status === 'running' || s.status === 'starting' || s.status === 'downloading_image' || s.status === 'ready').length;
+          $('#cap-corriendo')!.textContent = String(runningCount);
+          ($('#cap-progress') as HTMLProgressElement).value = runningCount;
+
+          const grid = $('#grid-sandboxes')!;
+          grid.innerHTML = list.map(cardSandbox).join('');
+          $('#sin-sandboxes')?.classList.toggle('hidden', list.length > 0);
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          $('#grid-sandboxes')!.innerHTML = '<p class="p-8 text-sm text-base-content/60 text-center md:col-span-2">No pudimos conectar con el servidor.</p>';
+        }
+      }
+
+      function poblarSelectTemplates(templates: Template[]) {
+        const sel = $('#c-template') as HTMLSelectElement | null;
+        if (!sel || templates.length === 0) return;
+        sel.innerHTML = templates.map((t) =>
+          `<option value="${escapeHtml(t.id)}">${escapeHtml(t.label)} (${escapeHtml(t.id)})</option>`
+        ).join('');
+      }
+
+      // --- RENDER VISTA DETALLE ---
+
+      function exitChip(exit: number | null | undefined): string {
+        if (exit === null || exit === undefined) return '<span class="badge badge-sm badge-ghost font-mono">—</span>';
+        const cls = exit === 0 ? 'badge-success badge-soft' : exit === 124 ? 'badge-warning badge-soft' : 'badge-error badge-soft';
+        return `<span class="badge badge-sm font-mono ${cls}">exit=${exit}</span>`;
+      }
+
+      function appendTerminalLine(stream: string, text: string) {
+        const terminal = $('#terminal-output');
+        if (!terminal) return;
+        const pre = document.createElement('pre');
+        if (stream === 'stdout' && text.startsWith('$')) {
+          pre.setAttribute('data-prefix', '$');
+          pre.innerHTML = `<code>${escapeHtml(text.slice(1).trim())}</code>`;
+        } else if (stream === 'stdout' && text.startsWith('>')) {
+          pre.setAttribute('data-prefix', '>');
+          pre.innerHTML = `<code>${escapeHtml(text.slice(1).trim())}</code>`;
+        } else if (stream === 'stderr') {
+          pre.setAttribute('data-prefix', '!');
+          pre.classList.add('text-error');
+          pre.innerHTML = `<code>${escapeHtml(text)}</code>`;
+        } else {
+          pre.setAttribute('data-prefix', ' ');
+          pre.innerHTML = `<code>${escapeHtml(text)}</code>`;
+        }
+        terminal.appendChild(pre);
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+
+      function updateDetailStatus(st: RunStatus | string) {
+        const info = STATUS_INFO[st] ?? { label: st, badge: 'badge-neutral' };
+        const badgeEl = $('#det-estado');
+        if (badgeEl) {
+          badgeEl.className = `badge ${info.badge} normal-case tracking-wide text-xs font-semibold gap-1.5`;
+          badgeEl.innerHTML = `${info.pulse ? '<i class="inline-block size-1.5 rounded-full bg-current animate-pulse" aria-hidden="true"></i>' : ''}${escapeHtml(info.label)}`;
+        }
+
+        const liveBadge = $('#terminal-live-badge');
+        if (liveBadge) {
+          if (st === 'running' || st === 'starting' || st === 'downloading_image' || st === 'ready') {
+            liveBadge.className = 'inline-flex items-center gap-1.5 uppercase font-bold text-xs text-[#7CFFB2]';
+            liveBadge.innerHTML = '<i class="inline-block size-2 rounded-full bg-[#7CFFB2] animate-pulse"></i> en vivo';
+          } else if (st === 'queued') {
+            liveBadge.className = 'inline-flex items-center gap-1.5 uppercase font-bold text-xs text-warning';
+            liveBadge.innerHTML = '<span class="loading loading-spinner loading-xs text-warning"></span> en cola';
+          } else {
+            liveBadge.className = 'inline-flex items-center gap-1.5 uppercase font-medium text-xs text-[#8AA0C2]';
+            liveBadge.textContent = info.label;
+          }
+        }
+
+        // Banner en cola
+        const bannerCola = $('#banner-cola');
+        if (bannerCola) {
+          bannerCola.classList.toggle('hidden', st !== 'queued');
+        }
+
+        // Botones de acción
+        const esActivo = st === 'running' || st === 'starting' || st === 'downloading_image' || st === 'ready' || st === 'queued';
+        $('#btn-stop-sandbox')?.classList.toggle('hidden', !esActivo);
+        $('#btn-reinstanciar-sandbox')?.classList.toggle('hidden', esActivo);
+      }
+
+      async function initDetalle(id: string) {
+        $('#vista-listado')?.classList.add('hidden');
+        $('#vista-detalle')?.classList.remove('hidden');
+        $('#vista-ephemeral-404')?.classList.add('hidden');
+
+        let sb: SandboxDetail;
+        try {
+          sb = await getSandbox(id);
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 404) {
+            // 404 Ephemeral o eliminado
+            $('#vista-detalle')?.classList.add('hidden');
+            $('#vista-ephemeral-404')?.classList.remove('hidden');
+            return;
+          }
+          if (err instanceof ApiError && err.status === 401) {
+            window.location.href = '/login/';
+            return;
+          }
+          aviso('No pudimos cargar este sandbox.');
+          return;
+        }
+
+        const tplName = TEMPLATE_NAMES[sb.template_id] || sb.template_id;
+        $('#det-titulo')!.textContent = tplName;
+        document.title = `${tplName} — Sandbox`;
+        $('#det-template')!.textContent = sb.template_id;
+        $('#det-modo')!.textContent = `modo ${sb.mode}`;
+        $('#terminal-header-title')!.textContent = `logs · sb-${sb.id.slice(-6)} · backend docker`;
+
+        // Metadata aside
+        $('#meta-modo')!.textContent = sb.mode === 'job' ? 'job · playground' : 'service · web';
+        $('#meta-retencion')!.textContent = sb.retention === 'historical' ? 'histórico · re-instanciable' : 'efímero';
+        $('#meta-template')!.textContent = sb.template_id;
+        $('#meta-autor')!.textContent = sb.author || 'Tú';
+        $('#meta-comando')!.textContent = sb.start_command || '(default)';
+        $('#meta-paquetes')!.textContent = sb.packages_extra || '(ninguno)';
+        $('#meta-creado')!.textContent = new Date(sb.created_at).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+        const runs = sb.runs ?? [];
+        const latestRun: RunDetail | undefined = runs[runs.length - 1];
+
+        const initialStatus = latestRun?.status ?? sb.status ?? 'cleaned';
+        updateDetailStatus(initialStatus);
+
+        $('#meta-exit')!.innerHTML = exitChip(latestRun?.exit_code);
+
+        // Servicio web
+        const btnServicio = $('#btn-visitar-servicio') as HTMLAnchorElement | null;
+        if (btnServicio) {
+          if (latestRun?.service_url) {
+            btnServicio.href = latestRun.service_url;
+            btnServicio.classList.remove('hidden');
+          } else {
+            btnServicio.classList.add('hidden');
+          }
+        }
+
+        // Historial
+        const historyTbody = $('#historial-tbody')!;
+        if (latestRun?.history && latestRun.history.length > 0) {
+          historyTbody.innerHTML = latestRun.history.map((h) => `
+            <tr>
+              <td class="font-medium font-mono">#${h.n}</td>
+              <td>${escapeHtml(h.outcome)}</td>
+              <td>${exitChip(h.outcome === 'success' ? 0 : 1)}</td>
+            </tr>
+          `).join('');
+        } else if (runs.length > 0) {
+          historyTbody.innerHTML = runs.map((r, i) => `
+            <tr>
+              <td class="font-medium font-mono">#${i + 1}</td>
+              <td>${escapeHtml(r.status)}</td>
+              <td>${exitChip(r.exit_code)}</td>
+            </tr>
+          `).join('');
+        }
+
+        // Stop handler
+        $('#btn-stop-sandbox')?.addEventListener('click', async () => {
+          if (!latestRun) return;
+          const btn = $('#btn-stop-sandbox') as HTMLButtonElement;
+          btn.disabled = true;
+          btn.textContent = 'Deteniendo…';
+          try {
+            await stopRun(latestRun.run_id);
+            updateDetailStatus('cleaned');
+            appendTerminalLine('stdout', '[runner] detenido por el usuario');
+            aviso('Sandbox detenido.');
+          } catch (err) {
+            aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos detener el sandbox.');
+          } finally {
+            btn.disabled = false;
+            btn.textContent = '■ Detener';
+          }
+        });
+
+        // Re-instanciar handler
+        $('#btn-reinstanciar-sandbox')?.addEventListener('click', async () => {
+          const btn = $('#btn-reinstanciar-sandbox') as HTMLButtonElement;
+          btn.disabled = true;
+          btn.textContent = 'Iniciando…';
+          try {
+            const nuevo = await instantiateSandbox(sb.id);
+            aviso(nuevo.status === 'queued' ? `Re-instanciado en cola (pos ${nuevo.queue_position})` : 'Re-instanciado con éxito.');
+            // Reconectar SSE logs con el nuevo run
+            conectarSSELogs(nuevo.run_id);
+          } catch (err) {
+            if (err instanceof ApiError && err.code === 'capacity_unavailable') {
+              aviso('Servidor sin capacidad: la cola de sandboxes está llena. Esperá unos minutos e intentá de nuevo.');
+            } else {
+              aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos re-instanciar.');
+            }
+          } finally {
+            btn.disabled = false;
+            btn.textContent = '▶ Re-instanciar';
+          }
+        });
+
+        // Conectar SSE de logs
+        if (latestRun) {
+          conectarSSELogs(latestRun.run_id);
+        }
+      }
+
+      function conectarSSELogs(runId: string) {
+        if (activeEventSource) {
+          activeEventSource.close();
+          activeEventSource = null;
+        }
+
+        const terminal = $('#terminal-output')!;
+        terminal.innerHTML = '';
+
+        activeEventSource = streamRunLogs(runId, {
+          onLog: (line) => {
+            appendTerminalLine(line.stream, line.line);
+          },
+          onStatus: (st) => {
+            updateDetailStatus(st.status);
+          },
+          onExit: (exit) => {
+            updateDetailStatus(exit.status);
+            $('#meta-exit')!.innerHTML = exitChip(exit.exit_code);
+          },
+          onError: () => {
+            // El backend corta el stream al completar el log
+            activeEventSource?.close();
+            activeEventSource = null;
+          },
+        });
+      }
+
+      // --- MODAL CREAR SANDBOX ---
+
+      const modalCrear = $('#modal-crear') as HTMLDialogElement | null;
+      $('#btn-abrir-crear')?.addEventListener('click', () => modalCrear?.showModal());
+      $('#btn-crear-vacio')?.addEventListener('click', () => modalCrear?.showModal());
+      $('#btn-cancelar-crear')?.addEventListener('click', () => modalCrear?.close());
+
+      $('#c-template')?.addEventListener('change', function (this: HTMLSelectElement) {
+        const val = this.value;
+        const hint = $('#c-allowlist-hint');
+        if (hint) hint.textContent = TEMPLATE_ALLOWLIST[val] || '';
+        const modeSel = $('#c-mode') as HTMLSelectElement | null;
+        if (modeSel) {
+          modeSel.value = val === 'bun/react' ? 'service' : 'job';
+        }
+        const cmd = $('#c-startcmd') as HTMLInputElement | null;
+        if (cmd) {
+          cmd.placeholder = val === 'python/numpy' ? 'python main.py' : val === 'bun/react' ? 'bun run dev' : val === 'arduino' ? 'arduino-cli compile --input main.ino' : './main';
+        }
+      });
+
+      $('#form-crear')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errBox = $('#c-error')!;
+        errBox.classList.add('hidden');
+        errBox.textContent = '';
+
+        const templateId = ($('#c-template') as HTMLSelectElement).value;
+        const mode = ($('#c-mode') as HTMLSelectElement).value as SandboxMode;
+        const retention = ($('#c-retention') as HTMLSelectElement).value as SandboxRetention;
+        const packages = ($('#c-packages') as HTMLInputElement).value.trim();
+        const startCmd = ($('#c-startcmd') as HTMLInputElement).value.trim();
+
+        const btn = $('#btn-confirmar-crear') as HTMLButtonElement;
+        btn.disabled = true;
+        btn.textContent = 'Lanzando…';
+
+        try {
+          const res = await createSandbox({
+            template_id: templateId,
+            mode,
+            retention,
+            packages_extra: packages || undefined,
+            start_command: startCmd || undefined,
+            purpose: 'standalone',
+          });
+
+          modalCrear?.close();
+          if (res.status === 'queued') {
+            aviso(`En cola (posición ${res.queue_position}). ${res.budget_note ?? ''}`);
+          } else {
+            aviso('Sandbox iniciado ✓');
+          }
+          // Redirigir a vista detalle del nuevo sandbox
+          window.location.href = `/sandboxes/?id=${encodeURIComponent(res.sandbox_id)}`;
+        } catch (err) {
+          if (err instanceof ApiError) {
+            if (err.code === 'capacity_unavailable' || err.status === 503) {
+              // Copy exacto del contrato (§0 / §7)
+              errBox.textContent = 'Servidor sin capacidad: la cola de sandboxes está llena. Esperá unos minutos a que se liberen recursos y volvé a intentar.';
+            } else if (err.code === 'validation_error') {
+              errBox.textContent = err.message || 'Error de validación: verificá que los paquetes pertenezcan al allowlist.';
+            } else if (err.code === 'guest_read_only') {
+              errBox.textContent = 'Estás en modo visitante: solo podés ver proyectos históricos.';
+            } else {
+              errBox.textContent = err.message || 'No pudimos crear el sandbox.';
+            }
+          } else {
+            errBox.textContent = 'No pudimos conectar con el servidor escolar.';
+          }
+          errBox.classList.remove('hidden');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Lanzar sandbox';
+        }
+      });
+
+      // --- INICIALIZACIÓN ---
+      function init() {
+        if (sandboxId) {
+          void initDetalle(sandboxId);
+        } else {
+          void initListado();
+        }
+      }
+
+      init();
+    })();
+  </script>
+</Layout>
