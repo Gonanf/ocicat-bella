@@ -9,5 +9,9 @@ dist/
 mempalace.yaml
 entities.json
 
+
 # Sesiones de agentes (no commitear)
 .omo/
+.prompts
+docs
+
