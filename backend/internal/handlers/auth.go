@@ -274,9 +274,14 @@ func (h *Handler) ConsumeMagicLink(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"user": user, "session_kind": string(kind)})
 }
 
-// Me maneja GET /auth/me: usuario de la sesión actual.
+// Me maneja GET /auth/me: usuario de la sesión actual; con impersonación
+// activa (§9.5) expone impersonated_by para el banner UI obligatorio.
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{"user": middleware.UserFromContext(r.Context())})
+	resp := map[string]any{"user": middleware.UserFromContext(r.Context())}
+	if sess := middleware.SessionFromContext(r.Context()); sess != nil && sess.ImpersonatedBy != "" {
+		resp["impersonated_by"] = sess.ImpersonatedBy
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // Logout maneja DELETE /sessions/current (§2.4).

@@ -252,6 +252,8 @@ func (h *Handler) RotateJoinCode(w http.ResponseWriter, r *http.Request) {
 		writeInternal(w)
 		return
 	}
+	user := middleware.UserFromContext(r.Context())
+	_ = h.audit(r.Context(), user.ID, "code.classroom_rotate", c.ID, "", middleware.ExtractIP(r))
 	writeJSON(w, http.StatusOK, map[string]string{"code": c.JoinCode})
 }
 

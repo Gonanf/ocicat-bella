@@ -106,6 +106,7 @@ func (h *Handler) registerRoutes() {
 	h.registerFase4Routes()
 	h.registerFase5Routes()
 	h.registerFase6Routes()
+	h.registerFase7Routes()
 }
 
 // atajos de middleware para las rutas de Fase 4.
@@ -188,4 +189,25 @@ func (h *Handler) registerFase6Routes() {
 	h.mux.HandleFunc("GET /runs/{run_id}", h.GetRunStatus)
 	h.mux.HandleFunc("GET /runs/{run_id}/logs", h.RunLogs)
 	h.mux.Handle("POST /runs/{run_id}/stop", guestRO(middleware.RequireAuth(http.HandlerFunc(h.StopRun))))
+}
+
+func (h *Handler) registerFase7Routes() {
+	guestRO := middleware.RequireNonGuest
+
+	// Docentes §9.2 (CU-15): todo director
+	h.mux.Handle("GET /school/teachers", requireDirector(http.HandlerFunc(h.ListTeachers)))
+	h.mux.Handle("POST /school/teachers", requireDirector(http.HandlerFunc(h.CreateTeacher)))
+	h.mux.Handle("POST /school/teachers/{id}/reset-credential", requireDirector(http.HandlerFunc(h.ResetTeacherCredential)))
+	h.mux.Handle("POST /school/teachers/{id}/disable", requireDirector(http.HandlerFunc(h.DisableTeacher)))
+	h.mux.Handle("POST /school/teachers/{id}/enable", requireDirector(http.HandlerFunc(h.EnableTeacher)))
+
+	// Alta de alumnos, registro CERRADO §9.3 (CU-18): docente dueño del aula, director
+	h.mux.Handle("POST /classrooms/{id}/students/import", guestRO(requireStaff(http.HandlerFunc(h.ImportStudents))))
+	h.mux.Handle("POST /classrooms/{id}/students/invite", guestRO(requireStaff(http.HandlerFunc(h.InviteStudent))))
+	h.mux.Handle("POST /students/{user_id}/resend-magic-link", guestRO(requireStaff(http.HandlerFunc(h.ResendMagicLink))))
+
+	// Impersonación administrativa §9.5: endpoint SEPARADO del resto, auditado
+	h.mux.Handle("POST /admin/impersonations", requireDirector(http.HandlerFunc(h.StartImpersonation)))
+	h.mux.Handle("DELETE /admin/impersonations/current", requireDirector(http.HandlerFunc(h.EndImpersonation)))
+	h.mux.Handle("GET /admin/audit-log", requireDirector(http.HandlerFunc(h.AuditLog)))
 }
