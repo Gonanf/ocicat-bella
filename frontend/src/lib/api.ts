@@ -508,3 +508,213 @@ export async function listSubmissionsFiltered(
   );
   return Array.isArray(data) ? data : data.submissions;
 }
+
+// --- Sandboxes y Runs (§7), Templates (§10.2) y Settings (G4) — Fase 5 ---
+
+export type SandboxMode = 'job' | 'service';
+export type SandboxPurpose = 'standalone' | 'submission_test';
+export type SandboxRetention = 'historical' | 'ephemeral';
+export type RunStatus =
+  | 'queued'
+  | 'downloading_image'
+  | 'starting'
+  | 'ready'
+  | 'running'
+  | 'succeeded'
+  | 'failed'
+  | 'cleaned';
+
+export interface Template {
+  id: string;
+  label: string;
+  mode_default: SandboxMode;
+  runtimes: Runtime[];
+  packages_allowlist?: string[];
+  start_command?: string;
+}
+
+export interface SandboxSettings {
+  classroom_id?: string;
+  allowed_templates: string[];
+  custom_dockerfile_enabled?: boolean;
+}
+
+export interface CreateSandboxPayload {
+  template_id: string;
+  packages_extra?: string;
+  mode?: SandboxMode;
+  start_command?: string;
+  purpose?: SandboxPurpose;
+  submission_id?: string;
+  retention?: SandboxRetention;
+  visibility?: 'public' | 'school' | 'classroom';
+}
+
+export interface SandboxRunCreated {
+  sandbox_id: string;
+  run_id: string;
+  status: RunStatus;
+  queue_position?: number;
+  budget_note?: string;
+}
+
+export interface RunHistoryEntry {
+  n: number;
+  outcome: 'success' | 'error' | 'timeout' | string;
+}
+
+export interface RunDetail {
+  run_id: string;
+  sandbox_id: string;
+  status: RunStatus;
+  exit_code: number | null;
+  service_url: string | null;
+  started_at: string | null;
+  history?: RunHistoryEntry[];
+}
+
+export interface SandboxSummary {
+  id: string;
+  template_id: string;
+  mode: SandboxMode;
+  purpose: SandboxPurpose;
+  retention: SandboxRetention;
+  created_at: string;
+  status?: RunStatus;
+  author?: string;
+}
+
+export interface SandboxDetail extends SandboxSummary {
+  start_command?: string;
+  packages_extra?: string;
+  visibility?: string;
+  runs?: RunDetail[];
+}
+
+export function listTemplates(classroomId?: string): Promise<{ templates: Template[] }> {
+  return request(`/api/v1/templates${qs({ classroom_id: classroomId })}`);
+}
+
+export async function getClassroomSettings(id: string): Promise<SandboxSettings> {
+  const { templates } = await listTemplates(id);
+  return {
+    classroom_id: id,
+    allowed_templates: templates.map((t) => t.id),
+    custom_dockerfile_enabled: false,
+  };
+}
+
+export function patchClassroomSettings(
+  id: string,
+  payload: { allowed_templates?: string[]; custom_dockerfile_enabled?: boolean },
+): Promise<SandboxSettings> {
+  return request(`/api/v1/classrooms/${encodeURIComponent(id)}/settings`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createSandbox(
+  payloadOrClassroomId: CreateSandboxPayload | string | undefined,
+  maybePayload?: CreateSandboxPayload,
+): Promise<SandboxRunCreated> {
+  const payload: CreateSandboxPayload =
+    typeof payloadOrClassroomId === 'object' && payloadOrClassroomId !== null
+      ? payloadOrClassroomId
+      : (maybePayload ?? { template_id: 'python/numpy' });
+  return request('/api/v1/sandboxes', json(payload));
+}
+
+export function listSandboxes(): Promise<{ sandboxes: SandboxSummary[] }> {
+  return request('/api/v1/sandboxes');
+}
+
+export function getSandbox(id: string): Promise<SandboxDetail> {
+  return request(`/api/v1/sandboxes/${encodeURIComponent(id)}`);
+}
+
+export function instantiateSandbox(id: string): Promise<SandboxRunCreated> {
+  return request(`/api/v1/sandboxes/${encodeURIComponent(id)}/instantiate`, { method: 'POST' });
+}
+
+export function getRun(runId: string): Promise<RunDetail> {
+  return request(`/api/v1/runs/${encodeURIComponent(runId)}`);
+}
+
+export async function listRuns(sandboxId: string): Promise<RunDetail[]> {
+  const sb = await getSandbox(sandboxId);
+  return sb.runs ?? [];
+}
+
+export function stopRun(runId: string): Promise<{ status: string }> {
+  return request(`/api/v1/runs/${encodeURIComponent(runId)}/stop`, { method: 'POST' });
+}
+
+export async function stopSandbox(idOrRunId: string): Promise<{ status: string }> {
+  try {
+    return await stopRun(idOrRunId);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      const sb = await getSandbox(idOrRunId);
+      const runs = sb.runs;
+      if (runs && runs.length > 0) {
+        const lastRun = runs[runs.length - 1];
+        return await stopRun(lastRun.run_id);
+      }
+    }
+    throw err;
+  }
+}
+
+export function runLogsUrl(runId: string): string {
+  return `${BASE}/api/v1/runs/${encodeURIComponent(runId)}/logs`;
+}
+
+export function streamRunLogs(
+  runId: string,
+  handlers: {
+    onLog?: (line: { stream: string; line: string }) => void;
+    onStatus?: (status: { status: RunStatus }) => void;
+    onExit?: (exit: { exit_code: number; status: RunStatus }) => void;
+    onError?: (err: Event) => void;
+  },
+): EventSource {
+  const url = runLogsUrl(runId);
+  const es = new EventSource(url, { withCredentials: true });
+
+  if (handlers.onLog) {
+    es.addEventListener('log', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        handlers.onLog?.(data);
+      } catch {}
+    });
+  }
+
+  if (handlers.onStatus) {
+    es.addEventListener('status', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        handlers.onStatus?.(data);
+      } catch {}
+    });
+  }
+
+  if (handlers.onExit) {
+    es.addEventListener('exit', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        handlers.onExit?.(data);
+      } catch {}
+    });
+  }
+
+  if (handlers.onError) {
+    es.onerror = (e) => {
+      handlers.onError?.(e);
+    };
+  }
+
+  return es;
+}
+
