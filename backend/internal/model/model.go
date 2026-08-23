@@ -62,6 +62,8 @@ const (
 )
 
 // Classroom is one aula (§3). JoinCode es el código de invitación rotable.
+// Settings de sandbox (§10.2/G4): AllowedTemplates vacío = catálogo completo
+// (default); CustomDockerfileEnabled OFF por defecto.
 type Classroom struct {
 	ID        string    `json:"id"`
 	TeacherID string    `json:"teacher_id"`
@@ -71,6 +73,9 @@ type Classroom struct {
 	JoinCode  string    `json:"join_code"`
 	Archived  bool      `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
+
+	AllowedTemplates       []string `json:"-"`
+	CustomDockerfileEnabled bool     `json:"-"`
 }
 
 type MembershipStatus string
@@ -366,10 +371,98 @@ type Submission struct {
 	State          SubmissionState
 	Files          []SubmissionFile // vivos mientras draft
 	SnapshotFiles  []SubmissionFile // copia inmutable al deliver
-	LastTestResult *TestResult      // nil hasta FASE 6
+	LastTestResult *TestResult      // populado si hubo run submission_test terminado (FASE 6)
 	DeliveredAt    time.Time
 	Late           bool
-	TestedOK       bool // derivados al tener test result (FASE 6)
-	TestError      bool
+	TestedOK       bool // exit_code == 0
+	TestError      bool // exit_code != 0
 	CreatedAt      time.Time
+}
+
+// --- Sandboxes y runs (§7) ---
+
+type SandboxMode string
+
+const (
+	ModeJob     SandboxMode = "job"
+	ModeService SandboxMode = "service"
+)
+
+type SandboxPurpose string
+
+const (
+	PurposeStandalone      SandboxPurpose = "standalone"
+	PurposeSubmissionTest  SandboxPurpose = "submission_test"
+)
+
+type SandboxRetention string
+
+const (
+	RetentionHistorical SandboxRetention = "historical" // registro re-accedible/re-instanciable
+	RetentionEphemeral  SandboxRetention = "ephemeral"  // 404 tras limpieza
+)
+
+// RunStatus une la máquina de estados §2.3/§13.2.
+type RunStatus string
+
+const (
+	RunQueued           RunStatus = "queued"
+	RunDownloadingImage RunStatus = "downloading_image"
+	RunStarting         RunStatus = "starting"
+	RunReady            RunStatus = "ready"
+	RunRunning          RunStatus = "running"
+	RunSucceeded        RunStatus = "succeeded"
+	RunFailed           RunStatus = "failed"
+	RunCleaned          RunStatus = "cleaned"
+)
+
+// Terminal reporta si el run ya terminó (invitados solo ven estos).
+func (s RunStatus) Terminal() bool {
+	return s == RunSucceeded || s == RunFailed || s == RunCleaned
+}
+
+// ActiveContainer: el contenedor está prendido (cuenta contra presupuesto §0.3).
+func (s RunStatus) ActiveContainer() bool {
+	return s == RunDownloadingImage || s == RunStarting || s == RunReady || s == RunRunning
+}
+
+type LogLine struct {
+	Stream string `json:"stream"` // stdout | stderr
+	Line   string `json:"line"`
+}
+
+// Sandbox es el registro de un entorno (§7); los runs son sus ejecuciones #N.
+// Cleaned marca un ephemeral ya limpiado → handlers responden 404.
+type Sandbox struct {
+	ID            string
+	TemplateID    string
+	CreatedBy     string
+	ClassroomID   string // aula de contexto (submission_test o primera membresía)
+	Mode          SandboxMode
+	StartCommand  string
+	PackagesExtra string
+	Purpose       SandboxPurpose
+	SubmissionID  string
+	Retention     SandboxRetention
+	Visibility    Visibility // public/school habilitan lectura de invitados/anónimos (§7)
+	Cleaned       bool       // ephemeral limpiado
+	CreatedAt     time.Time
+}
+
+type RunHistoryEntry struct {
+	N       int    `json:"n"`
+	Outcome string `json:"outcome"` // success | error | timeout
+}
+
+type Run struct {
+	ID         string
+	SandboxID  string
+	N          int // ejecución #N del sandbox
+	Status     RunStatus
+	ExitCode   *int
+	ServiceURL string // modo service: /s/{sandbox_id} al llegar a running (Q5 abierta)
+	StartedAt  time.Time // cero mientras queued
+	History    []RunHistoryEntry
+	Logs       []LogLine
+	CreatedAt  time.Time
 }
