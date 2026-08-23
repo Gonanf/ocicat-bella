@@ -19,11 +19,26 @@ import (
 func main() {
 	cfg := config.Load()
 
-	// In PR1, initialize in-memory store stub (Turso SQLite will be integrated in PR2)
-	memStore := store.NewMemStore()
+	var s store.Store
+	if cfg.TursoDatabaseURL != "" {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ts, err := store.NewTursoStore(ctx, cfg.TursoDatabaseURL, cfg.TursoAuthToken)
+		cancel()
+		if err != nil {
+			log.Fatalf("No se pudo conectar a Turso: %v", err)
+		}
+		s = ts
+		log.Println("Store: Turso (SQL over HTTP)")
+	} else {
+		log.Println("ADVERTENCIA: TURSO_DATABASE_URL vacío; usando MemStore en memoria (datos volátiles, solo dev)")
+		s = store.NewMemStore()
+	}
 
 	// Create router with stdlib ServeMux (Go 1.22+) and middleware chain
-	router := handlers.NewRouter(cfg, memStore)
+	router := handlers.NewRouter(cfg, s)
+
+	// GC de adjuntos huérfanos (§4): sweep al iniciar y cada hora.
+	router.StartAttachmentGC(context.Background(), time.Hour)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.Port,
@@ -35,6 +50,16 @@ func main() {
 
 	// Server run context for graceful shutdown
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
+
+	// FakeRunner: avanza la máquina de estados §7 (queued→…→cleaned) mientras
+	// no exista runner Docker real (Plan B §13.4).
+	go func() {
+		ticker := time.NewTicker(500 * time.Millisecond)
+		defer ticker.Stop()
+		for range ticker.C {
+			router.Step(serverCtx)
+		}
+	}()
 
 	// Listen for syscall signals for process to interrupt/quit
 	sig := make(chan os.Signal, 1)

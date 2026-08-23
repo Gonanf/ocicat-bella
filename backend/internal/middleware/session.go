@@ -112,7 +112,7 @@ func SetSessionCookie(w http.ResponseWriter, session *model.Session, domain stri
 	case model.SessionKindPWA:
 		cookie.MaxAge = int(model.PWASlidingDuration.Seconds())
 		cookie.Expires = time.Now().Add(model.PWASlidingDuration)
-	case model.SessionKindStaff:
+	case model.SessionKindStaff, model.SessionKindGuest:
 		cookie.MaxAge = int(model.StaffSlidingDuration.Seconds())
 		cookie.Expires = time.Now().Add(model.StaffSlidingDuration)
 	}
