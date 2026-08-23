@@ -116,10 +116,27 @@ import Layout from '../../layouts/Layout.astro';
               </div>
             </dl>
 
-            <!-- Sandbox de prueba: fase FE5 -->
-            <p class="text-[11px] text-base-content/50 p-3 rounded-xl bg-base-200/60 border border-base-300">
-              🔒 Probar en sandbox antes de entregar va a estar disponible muy pronto.
-            </p>
+            <!-- Sandbox de prueba: CU-5 paso 3 / §5.2 -->
+            <div class="p-3.5 rounded-2xl bg-base-200/60 border border-base-300 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <div>
+                  <span class="text-xs font-bold uppercase tracking-wider text-base-content block">Probar en sandbox (opcional)</span>
+                  <p class="text-[11px] text-base-content/60">Ejecutá tu solución en el entorno de la consigna antes de entregar.</p>
+                </div>
+                <button type="button" id="btn-probar-sandbox" class="btn btn-sm btn-outline btn-primary rounded-xl font-semibold shrink-0">
+                  ▶ Probar
+                </button>
+              </div>
+              <div id="sandbox-test-status" hidden class="p-2.5 rounded-xl bg-base-100 border border-base-300 text-xs font-mono">
+                <div class="flex items-center justify-between gap-2 mb-1.5">
+                  <span id="sb-test-badge" class="badge badge-info badge-soft badge-sm font-semibold">iniciando…</span>
+                  <span id="sb-test-note" class="text-[10px] text-base-content/50"></span>
+                </div>
+                <div id="sb-test-logs" class="mockup-code rounded-lg min-h-24 max-h-40 overflow-auto text-[11px] bg-[#070D18] text-[#DCE6F5] p-2 leading-tight">
+                  <pre data-prefix=">"><code>Iniciando prueba…</code></pre>
+                </div>
+              </div>
+            </div>
 
             <div id="zona-entrega" class="flex flex-col sm:flex-row gap-2 mt-1">
               <button type="button" id="btn-entregar" class="btn btn-primary rounded-xl flex-1 font-semibold">
@@ -250,8 +267,8 @@ import Layout from '../../layouts/Layout.astro';
 
   <script>
       import {
-        ApiError, assignmentStats, deliverSubmission, getAssignment, listSubmissionsFiltered,
-        me, mySubmissions, uploadSubmissionFiles,
+        ApiError, assignmentStats, createSandbox, deliverSubmission, getAssignment, listSubmissionsFiltered,
+        me, mySubmissions, streamRunLogs, uploadSubmissionFiles,
         type Assignment, type Submission, type SubmissionFile,
       } from '../../lib/api';
 
@@ -506,6 +523,105 @@ import Layout from '../../layouts/Layout.astro';
         $('#nav-paso-2').hidden = false;
         setStepper(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      // Probar en sandbox (CU-5 paso 3 / §5.2)
+      let testEventSource: EventSource | null = null;
+
+      function mapearRuntimeATemplate(rt: string): string {
+        const map: Record<string, string> = {
+          python: 'python/numpy',
+          web: 'bun/react',
+          cpp: 'cpp/sqlite',
+          arduino: 'arduino',
+        };
+        return map[rt] ?? 'python/numpy';
+      }
+
+      $('#btn-probar-sandbox')?.addEventListener('click', async () => {
+        if (!draftId) {
+          aviso('Subí tus archivos antes de probar.');
+          return;
+        }
+        const btn = $('#btn-probar-sandbox') as HTMLButtonElement;
+        const testStatusWrap = $('#sandbox-test-status')!;
+        const testBadge = $('#sb-test-badge')!;
+        const testLogs = $('#sb-test-logs')!;
+        const testNote = $('#sb-test-note')!;
+
+        btn.disabled = true;
+        btn.textContent = 'Probando…';
+        testStatusWrap.hidden = false;
+        testBadge.className = 'badge badge-info badge-soft badge-sm font-semibold';
+        testBadge.textContent = 'iniciando…';
+        testLogs.innerHTML = '<pre data-prefix=">"><code>Iniciando prueba en sandbox…</code></pre>';
+        testNote.textContent = '';
+
+        if (testEventSource) {
+          testEventSource.close();
+          testEventSource = null;
+        }
+
+        try {
+          const tplId = mapearRuntimeATemplate(consigna?.runtime ?? 'python');
+          const res = await createSandbox({
+            template_id: tplId,
+            purpose: 'submission_test',
+            submission_id: draftId,
+            retention: 'ephemeral',
+          });
+
+          if (res.status === 'queued') {
+            testBadge.className = 'badge badge-warning badge-soft badge-sm font-semibold';
+            testBadge.textContent = `en cola (pos ${res.queue_position ?? 1})`;
+            testNote.textContent = res.budget_note ?? '';
+          }
+
+          testEventSource = streamRunLogs(res.run_id, {
+            onLog: (l) => {
+              const pre = document.createElement('pre');
+              pre.setAttribute('data-prefix', l.stream === 'stdout' ? '>' : '!');
+              if (l.stream === 'stderr') pre.classList.add('text-error');
+              pre.innerHTML = `<code>${escapeHtml(l.line)}</code>`;
+              testLogs.appendChild(pre);
+              testLogs.scrollTop = testLogs.scrollHeight;
+            },
+            onStatus: (st) => {
+              testBadge.textContent = st.status;
+            },
+            onExit: (exit) => {
+              if (exit.exit_code === 0) {
+                testBadge.className = 'badge badge-success badge-soft badge-sm font-semibold';
+                testBadge.textContent = 'probado OK (exit 0)';
+                aviso('Prueba completada: exit 0 ✓');
+              } else {
+                testBadge.className = 'badge badge-error badge-soft badge-sm font-semibold';
+                testBadge.textContent = `error (exit ${exit.exit_code})`;
+                aviso(`Prueba finalizada con código de error ${exit.exit_code}`);
+              }
+              btn.disabled = false;
+              btn.textContent = '▶ Probar de nuevo';
+            },
+            onError: () => {
+              testEventSource?.close();
+              testEventSource = null;
+              btn.disabled = false;
+              btn.textContent = '▶ Probar de nuevo';
+            },
+          });
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = '▶ Probar';
+          if (err instanceof ApiError && (err.code === 'capacity_unavailable' || err.status === 503)) {
+            testBadge.className = 'badge badge-error badge-soft badge-sm font-semibold';
+            testBadge.textContent = 'servidor ocupado';
+            aviso('Servidor sin capacidad: la cola de sandboxes está llena. Esperá unos minutos e intentá de nuevo.');
+          } else {
+            testBadge.className = 'badge badge-error badge-soft badge-sm font-semibold';
+            testBadge.textContent = 'error';
+            aviso(err instanceof ApiError && err.message ? err.message : 'No pudimos probar en sandbox.');
+          }
+        }
       });
 
       // Checkpoint explícito
