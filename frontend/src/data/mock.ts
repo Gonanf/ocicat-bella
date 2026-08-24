@@ -61,7 +61,5 @@ export const usuariosMock: Record<Rol, UsuarioMock> = {
   },
 };
 
-export const currentMockRole: Rol = 'docente';
-export const currentMockUser = usuariosMock[currentMockRole];
 
 
