@@ -37,6 +37,14 @@ func OriginMiddleware(officialDomain string) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
+			// Dev: sin OFFICIAL_DOMAIN el front corre en otro puerto (proxy Astro
+			// :4321 → :8080), así que el Origin nunca coincide con el Host.
+			// Se permiten orígenes loopback solo en ese modo.
+			if officialDomain == "" &&
+				(u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1") {
+				next.ServeHTTP(w, r)
+				return
+			}
 			errors.WriteCode(w, errors.CodeForbidden)
 		})
 	}
