@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getSetupStatus } from '../lib/api';
 
 const features = [
   {
@@ -66,6 +65,8 @@ const features = [
 </Layout>
 
 <script>
+  import { getSetupStatus } from '../lib/api';
+
   // Instancia sin configurar → el wizard de /setup/ es la única entrada.
   getSetupStatus()
     .then((st) => {
