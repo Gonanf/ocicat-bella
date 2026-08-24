@@ -3,7 +3,7 @@
 set positional-arguments
 
 # variables
-backend_dir := "../ocicat-bella-backend/backend"
+backend_dir := "backend"
 frontend_dir := "frontend"
 
 # default: listar recetas
@@ -26,7 +26,7 @@ dev:
 # build de producción
 build:
     cd {{frontend_dir}} && bun run build
-    cd {{backend_dir}} && go build ./...
+    cd {{backend_dir}} && realpath . && go build ./...
 
 # test de todo
 test:
