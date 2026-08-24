@@ -20,7 +20,7 @@ dev:
     set -e
     trap 'kill 0' EXIT
     (cd {{frontend_dir}} && bun run dev) &
-    (cd {{backend_dir}} && go run ./cmd/...) &
+    (cd {{backend_dir}} && go run ./cmd/api...) &
     wait
 
 # build de producción

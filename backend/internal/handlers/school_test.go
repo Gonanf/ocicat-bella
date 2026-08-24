@@ -181,10 +181,10 @@ func TestEscuela_RegeneradoMataInvitados(t *testing.T) {
 		t.Fatalf("código viejo tras regenerar: esperaba 404 invalid_code, got %d (%s)", recOld.Code, recOld.Body.String())
 	}
 
-	// …y la sesión del invitado viejo murió: ahora ve como anónimo (sin school)
+	// …y la sesión del invitado viejo murió: ahora es anónimo → 401 (sin contexto de escuela)
 	desps := doJSON(t, h, "GET", "/materials", "", guestCookie)
-	if desps.Code != 200 || strings.Contains(desps.Body.String(), "sch") {
-		t.Fatalf("invitado viejo debe quedar afuera (ver solo public): %d (%s)", desps.Code, desps.Body.String())
+	if desps.Code != http.StatusUnauthorized {
+		t.Fatalf("invitado viejo debe quedar afuera (401 anónimo): got %d (%s)", desps.Code, desps.Body.String())
 	}
 
 	// el nuevo código funciona y GET /school lo refleja activo

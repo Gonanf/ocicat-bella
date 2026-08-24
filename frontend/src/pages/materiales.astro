@@ -247,6 +247,11 @@ import Layout from '../layouts/Layout.astro';
       try {
         ({ materials: materiales } = await listMaterials({ scope }));
       } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          // Anónimo sin contexto de escuela: derivar a ingresar el código.
+          window.location.href = '/unirse/';
+          return;
+        }
         if (err instanceof ApiError && err.status === 403) {
           aviso('Las consignas son privadas del curso; para participar necesitás que tu docente te dé de alta.');
         } else if (!(err instanceof ApiError)) {

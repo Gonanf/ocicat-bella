@@ -212,13 +212,14 @@ func TestListadoSandboxes_PorRol(t *testing.T) {
 		name    string
 		cookie  *http.Cookie
 		quieres []string
+		status  int
 	}{
-		{"anónimo: solo public/school históricos", nil, []string{publica["sandbox_id"].(string)}},
-		{"invitado: ídem", f.guest, []string{publica["sandbox_id"].(string)}},
-		{"alumno: propios", f.alum, []string{privada["sandbox_id"].(string), publica["sandbox_id"].(string)}},
-		{"docente: de sus aulas", f.doc, []string{privada["sandbox_id"].(string), publica["sandbox_id"].(string)}},
-		{"director: todo", f.dir, []string{privada["sandbox_id"].(string), publica["sandbox_id"].(string)}},
-		{"alumno fuera: nada", f.fuera, nil},
+		{"anónimo: sin contexto de escuela → 401", nil, nil, http.StatusUnauthorized},
+		{"invitado: ídem", f.guest, []string{publica["sandbox_id"].(string)}, http.StatusOK},
+		{"alumno: propios", f.alum, []string{privada["sandbox_id"].(string), publica["sandbox_id"].(string)}, http.StatusOK},
+		{"docente: de sus aulas", f.doc, []string{privada["sandbox_id"].(string), publica["sandbox_id"].(string)}, http.StatusOK},
+		{"director: todo", f.dir, []string{privada["sandbox_id"].(string), publica["sandbox_id"].(string)}, http.StatusOK},
+		{"alumno fuera: nada", f.fuera, nil, http.StatusOK},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -228,8 +229,11 @@ func TestListadoSandboxes_PorRol(t *testing.T) {
 			} else {
 				rec = doJSON(t, f.h, "GET", "/sandboxes", "", tc.cookie)
 			}
-			if rec.Code != http.StatusOK {
-				t.Fatalf("esperaba 200, got %d (%s)", rec.Code, rec.Body.String())
+			if rec.Code != tc.status {
+				t.Fatalf("esperaba %d, got %d (%s)", tc.status, rec.Code, rec.Body.String())
+			}
+			if tc.status != http.StatusOK {
+				return
 			}
 			for _, id := range tc.quieres {
 				if !strings.Contains(rec.Body.String(), id) {

@@ -22,6 +22,23 @@ type Config struct {
 	// llena la cola → 503 capacity_unavailable.
 	SandboxMaxContainers int
 	SandboxQueueLimit    int
+
+	// Email (§2.2 magic link). Sin SMTP configurado el sender cae a modo log
+	// (dev), así el link queda visible en los logs del server en vez de perderse.
+	MailHost     string
+	MailPort     int
+	MailUser     string
+	MailPassword string
+	MailFrom     string
+	MailFromName string
+	// AppBaseURL: origen absoluto para armar los magic links (§2.2).
+	// Vacío (dev): se deduce del Host de la request.
+	AppBaseURL string
+}
+
+// MailConfigured reporta si hay credenciales SMTP para enviar email real.
+func (c *Config) MailConfigured() bool {
+	return c.MailHost != "" && c.MailPort > 0 && c.MailFrom != ""
 }
 
 // Load loads configuration from environment variables with sensible defaults for dev.
@@ -37,6 +54,13 @@ func Load() *Config {
 		OfficialDomain:   getEnv("OFFICIAL_DOMAIN", ""),
 		SandboxMaxContainers: getEnvInt("SANDBOX_MAX_CONTAINERS", 4),
 		SandboxQueueLimit:    getEnvInt("SANDBOX_QUEUE_LIMIT", 8),
+		MailHost:             getEnv("MAIL_HOST", ""),
+		MailPort:             getEnvInt("MAIL_PORT", 0),
+		MailUser:             getEnv("MAIL_USER", ""),
+		MailPassword:         getEnv("MAIL_PASSWORD", ""),
+		MailFrom:             getEnv("MAIL_FROM", "no-reply@ocicat.local"),
+		MailFromName:         getEnv("MAIL_FROM_NAME", "Ocicat Bella"),
+		AppBaseURL:           getEnv("APP_BASE_URL", ""),
 	}
 }
 

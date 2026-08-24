@@ -67,6 +67,15 @@ func schemeFromRequest(r *http.Request) string {
 	return "http"
 }
 
+// magicLinkBaseURL arma el origen absoluto del link. Si APP_BASE_URL está
+// configurada (prod), la usa; si no, deduce Host+esquema de la request (dev).
+func (h *Handler) magicLinkBaseURL(r *http.Request) string {
+	if h.cfg.AppBaseURL != "" {
+		return strings.TrimRight(h.cfg.AppBaseURL, "/")
+	}
+	return schemeFromRequest(r) + "://" + r.Host
+}
+
 // LoginEmailStep maneja POST /auth/login/email (§2.1 paso 1). Siempre 200.
 func (h *Handler) LoginEmailStep(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -182,7 +191,7 @@ func (h *Handler) MagicLinkRequest(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusAccepted, magicLinkResponse())
 			return
 		}
-		link := schemeFromRequest(r) + "://" + r.Host + "/auth/consume?token=" + token.Token
+		link := h.magicLinkBaseURL(r) + "/auth/consume?token=" + token.Token
 		h.sendMagicLink(user.Email, link)
 	}
 	writeJSON(w, http.StatusAccepted, magicLinkResponse())
@@ -193,6 +202,34 @@ func magicLinkResponse() map[string]any {
 		"sent":    true,
 		"message": "Si el email corresponde a una cuenta, recibís un enlace en unos minutos.",
 	}
+}
+
+const magicLinkSubject = "Tu acceso a Ocicat Bella"
+
+// magicLinkHTML arma el cuerpo del email transaccional (§2.2 magic link).
+func magicLinkHTML(link, email string) string {
+	return `<!doctype html>
+<html lang="es">
+<body style="margin:0;background:#f4f5f7;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2937;">
+  <div style="max-width:480px;margin:24px auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;">
+    <div style="background:#4f46e5;color:#fff;padding:20px 24px;font-size:20px;font-weight:700;">
+      Ocicat bella
+    </div>
+    <div style="padding:24px;">
+      <p style="margin:0 0 12px;font-size:15px;">Hola,</p>
+      <p style="margin:0 0 20px;font-size:15px;line-height:1.5;">
+        Recibimos un pedido de acceso para <strong>` + email + `</strong>.
+        Este enlace es de un solo uso y expira en breve.
+      </p>
+      <a href="` + link + `" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;
+         padding:12px 22px;border-radius:10px;font-weight:600;font-size:15px;">Abrir mi acceso</a>
+      <p style="margin:20px 0 0;font-size:12px;color:#6b7280;">
+        Si no fuiste vos, ignorá este email. No compartas el enlace.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`
 }
 
 // ConsumeMagicLink maneja GET /auth/consume?token=... (§2.2).

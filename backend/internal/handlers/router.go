@@ -3,13 +3,33 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Gonanf/ocicat-bella/backend/internal/config"
+	"github.com/Gonanf/ocicat-bella/backend/internal/mailer"
 	"github.com/Gonanf/ocicat-bella/backend/internal/middleware"
 	"github.com/Gonanf/ocicat-bella/backend/internal/model"
 	"github.com/Gonanf/ocicat-bella/backend/internal/store"
 )
+
+// stripAPIv1: el frontend y DESIGN.md §6 hablan de /api/v1 como base del API.
+func stripAPIv1(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if rest, ok := strings.CutPrefix(r.URL.Path, "/api/v1"); ok {
+			r2 := *r
+			u := *r.URL
+			u.Path = rest
+			if u.RawPath != "" {
+				u.RawPath = strings.TrimPrefix(u.RawPath, "/api/v1")
+			}
+			r2.URL = &u
+			next.ServeHTTP(w, &r2)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
 
 // Handler wraps the ServeMux router and dependencies.
 type Handler struct {
@@ -29,6 +49,8 @@ type Handler struct {
 	sendMagicLink func(email, link string)  // seam de envío de email; inyectable en tests
 
 	runner Runner // seam §7 Plan B; FakeRunner en dev/tests, Docker real post-MVP
+
+	mail mailer.Sender
 }
 
 // SetMagicLinkSender reemplaza el envío de emails (tests / SMTP real).
@@ -56,9 +78,13 @@ func NewRouter(cfg *config.Config, s store.Store) *Handler {
 		guestRL:      middleware.NewIPRateLimiter(20, 20),
 		loginFailRL:  middleware.NewFailLimiter(5, 15*60*time.Second),
 	}
-	// DEV: sin SMTP configurado, el link queda en el log del servidor
+	// DEV: sin SMTP configurado, el link queda en el log del servidor.
+	// En producción (MAIL_* configuradas) el sender usa SMTP real (gomail).
+	h.mail = mailer.New(cfg)
 	h.sendMagicLink = func(email, link string) {
-		log.Printf("[magic-link] para %s: %s", email, link)
+		if err := h.mail.Send(email, magicLinkSubject, magicLinkHTML(link, email)); err != nil {
+			log.Printf("[magic-link] ERROR al enviar a %s: %v", email, err)
+		}
 	}
 	h.runner = FakeRunner{}
 
@@ -66,7 +92,7 @@ func NewRouter(cfg *config.Config, s store.Store) *Handler {
 
 	// Build global middleware chain:
 	// RateLimiting -> SessionMiddleware -> OriginCheck -> ServeMux
-	var handler http.Handler = h.mux
+	var handler http.Handler = stripAPIv1(h.mux)
 	handler = middleware.OriginMiddleware(cfg.OfficialDomain)(handler)
 	handler = middleware.SessionMiddleware(s)(handler)
 	handler = middleware.RateLimitMiddleware(h.rateLimiter)(handler)
@@ -139,7 +165,7 @@ func (h *Handler) registerFase4Routes() {
 	h.mux.Handle("DELETE /classrooms/{id}/students/{user_id}", guestRO(requireStaff(http.HandlerFunc(h.RemoveStudent))))
 
 	// Materiales (§6)
-	h.mux.HandleFunc("GET /materials", h.ListMaterials) // pública, filtra por rol
+	h.mux.Handle("GET /materials", middleware.RequireNonAnonymous(http.HandlerFunc(h.ListMaterials))) // exige contexto de escuela
 	h.mux.Handle("POST /classrooms/{id}/materials", guestRO(requireStaff(http.HandlerFunc(h.UploadMaterial))))
 	h.mux.HandleFunc("GET /materials/{id}", h.GetMaterialMeta)
 	h.mux.HandleFunc("GET /materials/{id}/file", h.ServeMaterialFile)
@@ -183,7 +209,7 @@ func (h *Handler) registerFase6Routes() {
 
 	// Sandboxes y runs (§7): POST exige alumno miembro/docente/director
 	h.mux.Handle("POST /sandboxes", guestRO(middleware.RequireAuth(http.HandlerFunc(h.CreateSandbox))))
-	h.mux.HandleFunc("GET /sandboxes", h.ListSandboxes) // anónimo incluido: filtra por rol
+	h.mux.Handle("GET /sandboxes", middleware.RequireNonAnonymous(http.HandlerFunc(h.ListSandboxes))) // anónimo excluido: exige contexto de escuela
 	h.mux.HandleFunc("GET /sandboxes/{id}", h.GetSandboxDetail)
 	h.mux.Handle("POST /sandboxes/{id}/instantiate", guestRO(middleware.RequireAuth(http.HandlerFunc(h.InstantiateSandbox))))
 	h.mux.HandleFunc("GET /runs/{run_id}", h.GetRunStatus)

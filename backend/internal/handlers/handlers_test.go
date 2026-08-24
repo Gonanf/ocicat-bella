@@ -62,3 +62,17 @@ func TestRouter_Integration(t *testing.T) {
 		t.Errorf("expected 405 Method Not Allowed for POST /healthz, got %d", postRec.Code)
 	}
 }
+
+func TestRouter_APIv1Prefix(t *testing.T) {
+	cfg := &config.Config{RateLimitRPH: 100, Env: "development"}
+	router := NewRouter(cfg, store.NewMemStore())
+
+	for _, path := range []string{"/api/v1/healthz", "/api/v1/sandboxes", "/api/v1/templates", "/api/v1/auth/me"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+		if rec.Code == http.StatusNotFound {
+			t.Errorf("%s: expected route to exist, got 404", path)
+		}
+	}
+}

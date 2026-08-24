@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { usuariosMock, currentMockRole, type Rol } from '../data/mock';
+import { usuariosMock, type Rol } from '../data/mock';
 
 interface Props {
   titulo: string;
@@ -13,7 +13,7 @@ interface Props {
 const {
   titulo,
   active = '',
-  navRole = currentMockRole,
+  navRole = 'anonimo',
   hideNav = false,
   badgeCount,
 } = Astro.props;
@@ -197,6 +197,9 @@ if (effectiveRole === 'anonimo') {
               </a>
               <a href="/login/" class="btn btn-primary btn-sm md:btn-md rounded-full font-medium">
                 Iniciar sesión
+              </a>
+              <a href="/login/" class="btn btn-ghost btn-sm md:btn-md rounded-full font-medium text-base-content/70">
+                Soy alumno (email escolar)
               </a>
             </div>
           )}

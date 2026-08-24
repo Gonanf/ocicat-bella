@@ -67,3 +67,16 @@ func RequireNonGuest(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// RequireNonAnonymous blocks purely anonymous visitors from reading resources
+// that require a school context (public content still needs a code, §10).
+// Guests (with a valid school code) and any authenticated role are allowed.
+func RequireNonAnonymous(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if UserFromContext(r.Context()) == nil {
+			errors.WriteCode(w, errors.CodeUnauthenticated)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}

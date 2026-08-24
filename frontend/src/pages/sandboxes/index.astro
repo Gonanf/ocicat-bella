@@ -421,7 +421,7 @@ import Layout from '../../layouts/Layout.astro';
           $('#sin-sandboxes')?.classList.toggle('hidden', list.length > 0);
         } catch (err) {
           if (err instanceof ApiError && err.status === 401) {
-            window.location.href = '/login/';
+            window.location.href = '/unirse/';
             return;
           }
           $('#grid-sandboxes')!.innerHTML = '<p class="p-8 text-sm text-base-content/60 text-center md:col-span-2">No pudimos conectar con el servidor.</p>';
@@ -516,7 +516,7 @@ import Layout from '../../layouts/Layout.astro';
             return;
           }
           if (err instanceof ApiError && err.status === 401) {
-            window.location.href = '/login/';
+            window.location.href = '/unirse/';
             return;
           }
           aviso('No pudimos cargar este sandbox.');

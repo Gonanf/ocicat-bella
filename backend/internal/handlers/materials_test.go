@@ -158,6 +158,13 @@ func TestMateriales_VisibilidadPorQuienPregunta(t *testing.T) {
 			}
 			rec := httptest.NewRecorder()
 			f.h.ServeHTTP(rec, req)
+			if tc.cookie == nil {
+				// anónimo: sin contexto de escuela → 401 (§10, bug 5/6)
+				if rec.Code != http.StatusUnauthorized {
+					t.Fatalf("esperaba 401 para anónimo, got %d (%s)", rec.Code, rec.Body.String())
+				}
+				return
+			}
 			if rec.Code != 200 {
 				t.Fatalf("esperaba 200, got %d (%s)", rec.Code, rec.Body.String())
 			}
