@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getSetupStatus } from '../lib/api';
 
 const features = [
   {
@@ -63,3 +64,14 @@ const features = [
     ))}
   </section>
 </Layout>
+
+<script>
+  // Instancia sin configurar → el wizard de /setup/ es la única entrada.
+  getSetupStatus()
+    .then((st) => {
+      if (st.configured === false) window.location.href = '/setup/';
+    })
+    .catch(() => {
+      // Error de red: dejamos la home funcionar igual.
+    });
+</script>

@@ -32,10 +32,8 @@ interface NavLinkItem {
 let navLinks: NavLinkItem[] = [];
 
 if (effectiveRole === 'anonimo') {
-  navLinks = [
-    { href: '/materiales/', label: 'Materiales públicos', key: 'materiales' },
-    { href: '/sandboxes/', label: 'Proyectos', key: 'sandboxes' },
-  ];
+  // Sin sesión no mostramos Materiales ni Proyectos: el backend bloquea esos endpoints (401).
+  navLinks = [];
 } else if (effectiveRole === 'invitado') {
   navLinks = [
     { href: '/materiales/', label: 'Materiales', key: 'materiales' },
@@ -197,9 +195,6 @@ if (effectiveRole === 'anonimo') {
               </a>
               <a href="/login/" class="btn btn-primary btn-sm md:btn-md rounded-full font-medium">
                 Iniciar sesión
-              </a>
-              <a href="/login/" class="btn btn-ghost btn-sm md:btn-md rounded-full font-medium text-base-content/70">
-                Soy alumno (email escolar)
               </a>
             </div>
           )}

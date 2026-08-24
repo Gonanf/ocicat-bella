@@ -20,6 +20,7 @@ import Layout from '../../layouts/Layout.astro';
           type="button"
           id="btn-abrir-crear"
           class="btn btn-primary rounded-xl font-semibold px-5 shadow-xs"
+          hidden
         >
           ＋ Nuevo sandbox
         </button>
@@ -57,7 +58,7 @@ import Layout from '../../layouts/Layout.astro';
         <h3 class="font-display font-normal text-2xl text-base-content">No hay sandboxes corriendo</h3>
         <p class="text-sm text-base-content/60 mt-1 mb-4">Creá uno desde una plantilla para empezar a experimentar.</p>
         <div>
-          <button type="button" id="btn-crear-vacio" class="btn btn-primary rounded-xl px-6">
+          <button type="button" id="btn-crear-vacio" class="btn btn-primary rounded-xl px-6" hidden>
             ＋ Crear sandbox
           </button>
         </div>
@@ -411,6 +412,10 @@ import Layout from '../../layouts/Layout.astro';
 
           availableTemplates = templates;
           poblarSelectTemplates(templates);
+
+          // Sesión válida confirmada por el fetch: recién acá mostramos los botones de crear.
+          $('#btn-abrir-crear')?.classList.remove('hidden');
+          $('#btn-crear-vacio')?.classList.remove('hidden');
 
           const runningCount = list.filter((s) => s.status === 'running' || s.status === 'starting' || s.status === 'downloading_image' || s.status === 'ready').length;
           $('#cap-corriendo')!.textContent = String(runningCount);
